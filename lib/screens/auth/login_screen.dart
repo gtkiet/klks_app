@@ -1,28 +1,6 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const SmartLivingApp());
-}
-
-class SmartLivingApp extends StatelessWidget {
-  const SmartLivingApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Smart Living',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
-        useMaterial3: true,
-      ),
-      home: const LoginScreen(),
-    );
-  }
-}
+import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -142,7 +120,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ForgotPasswordScreen(),
+                                ),
+                              );
+                            },
                             child: const Text(
                               'Quên mật khẩu?',
                               style: TextStyle(
@@ -171,22 +157,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              'Chưa có tài khoản? ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF6B7280),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: const Text(
-                                'Liên hệ ban quản lý',
-                                style: TextStyle(
+                            RichText(
+                              text: TextSpan(
+                                text: "Chưa có tài khoản? ",
+                                style: const TextStyle(
+                                  color: Color(0xFF6B7280),
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2563EB),
                                 ),
+                                children: [
+                                  WidgetSpan(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const RegisterScreen(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text(
+                                        "Đăng ký",
+                                        style: TextStyle(
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -309,18 +308,17 @@ class _LoginScreenState extends State<LoginScreen> {
         style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF9CA3AF),
-          ),
+          hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF9CA3AF)),
           prefixIcon: Icon(
             prefixIcon,
             color: const Color(0xFF9CA3AF),
             size: 20,
           ),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );
@@ -339,10 +337,7 @@ class _LoginScreenState extends State<LoginScreen> {
         style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
         decoration: InputDecoration(
           hintText: 'Nhập mật khẩu',
-          hintStyle: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF9CA3AF),
-          ),
+          hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF9CA3AF)),
           prefixIcon: const Icon(
             Icons.lock_outline_rounded,
             color: Color(0xFF9CA3AF),
@@ -359,8 +354,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );
@@ -401,9 +398,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildDivider() {
     return Row(
       children: [
-        Expanded(
-          child: Divider(color: const Color(0xFFE5E7EB), thickness: 1),
-        ),
+        Expanded(child: Divider(color: const Color(0xFFE5E7EB), thickness: 1)),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: Text(
@@ -416,9 +411,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-        Expanded(
-          child: Divider(color: const Color(0xFFE5E7EB), thickness: 1),
-        ),
+        Expanded(child: Divider(color: const Color(0xFFE5E7EB), thickness: 1)),
       ],
     );
   }

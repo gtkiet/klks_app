@@ -1,27 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const SmartLivingApp());
-}
-
-class SmartLivingApp extends StatelessWidget {
-  const SmartLivingApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Smart Living',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
-        useMaterial3: true,
-      ),
-      home: const RegisterScreen(),
-    );
-  }
-}
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -145,9 +123,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: Color(0xFF6B7280),
                                 ),
                               ),
+
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.of(context).maybePop();
+                                  Navigator.pop(context);
                                 },
                                 child: const Text(
                                   'Đăng nhập',
@@ -346,13 +325,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF9CA3AF),
-          ),
+          hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF9CA3AF)),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 15,
+          ),
         ),
       ),
     );
@@ -371,10 +349,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
         decoration: InputDecoration(
           hintText: 'Nhập mật khẩu',
-          hintStyle: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF9CA3AF),
-          ),
+          hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF9CA3AF)),
           suffixIcon: GestureDetector(
             onTap: () => setState(() => _obscurePassword = !_obscurePassword),
             child: Icon(
@@ -386,8 +361,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 15,
+          ),
         ),
       ),
     );

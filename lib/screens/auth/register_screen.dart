@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,20 +13,109 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
 
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _roomController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  final AuthService _authService = AuthService();
+
+  DateTime? _selectedDate;
+  String? _selectedGender;
+
+  final List<String> _genderOptions = ['Nam', 'Nữ', 'Khác'];
+
+  int _getGenderId() {
+    switch (_selectedGender) {
+      case "Nam":
+        return 1;
+      case "Nữ":
+        return 2;
+      case "Khác":
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
   @override
   void dispose() {
-    _nameController.dispose();
+    _usernameController.dispose();
+    _lastNameController.dispose();
+    _firstNameController.dispose();
+    _idController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _roomController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _register() async {
+    final response = await _authService.register(
+      username: _usernameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      phoneNumber: _phoneController.text,
+      idCard: _idController.text,
+      dob: _selectedDate!.toIso8601String(),
+      gioiTinhId: _getGenderId(),
+    );
+
+    if (response["isOk"] == true) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Đăng ký thành công")));
+    } else {
+      String errorMessage = "Đăng ký thất bại";
+
+      if (response["errors"] != null && response["errors"].length > 0) {
+        errorMessage = response["errors"][0]["description"];
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime(2000, 1, 1),
+      firstDate: DateTime(1920),
+      lastDate: now,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF2563EB),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF111827),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    final y = date.year.toString();
+    return '$m/$d/$y';
   }
 
   @override
@@ -33,25 +125,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── App Bar ──
             _buildAppBar(context),
-
-            // ── Scrollable body ──
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Hero image
                     _buildHeroImage(),
-
-                    // Form
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Section title
                           const Text(
                             'Thông tin cá nhân',
                             style: TextStyle(
@@ -62,27 +147,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Họ và tên
-                          _buildLabel('Họ và tên'),
+                          _buildLabel('Tên đăng nhập'),
                           const SizedBox(height: 8),
                           _buildTextField(
-                            controller: _nameController,
-                            hintText: 'Nhập họ và tên',
+                            controller: _usernameController,
+                            hintText: 'Nhập tên đăng nhập',
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildLabel('Họ'),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _lastNameController,
+                            hintText: 'Nhập họ',
                             keyboardType: TextInputType.name,
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
-                          // Số điện thoại
+                          _buildLabel('Tên'),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _firstNameController,
+                            hintText: 'Nhập tên',
+                            keyboardType: TextInputType.name,
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildLabel('Ngày sinh'),
+                          const SizedBox(height: 8),
+                          _buildDateField(),
+                          const SizedBox(height: 16),
+
+                          _buildLabel('Giới tính'),
+                          const SizedBox(height: 8),
+                          _buildGenderDropdown(),
+                          const SizedBox(height: 16),
+
+                          _buildLabel('Số CMND/CCCD'),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _idController,
+                            hintText: 'Nhập số CMND/CCCD',
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(12),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
                           _buildLabel('Số điện thoại'),
                           const SizedBox(height: 8),
                           _buildTextField(
                             controller: _phoneController,
                             hintText: 'Nhập số điện thoại',
                             keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
-                          // Email
                           _buildLabel('Email'),
                           const SizedBox(height: 8),
                           _buildTextField(
@@ -90,29 +216,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             hintText: 'example@gmail.com',
                             keyboardType: TextInputType.emailAddress,
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
-                          // Căn hộ / Số phòng
                           _buildLabel('Căn hộ/Số phòng'),
                           const SizedBox(height: 8),
                           _buildTextField(
                             controller: _roomController,
                             hintText: 'Ví dụ: A-1205',
-                            keyboardType: TextInputType.text,
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 16),
 
-                          // Mật khẩu
                           _buildLabel('Mật khẩu'),
                           const SizedBox(height: 8),
                           _buildPasswordField(),
                           const SizedBox(height: 32),
 
-                          // Đăng ký button
                           _buildRegisterButton(),
                           const SizedBox(height: 20),
 
-                          // Already have account
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -123,11 +244,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: Color(0xFF6B7280),
                                 ),
                               ),
-
                               GestureDetector(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
+                                onTap: () => Navigator.of(context).maybePop(),
                                 child: const Text(
                                   'Đăng nhập',
                                   style: TextStyle(
@@ -182,7 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildHeroImage() {
     return Container(
-      height: 220,
+      height: 200,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -193,7 +311,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Dark background gradient
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -207,8 +324,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
-
-            // Warm ambient glow at bottom
             Positioned(
               bottom: -30,
               left: 0,
@@ -228,8 +343,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
-
-            // Vertical light strip (the glowing tube/line)
             Center(
               child: Container(
                 width: 2,
@@ -251,8 +364,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
-
-            // Glow blur around the strip
             Center(
               child: Container(
                 width: 40,
@@ -274,8 +385,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
-
-            // Small top cap of the lamp
             Positioned(
               top: 12,
               left: 0,
@@ -312,6 +421,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required TextEditingController controller,
     required String hintText,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -322,6 +432,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
         decoration: InputDecoration(
           hintText: hintText,
@@ -331,6 +442,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
             horizontal: 16,
             vertical: 15,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateField() {
+    return GestureDetector(
+      onTap: _pickDate,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _selectedDate != null
+                    ? _formatDate(_selectedDate!)
+                    : 'mm/dd/yyyy',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: _selectedDate != null
+                      ? const Color(0xFF111827)
+                      : const Color(0xFF9CA3AF),
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 20,
+              color: Color(0xFF6B7280),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedGender,
+          hint: const Text(
+            'Chọn giới tính',
+            style: TextStyle(fontSize: 15, color: Color(0xFF9CA3AF)),
+          ),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Color(0xFF6B7280),
+          ),
+          isExpanded: true,
+          style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
+          items: _genderOptions
+              .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+              .toList(),
+          onChanged: (v) => setState(() => _selectedGender = v),
         ),
       ),
     );
@@ -374,7 +551,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: _register,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,

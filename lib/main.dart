@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/auth/login_screen.dart';
-
+import 'config/app_routes.dart';
 void main() {
   runApp(const KLKSApp());
 }
@@ -18,7 +17,8 @@ class KLKSApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      initialRoute: AppRoutes.login,
+      routes: AppRoutes.routes,
     );
   }
 }

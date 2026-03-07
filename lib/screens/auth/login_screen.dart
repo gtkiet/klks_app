@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
-import 'forgot_password_screen.dart';
+import '../../config/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -121,13 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ForgotPasswordScreen(),
-                                ),
-                              );
+                              Navigator.pushNamed(context, AppRoutes.forgotPassword);
                             },
                             child: const Text(
                               'Quên mật khẩu?',
@@ -168,13 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   WidgetSpan(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const RegisterScreen(),
-                                          ),
-                                        );
+                                        Navigator.pushNamed(context, AppRoutes.register);
                                       },
                                       child: const Text(
                                         "Đăng ký",
@@ -367,7 +354,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushNamed(context, AppRoutes.home);
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,

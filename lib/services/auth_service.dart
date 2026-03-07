@@ -65,4 +65,40 @@ class AuthService {
 
     return data;
   }
+
+  Future<Map<String, dynamic>> forgotPassword({
+    required String username,
+  }) async {
+    final url = Uri.parse("${ApiConfig.baseUrl}/api/auth/forgot-password");
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"username": username}),
+    );
+
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> resetPassword({
+    required String username,
+    required String resetCode,
+    required String newPassword,
+  }) async {
+    final url = Uri.parse("${ApiConfig.baseUrl}/api/auth/reset-password");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "username": username,
+        "resetCode": resetCode,
+        "newPassword": newPassword,
+      }),
+    );
+
+    return jsonDecode(response.body);
+  }
 }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+// import '../../config/app_routes.dart';
+import '../../services/auth_service.dart';
+import 'reset_password.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -8,12 +11,43 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final TextEditingController _contactController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
-    _contactController.dispose();
+    _usernameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _sendRequest() async {
+    final response = await _authService.forgotPassword(
+      username: _usernameController.text,
+    );
+
+    if (response["isOk"] == true) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("OTP đã gửi tới email")));
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ResetPasswordScreen(username: _usernameController.text),
+        ),
+      );
+    } else {
+      String error = "Có lỗi xảy ra";
+
+      if (response["errors"] != null && response["errors"].length > 0) {
+        error = response["errors"][0]["description"];
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+    }
   }
 
   @override
@@ -54,7 +88,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                     // Description
                     const Text(
-                      'Đừng lo lắng! Vui lòng nhập email hoặc số điện thoại đã đăng ký để nhận mã OTP khôi phục mật khẩu tài khoản Smart Living của bạn.',
+                      'Đừng lo lắng! Vui lòng nhập tên đăng nhập đã đăng ký để nhận mã OTP khôi phục mật khẩu tài khoản Smart Living của bạn.',
                       style: TextStyle(
                         fontSize: 15,
                         color: Color(0xFF6B7280),
@@ -65,7 +99,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                     // Field label
                     const Text(
-                      'EMAIL HOẶC SỐ ĐIỆN THOẠI',
+                      'TÊN ĐĂNG NHẬP',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -166,27 +200,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: TextField(
-        controller: _contactController,
-        keyboardType: TextInputType.emailAddress,
+        controller: _usernameController,
+        keyboardType: TextInputType.text,
         style: const TextStyle(fontSize: 15, color: Color(0xFF111827)),
         decoration: const InputDecoration(
-          hintText: 'username@email.com',
-          hintStyle: TextStyle(
-            fontSize: 15,
+          hintText: 'Nhập tên đăng nhập',
+          hintStyle: TextStyle(fontSize: 15, color: Color(0xFF9CA3AF)),
+          prefixIcon: Icon(
+            Icons.person_outline_rounded,
             color: Color(0xFF9CA3AF),
+            size: 20,
           ),
-          prefixIcon: Padding(
-            padding: EdgeInsets.only(left: 14, right: 10),
-            child: Text(
-              '@',
-              style: TextStyle(
-                fontSize: 20,
-                color: Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-          prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
@@ -198,7 +222,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return SizedBox(
       height: 54,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: _sendRequest,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,
@@ -232,10 +256,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const Center(
           child: Text(
             'Bạn gặp khó khăn?',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
+            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
           ),
         ),
         const SizedBox(height: 14),

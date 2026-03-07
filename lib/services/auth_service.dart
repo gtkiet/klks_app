@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
   Future<Map<String, dynamic>> register({
@@ -36,5 +37,32 @@ class AuthService {
     print("BODY: ${response.body}");
 
     return jsonDecode(response.body);
+  }
+
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+
+  Future<Map<String, dynamic>> login({
+    required String username,
+    required String password,
+  }) async {
+    final url = Uri.parse("${ApiConfig.baseUrl}/api/auth/login");
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"username": username, "password": password}),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (data["isOk"] == true) {
+      final accessToken = data["result"]["accessToken"];
+      final refreshToken = data["result"]["refreshToken"];
+
+      await storage.write(key: "accessToken", value: accessToken);
+      await storage.write(key: "refreshToken", value: refreshToken);
+    }
+
+    return data;
   }
 }

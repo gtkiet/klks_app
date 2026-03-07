@@ -71,7 +71,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (response["isOk"] == true) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Đăng ký thành công")));
+      ).showSnackBar(const SnackBar(content: Text("Đăng ký thành công. Vui lòng đăng nhập.")));
+
+      // Delay 1 chút để user thấy thông báo
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Quay về Login
+      Navigator.pop(context);
+
     } else {
       String errorMessage = "Đăng ký thất bại";
 

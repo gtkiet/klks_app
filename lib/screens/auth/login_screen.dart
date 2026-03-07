@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../services/auth_service.dart';
 import '../../config/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,14 +13,52 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  final AuthService _authService = AuthService();
+
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _login() async {
+    final response = await _authService.login(
+      username: _usernameController.text,
+      password: _passwordController.text,
+    );
+
+    if (response["isOk"] == true) {
+      final data = response["result"];
+
+      final accessToken = data["accessToken"];
+      final refreshToken = data["refreshToken"];
+
+      await storage.write(key: "accessToken", value: accessToken);
+      await storage.write(key: "refreshToken", value: refreshToken);
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Đăng nhập thành công")));
+
+      // chuyển sang Home
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } else {
+      String error = "Đăng nhập thất bại";
+
+      if (response["errors"] != null && response["errors"].length > 0) {
+        error = response["errors"][0]["description"];
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
+    }
   }
 
   @override
@@ -82,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Email / Phone label
                         const Text(
-                          'Số điện thoại / Email',
+                          'Tên đăng nhập',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -93,10 +134,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Email field
                         _buildTextField(
-                          controller: _emailController,
-                          hintText: 'Nhập email hoặc số điện thoại',
-                          prefixIcon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
+                          controller: _usernameController,
+                          hintText: 'Nhập tên đăng nhập',
+                          prefixIcon: Icons.person_outline_rounded,
+                          keyboardType: TextInputType.text,
                         ),
                         const SizedBox(height: 20),
 
@@ -120,7 +161,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(context, AppRoutes.forgotPassword);
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.forgotPassword,
+                              );
                             },
                             child: const Text(
                               'Quên mật khẩu?',
@@ -150,29 +194,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            RichText(
-                              text: TextSpan(
-                                text: "Chưa có tài khoản? ",
-                                style: const TextStyle(
-                                  color: Color(0xFF6B7280),
+                            const Text(
+                              'Chưa có tài khoản? ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.register,
+                                );
+                              },
+                              child: const Text(
+                                'Đăng ký',
+                                style: TextStyle(
                                   fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF2563EB),
                                 ),
-                                children: [
-                                  WidgetSpan(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.register);
-                                      },
-                                      child: const Text(
-                                        "Đăng ký",
-                                        style: TextStyle(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
                             ),
                           ],
@@ -354,9 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.home);
-        },
+        onPressed: _login,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,

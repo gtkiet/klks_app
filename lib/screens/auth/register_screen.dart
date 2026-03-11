@@ -19,7 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _roomController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final AuthService _authService = AuthService();
@@ -50,7 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _idController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _roomController.dispose();
+    _addressController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -66,6 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       idCard: _idController.text,
       dob: _selectedDate!.toIso8601String(),
       gioiTinhId: _getGenderId(),
+      address: _addressController.text,
     );
 
     if (response["isOk"] == true) {
@@ -225,10 +226,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          _buildLabel('Căn hộ/Số phòng'),
+                          _buildLabel('Địa chỉ'),
                           const SizedBox(height: 8),
                           _buildTextField(
-                            controller: _roomController,
+                            controller: _addressController,
                             hintText: 'Ví dụ: A-1205',
                           ),
                           const SizedBox(height: 16),

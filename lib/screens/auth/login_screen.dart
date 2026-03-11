@@ -46,8 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text("Đăng nhập thành công")));
 
-      // chuyển sang Home
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+      // chuyển sang main
+      Navigator.pushReplacementNamed(context, AppRoutes.main);
     } else {
       String error = "Đăng nhập thất bại";
 

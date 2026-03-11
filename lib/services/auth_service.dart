@@ -14,6 +14,7 @@ class AuthService {
     required String idCard,
     required String dob,
     required int gioiTinhId,
+    required String address,
   }) async {
     final url = Uri.parse("${ApiConfig.baseUrl}/api/auth/register");
 
@@ -30,6 +31,7 @@ class AuthService {
         "idCard": idCard,
         "dob": dob,
         "gioiTinhId": gioiTinhId,
+        "diaChi": address,
       }),
     );
 

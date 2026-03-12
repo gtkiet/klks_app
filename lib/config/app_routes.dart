@@ -5,6 +5,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/profile/edit_avatar_screen.dart';
 
 class AppRoutes {
   static const login = "/login";
@@ -12,6 +13,7 @@ class AppRoutes {
   static const forgotPassword = "/forgot-password";
   static const main = "/main";
   static const home = "/home";
+  static const editAvatar = "/edit-avatar";
 
   static Map<String, WidgetBuilder> routes = {
     login: (context) => const LoginScreen(),
@@ -24,6 +26,6 @@ class AppRoutes {
 
     home: (context) => const HomeScreen(),
 
-    
+    editAvatar: (context) => const EditAvatarScreen(),
   };
 }

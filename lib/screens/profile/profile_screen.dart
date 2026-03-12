@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_routes.dart';
 import '../../services/profile_service.dart';
 import '../../models/user_profile.dart';
 
@@ -191,18 +192,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     avatarUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.person,
-                        size: 64,
-                        color: Colors.white.withOpacity(0.9),
-                      );
+                      return _defaultAvatar();
                     },
                   )
-                : Icon(
-                    Icons.person,
-                    size: 64,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
+                : _defaultAvatar(),
           ),
         ),
 
@@ -212,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           right: 0,
           child: GestureDetector(
             onTap: () {
-              // TODO: mở chức năng cập nhật avatar
+              Navigator.pushNamed(context, AppRoutes.editAvatar, arguments: profile?.anhDaiDienUrl);
             },
             child: Container(
               width: 32,
@@ -232,6 +225,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ],
     );
+  }
+
+  Widget _defaultAvatar() {
+    return Icon(Icons.person, size: 64, color: Colors.white.withOpacity(0.9));
   }
 
   Widget _buildEditButton() {

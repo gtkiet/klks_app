@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../screens/profile/profile_screen.dart';
-
-// import '../screens/home/home_screen.dart';
+import '../features/profile/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -14,42 +12,61 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentTab = 0;
 
-  final _pages = const [
-    Center(child: Text("Home")),
-    Center(child: Text("Smart Home")),
-    Center(child: Text("Dịch vụ")),
-    ProfileScreen(),
+  /// =========================
+  /// 🔥 NAV CONFIG (SINGLE SOURCE)
+  /// =========================
+  final List<_NavItem> _navItems = const [
+    _NavItem(
+      icon: Icons.home_rounded,
+      label: 'Trang chủ',
+      page: Center(child: Text("Home")),
+    ),
+    _NavItem(
+      icon: Icons.person_rounded,
+      label: 'Cá nhân',
+      page: ProfileScreen(),
+    ),
   ];
+
+  /// =========================
+  /// 🔥 BACK HANDLING (ANDROID)
+  /// =========================
+  Future<bool> _onWillPop() async {
+    if (_currentTab != 0) {
+      setState(() => _currentTab = 0);
+      return false;
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: IndexedStack(index: _currentTab, children: _pages),
-
-      bottomNavigationBar: _buildBottomNav(),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: IndexedStack(
+          index: _currentTab,
+          children: _navItems.map((e) => e.page).toList(),
+        ),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
     );
   }
 
   Widget _buildBottomNav() {
-    final items = [
-      const _NavItem(icon: Icons.home_rounded, label: 'Trang chủ'),
-      const _NavItem(icon: Icons.router_rounded, label: 'Smart Home'),
-      const _NavItem(icon: Icons.apps_rounded, label: 'Dịch vụ'),
-      const _NavItem(icon: Icons.person_rounded, label: 'Cá nhân'),
-    ];
-
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
-            children: List.generate(items.length, (i) {
+            children: List.generate(_navItems.length, (i) {
+              final item = _navItems[i];
               final active = i == _currentTab;
 
               return Expanded(
@@ -60,7 +77,7 @@ class _MainScreenState extends State<MainScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        items[i].icon,
+                        item.icon,
                         size: 26,
                         color: active
                             ? const Color(0xFF2563EB)
@@ -68,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        items[i].label,
+                        item.label,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: active
@@ -94,6 +111,11 @@ class _MainScreenState extends State<MainScreen> {
 class _NavItem {
   final IconData icon;
   final String label;
+  final Widget page;
 
-  const _NavItem({required this.icon, required this.label});
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.page,
+  });
 }

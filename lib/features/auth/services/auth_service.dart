@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../config/api_config.dart';
 
 class AuthService {
   final SecureStorage _storage = SecureStorage();
@@ -18,7 +22,7 @@ class AuthService {
     required String address,
   }) async {
     try {
-      final response = await ApiClient.post(
+      return await ApiClient.post(
         "/api/auth/register",
         body: {
           "username": username,
@@ -33,8 +37,6 @@ class AuthService {
           "diaChi": address,
         },
       );
-
-      return response;
     } catch (e) {
       return _error("Lỗi kết nối");
     }
@@ -67,17 +69,26 @@ class AuthService {
     }
   }
 
-  // ================= REFRESH TOKEN =================
+  // ================= REFRESH TOKEN (FIXED) =================
   Future<bool> refreshAccessToken() async {
     final refreshToken = await _storage.getRefreshToken();
 
     if (refreshToken == null) return false;
 
     try {
-      final data = await ApiClient.post(
-        "/api/auth/refresh-token",
-        body: {"refreshToken": refreshToken},
-      );
+      final url =
+          Uri.parse("${ApiConfig.baseUrl}/api/auth/refresh-token");
+
+      /// 🔥 KHÔNG dùng ApiClient ở đây
+      final response = await http
+          .post(
+            url,
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({"refreshToken": refreshToken}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      final data = jsonDecode(response.body);
 
       if (data["isOk"] == true && data["result"] != null) {
         await _storage.saveTokens(
@@ -87,23 +98,20 @@ class AuthService {
 
         return true;
       }
-    } catch (_) {}
+    } catch (e) {
+      // có thể log debug nếu cần
+    }
 
     return false;
   }
 
-  // ================= AUTO LOGIN =================
+  // ================= AUTO LOGIN (SIMPLIFIED) =================
   Future<bool> tryAutoLogin() async {
-    final accessToken = await _storage.getAccessToken();
+    final refreshToken = await _storage.getRefreshToken();
 
-    if (accessToken == null) return false;
+    if (refreshToken == null) return false;
 
-    try {
-      await ApiClient.get("/api/auth/me");
-      return true;
-    } catch (_) {
-      return await refreshAccessToken();
-    }
+    return await refreshAccessToken();
   }
 
   // ================= LOGOUT =================

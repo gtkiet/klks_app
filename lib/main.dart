@@ -1,15 +1,55 @@
 import 'package:flutter/material.dart';
-import 'config/app_routes.dart';
+import 'package:provider/provider.dart';
 
-/// 🔥 GLOBAL NAVIGATOR (dùng cho logout global)
+import 'config/app_routes.dart';
+import 'core/network/api_client.dart'; // 👈 thêm
+import 'features/auth/providers/auth_provider.dart';
+import 'features/profile/providers/profile_provider.dart';
+
+/// 🔥 GLOBAL NAVIGATOR
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ QUAN TRỌNG
+  WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const KLKSApp());
+  runApp(const AppProviders(child: KLKSApp()));
 }
 
+/// =========================
+/// PROVIDER WRAPPER (SCALE)
+/// =========================
+class AppProviders extends StatelessWidget {
+  final Widget child;
+
+  const AppProviders({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) {
+            final authProvider = AuthProvider();
+
+            /// 🔥 CỰC KỲ QUAN TRỌNG
+            ApiClient.setAuthProvider(authProvider);
+
+            return authProvider;
+          },
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => ProfileProvider(),
+        ),
+      ],
+      child: child,
+    );
+  }
+}
+
+/// =========================
+/// MAIN APP
+/// =========================
 class KLKSApp extends StatelessWidget {
   const KLKSApp({super.key});
 
@@ -23,16 +63,12 @@ class KLKSApp extends StatelessWidget {
 
       theme: ThemeData(
         fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2563EB),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         useMaterial3: true,
       ),
 
-      /// 🔥 luôn bắt đầu từ splash
       initialRoute: AppRoutes.splash,
-
-      routes: AppRoutes.routes,
+      onGenerateRoute: AppRoutes.generateRoute,
     );
   }
 }

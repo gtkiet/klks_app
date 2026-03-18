@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../features/profile/screens/profile_screen.dart';
+import '../home/screens/home_screen.dart';
+import '../profile/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +20,17 @@ class _MainScreenState extends State<MainScreen> {
     _NavItem(
       icon: Icons.home_rounded,
       label: 'Trang chủ',
-      page: Center(child: Text("Home")),
+      page: HomeScreen(),
+    ),
+    _NavItem(
+      icon: Icons.notifications_rounded,
+      label: 'Thông báo',
+      page: Center(child: Text("Thông báo")),
+    ),
+    _NavItem(
+      icon: Icons.grid_view_rounded,
+      label: 'Dịch vụ',
+      page: Center(child: Text("Dịch vụ")),
     ),
     _NavItem(
       icon: Icons.person_rounded,
@@ -69,38 +80,60 @@ class _MainScreenState extends State<MainScreen> {
               final item = _navItems[i];
               final active = i == _currentTab;
 
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _currentTab = i),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 26,
-                        color: active
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFF9CA3AF),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: active
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                          color: active
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF9CA3AF),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return _BottomNavItem(
+                item: item,
+                active: active,
+                onTap: () => setState(() => _currentTab = i),
               );
             }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  final _NavItem item;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _BottomNavItem({
+    required this.item,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                item.icon,
+                size: 26,
+                color: active
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF9CA3AF),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight:
+                      active ? FontWeight.w700 : FontWeight.w400,
+                  color: active
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF9CA3AF),
+                ),
+              ),
+            ],
           ),
         ),
       ),

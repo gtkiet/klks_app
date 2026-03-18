@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-
 import '../services/auth_service.dart';
+import '../widgets/auth_form_fields.dart';
+import '../../core/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+import '../../../config/app_routes.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,32 +13,31 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  bool _obscurePassword = true;
   bool _isLoading = false;
 
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _idController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _idController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   final AuthService _authService = AuthService();
 
   DateTime? _selectedDate;
   String? _selectedGender;
 
-  final List<String> _genderOptions = ['Nam', 'Nữ', 'Khác'];
+  final _genderOptions = ['Nam', 'Nữ', 'Khác'];
 
   int _getGenderId() {
     switch (_selectedGender) {
-      case "Nam":
+      case 'Nam':
         return 1;
-      case "Nữ":
+      case 'Nữ':
         return 2;
-      case "Khác":
+      case 'Khác':
         return 3;
       default:
         return 0;
@@ -59,10 +60,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     FocusScope.of(context).unfocus();
 
-    // Validate
-    if (_usernameController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
+    if (_usernameController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _emailController.text.isEmpty ||
         _selectedDate == null ||
         _selectedGender == null) {
       _showError("Vui lòng nhập đầy đủ thông tin");
@@ -92,18 +92,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SnackBar(content: Text("Đăng ký thành công. Vui lòng đăng nhập.")),
         );
 
-        await Future.delayed(const Duration(milliseconds: 800));
-
-        Navigator.pop(context);
+        // Trở về màn hình login
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
       } else {
         _showError(_extractError(response));
       }
     } catch (e) {
       _showError("Lỗi kết nối, vui lòng thử lại");
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -112,11 +109,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response["errors"] != null &&
           response["errors"] is List &&
           response["errors"].isNotEmpty) {
-        return response["errors"][0]["description"] ??
-            "Đăng ký thất bại";
+        return response["errors"][0]["description"] ?? "Đăng ký thất bại";
       }
     } catch (_) {}
-
     return "Đăng ký thất bại";
   }
 
@@ -126,134 +121,85 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime(2000),
-      firstDate: DateTime(1920),
-      lastDate: now,
-    );
-
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      _buildTextField(_usernameController, "Tên đăng nhập"),
-                      _buildTextField(_lastNameController, "Họ"),
-                      _buildTextField(_firstNameController, "Tên"),
-                      _buildDateField(),
-                      _buildGenderDropdown(),
-                      _buildTextField(_idController, "CMND/CCCD"),
-                      _buildTextField(_phoneController, "SĐT"),
-                      _buildTextField(_emailController, "Email"),
-                      _buildTextField(_addressController, "Địa chỉ"),
-                      _buildPasswordField(),
-                      const SizedBox(height: 24),
-                      _buildRegisterButton(),
-                    ],
-                  ),
-                ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Thông tin cá nhân',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+
+              _buildLabel('Tên đăng nhập'),
+              AuthTextField(controller: _usernameController, hint: 'Nhập tên đăng nhập'),
+
+              _buildLabel('Họ'),
+              AuthTextField(controller: _lastNameController, hint: 'Nhập họ'),
+
+              _buildLabel('Tên'),
+              AuthTextField(controller: _firstNameController, hint: 'Nhập tên'),
+
+              _buildLabel('Ngày sinh'),
+              AuthDatePicker(
+                selectedDate: _selectedDate,
+                onPick: (d) => setState(() => _selectedDate = d),
+              ),
+
+              _buildLabel('Giới tính'),
+              AuthDropdown(
+                value: _selectedGender,
+                items: _genderOptions,
+                hint: 'Chọn giới tính',
+                onChanged: (v) => setState(() => _selectedGender = v),
+              ),
+
+              _buildLabel('Số CMND/CCCD'),
+              AuthTextField(
+                controller: _idController,
+                hint: 'Nhập số CMND/CCCD',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(12),
+                ],
+              ),
+
+              _buildLabel('Số điện thoại'),
+              AuthTextField(controller: _phoneController, hint: 'Nhập số điện thoại'),
+
+              _buildLabel('Email'),
+              AuthTextField(controller: _emailController, hint: 'example@gmail.com'),
+
+              _buildLabel('Địa chỉ'),
+              AuthTextField(controller: _addressController, hint: 'Ví dụ: A-1205'),
+
+              _buildLabel('Mật khẩu'),
+              AuthPasswordField(controller: _passwordController),
+
+              const SizedBox(height: 32),
+              AuthPrimaryButton(
+                text: 'Đăng ký',
+                isLoading: _isLoading,
+                onPressed: _register,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildAppBar() {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        const Text("Đăng ký"),
-      ],
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String hint) {
+  Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(hintText: hint),
-      ),
-    );
-  }
-
-  Widget _buildDateField() {
-    return GestureDetector(
-      onTap: _pickDate,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          _selectedDate != null
-              ? _formatDate(_selectedDate!)
-              : "Chọn ngày sinh",
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenderDropdown() {
-    return DropdownButton<String>(
-      value: _selectedGender,
-      hint: const Text("Chọn giới tính"),
-      isExpanded: true,
-      items: _genderOptions
-          .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-          .toList(),
-      onChanged: (v) => setState(() => _selectedGender = v),
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      decoration: InputDecoration(
-        hintText: "Mật khẩu",
-        suffixIcon: IconButton(
-          icon: Icon(_obscurePassword
-              ? Icons.visibility_off
-              : Icons.visibility),
-          onPressed: () {
-            setState(() => _obscurePassword = !_obscurePassword);
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegisterButton() {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : _register,
-      child: _isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
-          : const Text("Đăng ký"),
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Text(text, style: const TextStyle(fontSize: 14, color: Color(0xFF374151))),
     );
   }
 }

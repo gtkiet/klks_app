@@ -141,8 +141,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     _buildSendButton(),
                     const SizedBox(height: 40),
 
-                    _buildHelpSection(),
-                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -232,6 +230,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         onPressed: _isLoading ? null : _sendRequest,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -261,17 +260,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ],
               ),
       ),
-    );
-  }
-
-  Widget _buildHelpSection() {
-    return Column(
-      children: const [
-        Text(
-          'Bạn gặp khó khăn?',
-          style: TextStyle(color: Color(0xFF6B7280)),
-        ),
-      ],
     );
   }
 }

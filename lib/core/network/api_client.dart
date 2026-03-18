@@ -5,69 +5,74 @@ import 'package:http_parser/http_parser.dart';
 
 import '../../config/api_config.dart';
 import '../storage/secure_storage.dart';
-import '../auth/auth_helper.dart';
-import '../../features/auth/services/auth_service.dart';
+import '../../features/auth/providers/auth_provider.dart';
 
 class ApiClient {
   static final SecureStorage _storage = SecureStorage();
-  static final AuthService _authService = AuthService();
 
+  /// 🔥 Inject từ main.dart
+  static AuthProvider? _authProvider;
+
+  static void setAuthProvider(AuthProvider provider) {
+    _authProvider = provider;
+  }
+
+  /// 🔥 Refresh control (queue)
   static bool _isRefreshing = false;
-  static final List<Function()> _queue = [];
+  static Completer<void>? _refreshCompleter;
+
+  static const _timeout = Duration(seconds: 15);
 
   // =========================
-  // GET
+  // PUBLIC APIs
   // =========================
+
   static Future<Map<String, dynamic>> get(
     String path, {
     Map<String, String>? headers,
   }) async {
-    final res = await _sendRequest(method: "GET", path: path, headers: headers);
-    return _handleResponse(res);
+    final res = await _request("GET", path, headers: headers);
+    return _parse(res);
   }
 
-  // =========================
-  // POST
-  // =========================
   static Future<Map<String, dynamic>> post(
     String path, {
     Map<String, String>? headers,
     Object? body,
   }) async {
-    final res = await _sendRequest(
-      method: "POST",
-      path: path,
+    final res = await _request(
+      "POST",
+      path,
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
     );
-    return _handleResponse(res);
+    return _parse(res);
   }
 
-  // =========================
-  // PUT
-  // =========================
   static Future<Map<String, dynamic>> put(
     String path, {
     Map<String, String>? headers,
     Object? body,
   }) async {
-    final res = await _sendRequest(
-      method: "PUT",
-      path: path,
+    final res = await _request(
+      "PUT",
+      path,
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
     );
-    return _handleResponse(res);
+    return _parse(res);
   }
 
   // =========================
-  // CORE REQUEST
+  // CORE REQUEST (AUTO RETRY)
   // =========================
-  static Future<http.Response> _sendRequest({
-    required String method,
-    required String path,
+
+  static Future<http.Response> _request(
+    String method,
+    String path, {
     Map<String, String>? headers,
     Object? body,
+    bool isRetry = false,
   }) async {
     final url = Uri.parse("${ApiConfig.baseUrl}$path");
 
@@ -81,125 +86,118 @@ class ApiClient {
 
     http.Response response;
 
-    switch (method) {
-      case "POST":
-        response = await http
-            .post(url, headers: requestHeaders, body: body)
-            .timeout(const Duration(seconds: 15));
-        break;
+    try {
+      switch (method) {
+        case "POST":
+          response = await http
+              .post(url, headers: requestHeaders, body: body)
+              .timeout(_timeout);
+          break;
 
-      case "PUT":
-        response = await http
-            .put(url, headers: requestHeaders, body: body)
-            .timeout(const Duration(seconds: 15));
-        break;
+        case "PUT":
+          response = await http
+              .put(url, headers: requestHeaders, body: body)
+              .timeout(_timeout);
+          break;
 
-      case "GET":
-      default:
-        response = await http
-            .get(url, headers: requestHeaders)
-            .timeout(const Duration(seconds: 15));
+        case "GET":
+        default:
+          response = await http
+              .get(url, headers: requestHeaders)
+              .timeout(_timeout);
+      }
+    } on TimeoutException {
+      throw Exception("REQUEST_TIMEOUT");
+    } catch (_) {
+      throw Exception("NETWORK_ERROR");
     }
 
-    if (response.statusCode == 401) {
-      return _handle401(method, path, headers, body);
+    /// 🔴 Nếu 401 → refresh
+    if (response.statusCode == 401 && !isRetry) {
+      await _handleRefresh();
+
+      /// retry 1 lần
+      return _request(
+        method,
+        path,
+        headers: headers,
+        body: body,
+        isRetry: true,
+      );
     }
 
     return response;
   }
 
   // =========================
-  // HANDLE 401 (REFRESH TOKEN)
+  // REFRESH TOKEN (SAFE - NO LOOP)
   // =========================
-  static Future<http.Response> _handle401(
-    String method,
-    String path,
-    Map<String, String>? headers,
-    Object? body,
-  ) async {
+
+  static Future<void> _handleRefresh() async {
+    /// Nếu đang refresh → chờ
     if (_isRefreshing) {
-      return _waitForRefresh(method, path, headers, body);
+      return _refreshCompleter?.future;
     }
 
     _isRefreshing = true;
+    _refreshCompleter = Completer<void>();
 
-    final success = await _authService.refreshAccessToken();
+    try {
+      final success = await _refreshTokenRaw();
 
-    _isRefreshing = false;
-
-    // run queue
-    for (var callback in _queue) {
-      callback();
-    }
-    _queue.clear();
-
-    if (!success) {
-      await AuthHelper.forceLogout();
-      throw Exception("SESSION_EXPIRED");
-    }
-
-    return _retry(method, path, headers, body);
-  }
-
-  // =========================
-  // WAIT QUEUE
-  // =========================
-  static Future<http.Response> _waitForRefresh(
-    String method,
-    String path,
-    Map<String, String>? headers,
-    Object? body,
-  ) {
-    final completer = Completer<http.Response>();
-
-    _queue.add(() async {
-      try {
-        final res = await _retry(method, path, headers, body);
-        completer.complete(res);
-      } catch (e) {
-        completer.completeError(e);
+      if (!success) {
+        _authProvider?.forceLogout();
+        throw Exception("SESSION_EXPIRED");
       }
-    });
 
-    return completer.future;
-  }
-
-  // =========================
-  // RETRY AFTER REFRESH
-  // =========================
-  static Future<http.Response> _retry(
-    String method,
-    String path,
-    Map<String, String>? headers,
-    Object? body,
-  ) async {
-    final url = Uri.parse("${ApiConfig.baseUrl}$path");
-
-    final newToken = await _storage.getAccessToken();
-
-    final requestHeaders = {
-      "Content-Type": "application/json",
-      ...?headers,
-      if (newToken != null) "Authorization": "Bearer $newToken",
-    };
-
-    switch (method) {
-      case "POST":
-        return http.post(url, headers: requestHeaders, body: body);
-
-      case "PUT":
-        return http.put(url, headers: requestHeaders, body: body);
-
-      case "GET":
-      default:
-        return http.get(url, headers: requestHeaders);
+      _refreshCompleter?.complete();
+    } catch (e) {
+      _refreshCompleter?.completeError(e);
+      rethrow;
+    } finally {
+      _isRefreshing = false;
+      _refreshCompleter = null;
     }
   }
 
+  /// 🔥 QUAN TRỌNG: refresh bằng HTTP raw (KHÔNG dùng ApiClient)
+  static Future<bool> _refreshTokenRaw() async {
+    final refreshToken = await _storage.getRefreshToken();
+
+    if (refreshToken == null) return false;
+
+    try {
+      final url =
+          Uri.parse("${ApiConfig.baseUrl}/api/auth/refresh-token");
+
+      final response = await http
+          .post(
+            url,
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({"refreshToken": refreshToken}),
+          )
+          .timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+
+      if (data["isOk"] == true && data["result"] != null) {
+        await _storage.saveTokens(
+          accessToken: data["result"]["accessToken"],
+          refreshToken: data["result"]["refreshToken"],
+        );
+
+        return true;
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
   // =========================
-  // PARSE RESPONSE
+  // RESPONSE PARSER
   // =========================
-  static Map<String, dynamic> _handleResponse(http.Response response) {
+
+  static Map<String, dynamic> _parse(http.Response response) {
     try {
       final data = jsonDecode(response.body);
 
@@ -208,7 +206,7 @@ class ApiClient {
       }
 
       return _error("Invalid response format");
-    } catch (e) {
+    } catch (_) {
       return _error("Parse error");
     }
   }
@@ -217,14 +215,15 @@ class ApiClient {
     return {
       "isOk": false,
       "errors": [
-        {"description": message},
-      ],
+        {"description": message}
+      ]
     };
   }
 
   // =========================
-  // UPLOAD FILE (BASIC)
+  // UPLOAD FILE (WITH RETRY)
   // =========================
+
   static Future<Map<String, dynamic>> uploadFile(
     String path, {
     required String fieldName,
@@ -234,32 +233,45 @@ class ApiClient {
   }) async {
     final uri = Uri.parse("${ApiConfig.baseUrl}$path");
 
-    final token = await _storage.getAccessToken();
+    Future<http.Response> send(bool isRetry) async {
+      final token = await _storage.getAccessToken();
 
-    final request = http.MultipartRequest("POST", uri);
+      final request = http.MultipartRequest("POST", uri);
 
-    request.headers.addAll({
-      if (token != null) "Authorization": "Bearer $token",
-      "Accept": "application/json",
-    });
+      request.headers.addAll({
+        if (token != null) "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      });
 
-    if (fields != null) {
-      request.fields.addAll(fields);
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      final mimeSplit = mimeType.split("/");
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          fieldName,
+          filePath,
+          contentType: MediaType(mimeSplit[0], mimeSplit[1]),
+        ),
+      );
+
+      final streamed = await request.send();
+      return http.Response.fromStream(streamed);
     }
 
-    final mimeSplit = mimeType.split("/");
+    try {
+      var response = await send(false);
 
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        fieldName,
-        filePath,
-        contentType: MediaType(mimeSplit[0], mimeSplit[1]),
-      ),
-    );
+      if (response.statusCode == 401) {
+        await _handleRefresh();
+        response = await send(true);
+      }
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    return _handleResponse(response);
+      return _parse(response);
+    } catch (_) {
+      return _error("Upload failed");
+    }
   }
 }

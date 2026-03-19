@@ -32,25 +32,23 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
   final GlobalKey _previewKey = GlobalKey();
 
   bool isLoading = false;
+  static const double boxSize = 230.0;
 
   /// =========================
-  /// AUTO FIT SCALE (FIX ZOOM)
+  /// FIT IMAGE TO COVER CROP BOX
   /// =========================
   Future<void> _fitImage(File file) async {
     final bytes = await file.readAsBytes();
     final decoded = img.decodeImage(bytes);
-
     if (decoded == null) return;
 
     final imageWidth = decoded.width.toDouble();
     final imageHeight = decoded.height.toDouble();
 
-    const boxSize = 230.0;
-
     final scaleX = boxSize / imageWidth;
     final scaleY = boxSize / imageHeight;
 
-    // 🔥 chọn scale nhỏ nhất để FIT
+    // 🔥 math.min để COVER khung tròn
     final fitScale = math.max(scaleX, scaleY);
 
     setState(() {
@@ -67,16 +65,13 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
       source: ImageSource.camera,
       imageQuality: 90,
     );
-
     if (image != null) {
       final file = File(image.path);
-
       setState(() {
         selectedImage = file;
         _resetTransform();
       });
-
-      await _fitImage(file); // 🔥 FIX
+      await _fitImage(file);
     }
   }
 
@@ -85,16 +80,13 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
       source: ImageSource.gallery,
       imageQuality: 90,
     );
-
     if (image != null) {
       final file = File(image.path);
-
       setState(() {
         selectedImage = file;
         _resetTransform();
       });
-
-      await _fitImage(file); // 🔥 FIX
+      await _fitImage(file);
     }
   }
 
@@ -110,13 +102,11 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
   /// =========================
   Future<File> _exportImage() async {
     await Future.delayed(const Duration(milliseconds: 100));
-
     final context = _previewKey.currentContext;
     final boundary = context!.findRenderObject() as RenderRepaintBoundary;
 
     final image = await boundary.toImage(pixelRatio: 3);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
     final pngBytes = byteData!.buffer.asUint8List();
 
     final decoded = img.decodeImage(pngBytes)!;
@@ -126,9 +116,7 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
     final file = File(
       "${tempDir.path}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg",
     );
-
     await file.writeAsBytes(jpgBytes);
-
     return file;
   }
 
@@ -137,11 +125,9 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
   /// =========================
   Future<void> _saveAvatar() async {
     if (isLoading) return;
-
     if (selectedImage == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Vui lòng chọn ảnh")));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Vui lòng chọn ảnh")));
       return;
     }
 
@@ -163,9 +149,7 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
     } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -178,13 +162,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
       body: Column(
         children: [
           const SizedBox(height: 20),
-
-          /// PREVIEW
           Center(child: _buildCropBox(avatarUrl)),
-
           const SizedBox(height: 20),
-
-          /// ACTIONS
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -201,9 +180,7 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
               }),
             ],
           ),
-
           const Spacer(),
-
           Padding(
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
@@ -223,7 +200,7 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
   }
 
   /// =========================
-  /// CROP BOX (FIX DRAG + SCALE)
+  /// CROP BOX (DRAG + SCALE + ROTATE + FLIP)
   /// =========================
   Widget _buildCropBox(String? avatarUrl) {
     final url = avatarUrl ?? "";
@@ -237,10 +214,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
       onScaleUpdate: (details) {
         setState(() {
           _scale = (_startScale * details.scale).clamp(0.5, 5.0);
-
           final delta = details.focalPoint - _dragStart;
-          final limit = 120.0 * _scale;
-
+          final limit = boxSize * _scale / 2;
           _dragOffset = Offset(
             (_dragStartOffset.dx + delta.dx).clamp(-limit, limit),
             (_dragStartOffset.dy + delta.dy).clamp(-limit, limit),
@@ -250,8 +225,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
       child: RepaintBoundary(
         key: _previewKey,
         child: Container(
-          width: 230,
-          height: 230,
+          width: boxSize,
+          height: boxSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: Colors.grey.shade300),
@@ -266,8 +241,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
               child: selectedImage != null
                   ? Image.file(selectedImage!, fit: BoxFit.cover)
                   : (url.isNotEmpty
-                        ? Image.network(url, fit: BoxFit.cover)
-                        : const Icon(Icons.person, size: 80)),
+                      ? Image.network(url, fit: BoxFit.cover)
+                      : const Icon(Icons.person, size: 80)),
             ),
           ),
         ),

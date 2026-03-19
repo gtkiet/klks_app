@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-
 import '../services/auth_service.dart';
+import '../../../widgets/form_field.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,7 +10,6 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  bool _obscurePassword = true;
   bool _isLoading = false;
 
   final TextEditingController _usernameController = TextEditingController();
@@ -27,8 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   DateTime? _selectedDate;
   String? _selectedGender;
-
-  final List<String> _genderOptions = ['Nam', 'Nữ', 'Khác'];
+  final List<String> _genderOptions = ['Nam', 'Nữ'];
 
   int _getGenderId() {
     switch (_selectedGender) {
@@ -36,8 +33,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return 1;
       case "Nữ":
         return 2;
-      case "Khác":
-        return 3;
       default:
         return 0;
     }
@@ -54,6 +49,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _addressController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime(2000),
+      firstDate: DateTime(1920),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _selectedDate = picked);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _register() async {
@@ -89,11 +101,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (response["isOk"] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Đăng ký thành công. Vui lòng đăng nhập.")),
+          const SnackBar(
+            content: Text("Đăng ký thành công. Vui lòng đăng nhập."),
+          ),
         );
-
         await Future.delayed(const Duration(milliseconds: 800));
-
         Navigator.pop(context);
       } else {
         _showError(_extractError(response));
@@ -101,9 +113,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       _showError("Lỗi kết nối, vui lòng thử lại");
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -112,37 +122,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response["errors"] != null &&
           response["errors"] is List &&
           response["errors"].isNotEmpty) {
-        return response["errors"][0]["description"] ??
-            "Đăng ký thất bại";
+        return response["errors"][0]["description"] ?? "Đăng ký thất bại";
       }
     } catch (_) {}
-
     return "Đăng ký thất bại";
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime(2000),
-      firstDate: DateTime(1920),
-      lastDate: now,
-    );
-
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
   }
 
   @override
@@ -158,19 +141,97 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildTextField(_usernameController, "Tên đăng nhập"),
-                      _buildTextField(_lastNameController, "Họ"),
-                      _buildTextField(_firstNameController, "Tên"),
-                      _buildDateField(),
-                      _buildGenderDropdown(),
-                      _buildTextField(_idController, "CMND/CCCD"),
-                      _buildTextField(_phoneController, "SĐT"),
-                      _buildTextField(_emailController, "Email"),
-                      _buildTextField(_addressController, "Địa chỉ"),
-                      _buildPasswordField(),
+                      LabelText(text: "Tên đăng nhập"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _usernameController,
+                        hintText: "Nhập tên đăng nhập",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Họ"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _lastNameController,
+                        hintText: "Nhập họ",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Tên"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _firstNameController,
+                        hintText: "Nhập tên",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Ngày sinh"),
+                      const SizedBox(height: 8),
+                      DateField(
+                        selectedDate: _selectedDate,
+                        onTap: _pickDate,
+                        placeholder: "Chọn ngày sinh",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Giới tính"),
+                      const SizedBox(height: 8),
+                      DropdownField<String>(
+                        selectedValue: _selectedGender,
+                        options: _genderOptions,
+                        onChanged: (value) =>
+                            setState(() => _selectedGender = value),
+                        hint: 'Chọn giới tính',
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "CMND/CCCD"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _idController,
+                        hintText: "Nhập số CMND/CCCD",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Số điện thoại"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _phoneController,
+                        hintText: "Nhập số điện thoại",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Email"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _emailController,
+                        hintText: "Nhập email",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Địa chỉ"),
+                      const SizedBox(height: 8),
+                      CustomTextField(
+                        controller: _addressController,
+                        hintText: "Nhập địa chỉ",
+                      ),
+                      const SizedBox(height: 12),
+
+                      LabelText(text: "Mật khẩu"),
+                      const SizedBox(height: 8),
+                      PasswordField(
+                        controller: _passwordController,
+                        hintText: "Nhập mật khẩu",
+                      ),
                       const SizedBox(height: 24),
-                      _buildRegisterButton(),
+
+                      SubmitButton(
+                        onPressed: _register,
+                        isLoading: _isLoading,
+                        label: "Đăng ký",
+                      ),
                     ],
                   ),
                 ),
@@ -183,77 +244,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildAppBar() {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        const Text("Đăng ký"),
-      ],
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String hint) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(hintText: hint),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const Text(
+            "Đăng ký",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildDateField() {
-    return GestureDetector(
-      onTap: _pickDate,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          _selectedDate != null
-              ? _formatDate(_selectedDate!)
-              : "Chọn ngày sinh",
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenderDropdown() {
-    return DropdownButton<String>(
-      value: _selectedGender,
-      hint: const Text("Chọn giới tính"),
-      isExpanded: true,
-      items: _genderOptions
-          .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-          .toList(),
-      onChanged: (v) => setState(() => _selectedGender = v),
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      decoration: InputDecoration(
-        hintText: "Mật khẩu",
-        suffixIcon: IconButton(
-          icon: Icon(_obscurePassword
-              ? Icons.visibility_off
-              : Icons.visibility),
-          onPressed: () {
-            setState(() => _obscurePassword = !_obscurePassword);
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegisterButton() {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : _register,
-      child: _isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
-          : const Text("Đăng ký"),
     );
   }
 }

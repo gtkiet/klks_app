@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../config/app_routes.dart';
 import '../services/profile_service.dart';
 import '../../../models/user_profile.dart';
 import '../../auth/services/auth_service.dart';
 import 'edit_profile_screen.dart';
+
+import '../../../widgets/profile_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,7 +19,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   UserProfile? profile;
   bool loading = true;
   String? error;
-
   final AuthService _authService = AuthService();
 
   @override
@@ -69,7 +71,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       arguments: profile?.anhDaiDienUrl,
     );
 
-    /// 👉 reload từ server để chắc chắn sync
     if (result != null) {
       await loadProfile();
     }
@@ -96,7 +97,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirm != true) return;
 
-    /// 🔥 loading overlay
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -107,18 +107,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.login,
-      (route) => false,
-    );
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     if (error != null) {
       return Scaffold(
@@ -128,46 +122,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(error!),
               const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: loadProfile,
-                child: const Text("Thử lại"),
-              ),
+              ElevatedButton(onPressed: loadProfile, child: const Text("Thử lại")),
             ],
           ),
         ),
       );
     }
 
-    if (profile == null) {
-      return const Scaffold(body: Center(child: Text("Không có dữ liệu")));
-    }
+    if (profile == null) return const Scaffold(body: Center(child: Text("Không có dữ liệu")));
 
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: loadProfile,
-        child: Column(
-          children: [
-            _buildAppBar(context),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-                    _buildBody(),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              _buildAppBar(),
+              _buildHeader(),
+              const SizedBox(height: 16),
+              _buildBody(),
+            ],
+          ),
         ),
       ),
     );
   }
 
   // ================= HEADER =================
-
   Widget _buildHeader() {
     return Container(
       color: Colors.white,
@@ -176,15 +158,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           GestureDetector(
             onTap: _changeAvatar,
-            child: CircleAvatar(
-              radius: 50,
-              backgroundColor: const Color(0xFF5BA4A4),
-              backgroundImage: profile!.anhDaiDienUrl.isNotEmpty
-                  ? NetworkImage(profile!.anhDaiDienUrl)
-                  : null,
-              child: profile!.anhDaiDienUrl.isEmpty
-                  ? const Icon(Icons.person, size: 50, color: Colors.white)
-                  : null,
+            child: AvatarWidget(
+              size: 100,
+              onTap: _changeAvatar,
             ),
           ),
           const SizedBox(height: 16),
@@ -193,72 +169,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
-          Text(
-            profile!.email,
-            style: const TextStyle(color: Color(0xFF6B7280)),
-          ),
+          Text(profile!.email, style: const TextStyle(color: Color(0xFF6B7280))),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: _goToEdit,
-            icon: const Icon(Icons.edit),
-            label: const Text('Chỉnh sửa hồ sơ'),
-          ),
+          EditProfileButton(onPressed: _goToEdit),
         ],
       ),
     );
   }
 
   // ================= BODY =================
-
   Widget _buildBody() {
+    final personalInfo = [
+      InfoRow(icon: Icons.badge_outlined, label: "CCCD", value: profile!.idCard),
+      InfoRow(icon: Icons.person_outline, label: "Giới tính", value: profile!.gioiTinhName),
+      InfoRow(icon: Icons.calendar_today, label: "Ngày sinh", value: profile!.formattedDob, isLast: true),
+    ];
+
+    final contactInfo = [
+      InfoRow(icon: Icons.phone, label: "SĐT", value: profile!.phoneNumber),
+      InfoRow(icon: Icons.email, label: "Email", value: profile!.email),
+      InfoRow(icon: Icons.home, label: "Địa chỉ", value: profile!.diaChi, isLast: true),
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          _section("THÔNG TIN CÁ NHÂN", [
-            _row(Icons.badge_outlined, "CCCD", profile!.idCard),
-            _row(Icons.person_outline, "Giới tính", profile!.gioiTinhName),
-            _row(Icons.calendar_today, "Ngày sinh", profile!.formattedDob),
-          ]),
+          SectionLabel(text: "THÔNG TIN CÁ NHÂN"),
+          const SizedBox(height: 8),
+          InfoCard(rows: personalInfo),
           const SizedBox(height: 16),
-          _section("LIÊN HỆ", [
-            _row(Icons.phone, "SĐT", profile!.phoneNumber),
-            _row(Icons.email, "Email", profile!.email),
-            _row(Icons.home, "Địa chỉ", profile!.diaChi),
-          ]),
+          SectionLabel(text: "LIÊN HỆ"),
+          const SizedBox(height: 8),
+          InfoCard(rows: contactInfo),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: _logout, child: const Text("Đăng xuất")),
+          LogoutButton(onTap: _logout),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _section(String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(children: children),
-        ),
-      ],
-    );
-  }
-
-  Widget _row(IconData icon, String label, String value) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label),
-      subtitle: Text(value),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
+  // ================= APP BAR =================
+  Widget _buildAppBar() {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -272,10 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => Navigator.of(context).maybePop(),
             ),
           ),
-          const Text(
-            'Hồ sơ người dùng',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
+          const Text('Hồ sơ người dùng', style: TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
     );

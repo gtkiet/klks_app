@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../models/user_profile.dart';
 import '../services/profile_service.dart';
+import '../../../widgets/form_field.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile profile;
@@ -24,6 +25,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   DateTime? dob;
   int gioiTinhId = 1;
+  String? _selectedGender;
+  final List<String> _genderOptions = ['Nam', 'Nữ'];
+
+  int _getGenderId() {
+    switch (_selectedGender) {
+      case "Nam":
+        return 1;
+      case "Nữ":
+        return 2;
+      default:
+        return 0;
+    }
+  }
 
   bool isLoading = false;
 
@@ -39,6 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     dob = widget.profile.dob;
     gioiTinhId = widget.profile.gioiTinhId ?? 1;
+    _selectedGender = widget.profile.gioiTinhName;
   }
 
   /// =========================
@@ -79,7 +94,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         phoneNumber: phoneCtrl.text.trim(),
         idCard: idCardCtrl.text.trim(),
         dob: dob!,
-        gioiTinhId: gioiTinhId,
+        gioiTinhId: _getGenderId(),
         diaChi: addressCtrl.text.trim(),
       );
 
@@ -121,39 +136,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return null;
   }
 
-  /// =========================
-  /// UI HELPERS
-  /// =========================
-  Widget _input({
-    required String label,
-    required TextEditingController ctrl,
-    String? Function(String?)? validator,
-    TextInputType? type,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: ctrl,
-        keyboardType: type,
-        validator: validator ?? _required,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
-
-  Widget _section(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8, top: 8),
-      child: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy');
@@ -169,79 +151,65 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  /// ===== BASIC INFO =====
-                  _section("Thông tin cá nhân"),
-
-                  _input(label: "Họ", ctrl: firstNameCtrl),
-                  _input(label: "Tên", ctrl: lastNameCtrl),
-
-                  /// ===== CONTACT =====
-                  _section("Liên hệ"),
-
-                  _input(
-                    label: "Số điện thoại",
-                    ctrl: phoneCtrl,
-                    validator: _phoneValidator,
-                    type: TextInputType.phone,
+                  const LabelText(text: "Họ"),
+                  CustomTextField(
+                    controller: firstNameCtrl,
+                    hintText: "Họ",
+                    validator: _required,
                   ),
-
-                  _input(
-                    label: "CCCD",
-                    ctrl: idCardCtrl,
-                    validator: _idValidator,
-                    type: TextInputType.number,
-                  ),
-
-                  _input(label: "Địa chỉ", ctrl: addressCtrl),
-
-                  /// ===== DOB =====
-                  _section("Khác"),
-
-                  ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    title: Text(
-                      dob == null ? "Chọn ngày sinh" : dateFormat.format(dob!),
-                    ),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: _pickDate,
-                  ),
-
                   const SizedBox(height: 16),
-
-                  /// ===== GENDER =====
-                  DropdownButtonFormField<int>(
-                    value: gioiTinhId,
-                    items: const [
-                      DropdownMenuItem(value: 1, child: Text('Nam')),
-                      DropdownMenuItem(value: 2, child: Text('Nữ')),
-                      DropdownMenuItem(value: 3, child: Text('Khác')),
-                    ],
-                    onChanged: (v) => setState(() => gioiTinhId = v ?? 1),
-                    decoration: InputDecoration(
-                      labelText: "Giới tính",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                  const LabelText(text: "Tên"),
+                  CustomTextField(
+                    controller: lastNameCtrl,
+                    hintText: "Tên",
+                    validator: _required,
                   ),
-
+                  const SizedBox(height: 16),
+                  const LabelText(text: "Số điện thoại"),
+                  CustomTextField(
+                    controller: phoneCtrl,
+                    hintText: "Số điện thoại",
+                    keyboardType: TextInputType.phone,
+                    validator: _phoneValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  const LabelText(text: "CCCD"),
+                  CustomTextField(
+                    controller: idCardCtrl,
+                    hintText: "CCCD",
+                    keyboardType: TextInputType.number,
+                    validator: _idValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  const LabelText(text: "Địa chỉ"),
+                  CustomTextField(
+                    controller: addressCtrl,
+                    hintText: "Địa chỉ",
+                    validator: _required,
+                  ),
+                  const SizedBox(height: 16),
+                  const LabelText(text: "Ngày sinh"),
+                  DateField(
+                    selectedDate: dob,
+                    onTap: _pickDate,
+                    placeholder: "Chọn ngày sinh",
+                  ),
+                  const SizedBox(height: 16),
+                  const LabelText(text: "Giới tính"),
+                  DropdownField<String>(
+                    selectedValue: _selectedGender,
+                    options: _genderOptions,
+                    onChanged: (value) =>
+                        setState(() => _selectedGender = value),
+                    hint: 'Chọn giới tính',
+                  ),
                   const SizedBox(height: 30),
 
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : _submit,
-                      child: isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text(
-                              "Cập nhật",
-                              style: TextStyle(fontSize: 16),
-                            ),
-                    ),
-                  ),
+                  /// ===== ACTION BUTTONS =====
+                  EditButton(onPressed: _submit, isLoading: isLoading),
+                  const SizedBox(height: 16),
+                  CancelButton(onPressed: () => Navigator.pop(context)),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

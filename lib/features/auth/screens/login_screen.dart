@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../services/auth_service.dart';
 import '../../../config/app_routes.dart';
+import '../../../widgets/form_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,7 +11,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _obscurePassword = true;
   bool _isLoading = false;
 
   final TextEditingController _usernameController = TextEditingController();
@@ -32,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Validate
     if (username.isEmpty || password.isEmpty) {
       _showError("Vui lòng nhập đầy đủ thông tin");
       return;
@@ -56,9 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showError("Lỗi kết nối, vui lòng thử lại");
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -67,18 +63,16 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response["errors"] != null &&
           response["errors"] is List &&
           response["errors"].isNotEmpty) {
-        return response["errors"][0]["description"] ??
-            "Đăng nhập thất bại";
+        return response["errors"][0]["description"] ?? "Đăng nhập thất bại";
       }
     } catch (_) {}
-
     return "Đăng nhập thất bại";
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -133,34 +127,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        const Text(
-                          'Tên đăng nhập',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
+                        // Username
+                        LabelText(text: "Tên đăng nhập"),
                         const SizedBox(height: 8),
-
-                        _buildTextField(
+                        CustomTextField(
                           controller: _usernameController,
-                          hintText: 'Nhập tên đăng nhập',
-                          prefixIcon: Icons.person_outline_rounded,
+                          hintText: "Nhập tên đăng nhập",
                         ),
                         const SizedBox(height: 20),
 
-                        const Text(
-                          'Mật khẩu',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF374151),
-                          ),
-                        ),
+                        // Password
+                        LabelText(text: "Mật khẩu"),
                         const SizedBox(height: 8),
-
-                        _buildPasswordField(),
+                        PasswordField(
+                          controller: _passwordController,
+                          hintText: "Nhập mật khẩu",
+                        ),
                         const SizedBox(height: 10),
 
                         Align(
@@ -184,7 +166,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        _buildLoginButton(),
+                        // Login button
+                        SubmitButton(
+                          label: "Đăng nhập",
+                          onPressed: _login,
+                          isLoading: _isLoading,
+                        ),
                         const SizedBox(height: 20),
 
                         Row(
@@ -248,10 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(width: 12),
           const Text(
             'Smart Living',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -263,60 +247,8 @@ class _LoginScreenState extends State<LoginScreen> {
       height: 200,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF0D0D0D),
-            Color(0xFF2C2C2C),
-            Color(0xFF1A1208),
-          ],
+          colors: [Color(0xFF0D0D0D), Color(0xFF2C2C2C), Color(0xFF1A1208)],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required IconData prefixIcon,
-  }) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: hintText,
-        prefixIcon: Icon(prefixIcon),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      onSubmitted: (_) => _login(),
-      decoration: InputDecoration(
-        hintText: 'Nhập mật khẩu',
-        prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword
-                ? Icons.visibility_off
-                : Icons.visibility,
-          ),
-          onPressed: () {
-            setState(() => _obscurePassword = !_obscurePassword);
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoginButton() {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _login,
-        child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Đăng nhập'),
       ),
     );
   }

@@ -6,39 +6,42 @@ import 'package:http_parser/http_parser.dart';
 import '../../config/api_config.dart';
 import '../storage/secure_storage.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import 'api_response.dart';
 
 class ApiClient {
   static final SecureStorage _storage = SecureStorage();
 
-  /// 🔥 Inject từ main.dart
+  /// Inject từ main.dart
   static AuthProvider? _authProvider;
 
   static void setAuthProvider(AuthProvider provider) {
     _authProvider = provider;
   }
 
-  /// 🔥 Refresh control (queue)
+  /// Refresh queue control
   static bool _isRefreshing = false;
   static Completer<void>? _refreshCompleter;
 
   static const _timeout = Duration(seconds: 15);
 
   // =========================
-  // PUBLIC APIs
+  // PUBLIC APIs (GENERIC)
   // =========================
 
-  static Future<Map<String, dynamic>> get(
+  static Future<ApiResponse<T>> get<T>(
     String path, {
     Map<String, String>? headers,
+    T Function(dynamic json)? fromJsonT,
   }) async {
     final res = await _request("GET", path, headers: headers);
-    return _parse(res);
+    return _parse<T>(res, fromJsonT);
   }
 
-  static Future<Map<String, dynamic>> post(
+  static Future<ApiResponse<T>> post<T>(
     String path, {
     Map<String, String>? headers,
     Object? body,
+    T Function(dynamic json)? fromJsonT,
   }) async {
     final res = await _request(
       "POST",
@@ -46,13 +49,14 @@ class ApiClient {
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
     );
-    return _parse(res);
+    return _parse<T>(res, fromJsonT);
   }
 
-  static Future<Map<String, dynamic>> put(
+  static Future<ApiResponse<T>> put<T>(
     String path, {
     Map<String, String>? headers,
     Object? body,
+    T Function(dynamic json)? fromJsonT,
   }) async {
     final res = await _request(
       "PUT",
@@ -60,7 +64,7 @@ class ApiClient {
       headers: headers,
       body: body != null ? jsonEncode(body) : null,
     );
-    return _parse(res);
+    return _parse<T>(res, fromJsonT);
   }
 
   // =========================
@@ -112,11 +116,10 @@ class ApiClient {
       throw Exception("NETWORK_ERROR");
     }
 
-    /// 🔴 Nếu 401 → refresh
+    /// 🔴 401 → refresh token
     if (response.statusCode == 401 && !isRetry) {
       await _handleRefresh();
 
-      /// retry 1 lần
       return _request(
         method,
         path,
@@ -130,11 +133,10 @@ class ApiClient {
   }
 
   // =========================
-  // REFRESH TOKEN (SAFE - NO LOOP)
+  // REFRESH TOKEN (QUEUE SAFE)
   // =========================
 
   static Future<void> _handleRefresh() async {
-    /// Nếu đang refresh → chờ
     if (_isRefreshing) {
       return _refreshCompleter?.future;
     }
@@ -160,7 +162,7 @@ class ApiClient {
     }
   }
 
-  /// 🔥 QUAN TRỌNG: refresh bằng HTTP raw (KHÔNG dùng ApiClient)
+  /// 🔥 KHÔNG dùng ApiClient
   static Future<bool> _refreshTokenRaw() async {
     final refreshToken = await _storage.getRefreshToken();
 
@@ -194,46 +196,41 @@ class ApiClient {
   }
 
   // =========================
-  // RESPONSE PARSER
+  // RESPONSE PARSER (GENERIC)
   // =========================
 
-  static Map<String, dynamic> _parse(http.Response response) {
+  static ApiResponse<T> _parse<T>(
+    http.Response response,
+    T Function(dynamic json)? fromJsonT,
+  ) {
     try {
-      final data = jsonDecode(response.body);
+      final json = jsonDecode(response.body);
 
-      if (data is Map<String, dynamic>) {
-        return data;
+      if (json is! Map<String, dynamic>) {
+        return ApiResponse.failure(message: "Invalid response format");
       }
 
-      return _error("Invalid response format");
+      return ApiResponse<T>.fromJson(json, fromJsonT);
     } catch (_) {
-      return _error("Parse error");
+      return ApiResponse.failure(message: "Parse error");
     }
   }
 
-  static Map<String, dynamic> _error(String message) {
-    return {
-      "isOk": false,
-      "errors": [
-        {"description": message}
-      ]
-    };
-  }
-
   // =========================
-  // UPLOAD FILE (WITH RETRY)
+  // UPLOAD FILE
   // =========================
 
-  static Future<Map<String, dynamic>> uploadFile(
+  static Future<ApiResponse<T>> uploadFile<T>(
     String path, {
     required String fieldName,
     required String filePath,
     Map<String, String>? fields,
     String mimeType = "image/jpeg",
+    T Function(dynamic json)? fromJsonT,
   }) async {
     final uri = Uri.parse("${ApiConfig.baseUrl}$path");
 
-    Future<http.Response> send(bool isRetry) async {
+    Future<http.Response> send() async {
       final token = await _storage.getAccessToken();
 
       final request = http.MultipartRequest("POST", uri);
@@ -262,16 +259,16 @@ class ApiClient {
     }
 
     try {
-      var response = await send(false);
+      var response = await send();
 
       if (response.statusCode == 401) {
         await _handleRefresh();
-        response = await send(true);
+        response = await send();
       }
 
-      return _parse(response);
+      return _parse<T>(response, fromJsonT);
     } catch (_) {
-      return _error("Upload failed");
+      return ApiResponse.failure(message: "Upload failed");
     }
   }
 }

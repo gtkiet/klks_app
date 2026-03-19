@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../validators/auth_validators.dart';
+import '../widgets/auth_form_fields.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String username;
@@ -7,28 +10,15 @@ class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key, required this.username});
 
   @override
-  State<ResetPasswordScreen> createState() =>
-      _ResetPasswordScreenState();
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final AuthService _authService = AuthService();
-
   final TextEditingController _otpController = TextEditingController();
-  final TextEditingController _newPassController =
-      TextEditingController();
-  final TextEditingController _confirmPassController =
-      TextEditingController();
-
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
-  bool _isLoading = false;
+  final TextEditingController _newPassController = TextEditingController();
+  final TextEditingController _confirmPassController = TextEditingController();
 
   // Password strength
-  bool _hasMinLength = false;
-  bool _hasUppercase = false;
-  bool _hasNumberOrSpecial = false;
-
   int _strengthLevel = 0;
   String _strengthLabel = '';
   Color _strengthColor = Colors.transparent;
@@ -48,12 +38,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   // ================= HANDLE RESET =================
-  Future<void> handleResetPassword() async {
+  Future<void> handleResetPassword(AuthProvider auth) async {
     final otp = _otpController.text.trim();
     final newPass = _newPassController.text.trim();
     final confirmPass = _confirmPassController.text.trim();
 
-    // VALIDATE
     if (otp.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
       _showError("Vui lòng nhập đầy đủ thông tin");
       return;
@@ -70,34 +59,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
 
     FocusScope.of(context).unfocus();
-    setState(() => _isLoading = true);
 
-    try {
-      final result = await _authService.resetPassword(
-        username: widget.username,
-        resetCode: otp,
-        newPassword: newPass,
-      );
+    final result = await auth.resetPassword(
+      username: widget.username,
+      resetCode: otp,
+      newPassword: newPass,
+      confirmPassword: confirmPass,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (result["isOk"] == true) {
-        _showSuccess("Đổi mật khẩu thành công");
-
-        await Future.delayed(const Duration(milliseconds: 300));
-
-        Navigator.pushReplacementNamed(context, "/login");
-      } else {
-        _showError(
-          result["errors"]?[0]?["description"] ??
-              "Có lỗi xảy ra",
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showError("Lỗi kết nối");
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    if (result.isOk) {
+      _showSuccess("Đổi mật khẩu thành công");
+      await Future.delayed(const Duration(milliseconds: 300));
+      Navigator.pushReplacementNamed(context, "/login");
+    } else {
+      _showError(result.message);
     }
   }
 
@@ -105,17 +82,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void _evaluatePassword() {
     final p = _newPassController.text;
 
+    bool hasMinLength = p.length >= 8;
+    bool hasUppercase = p.contains(RegExp(r'[A-Z]'));
+    bool hasNumberOrSpecial = p.contains(RegExp(r'[0-9!@#\$%^&*(),.?":{}|<>]'));
+
+    final score =
+        (hasMinLength ? 1 : 0) +
+        (hasUppercase ? 1 : 0) +
+        (hasNumberOrSpecial ? 1 : 0);
+
     setState(() {
-      _hasMinLength = p.length >= 8;
-      _hasUppercase = p.contains(RegExp(r'[A-Z]'));
-      _hasNumberOrSpecial =
-          p.contains(RegExp(r'[0-9!@#\$%^&*(),.?":{}|<>]'));
-
-      final score =
-          (_hasMinLength ? 1 : 0) +
-          (_hasUppercase ? 1 : 0) +
-          (_hasNumberOrSpecial ? 1 : 0);
-
       if (p.isEmpty) {
         _strengthLevel = 0;
         _strengthLabel = '';
@@ -138,122 +114,104 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   // ================= HELPERS =================
   void _showError(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showSuccess(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
-  // ================= UI =================
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Back
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: () => Navigator.of(context).maybePop(),
+    return Consumer<AuthProvider>(
+      builder: (context, auth, child) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF3F4F6),
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Back button
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 12,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 12),
-                    Center(child: _buildIconCircle()),
-                    const SizedBox(height: 28),
-
-                    const Text(
-                      'Đặt lại mật khẩu',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                      ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 12),
+                        Center(child: _buildIconCircle()),
+                        const SizedBox(height: 28),
+                        const Text(
+                          'Đặt lại mật khẩu',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildLabel('Tên đăng nhập'),
+                        const SizedBox(height: 8),
+                        _buildLockedField(widget.username),
+                        const SizedBox(height: 18),
+                        _buildLabel('Mã xác nhận'),
+                        AuthTextField(
+                          controller: _otpController,
+                          keyboardType: TextInputType.number,
+                          hint: 'Nhập OTP',
+                          validator: (v) => AuthValidators.required(v, "OTP"),
+                        ),
+                        const SizedBox(height: 18),
+                        _buildLabel('Nhập mật khẩu mới'),
+                        AuthPasswordField(
+                          controller: _newPassController,
+                          validator: AuthValidators.password,
+                        ),
+                        const SizedBox(height: 18),
+                        _buildLabel('Xác nhận mật khẩu'),
+                        AuthPasswordField(
+                          controller: _confirmPassController,
+                          validator: AuthValidators.password,
+                        ),
+                        const SizedBox(height: 20),
+                        if (_newPassController.text.isNotEmpty)
+                          _buildPasswordRequirements(),
+                        const SizedBox(height: 32),
+                        AuthPrimaryButton(
+                          text: 'Cập nhật mật khẩu',
+                          isLoading: auth.isLoading,
+                          onPressed: () => handleResetPassword(auth),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
                     ),
-
-                    const SizedBox(height: 32),
-
-                    _buildLabel('Tên đăng nhập'),
-                    const SizedBox(height: 8),
-                    _buildLockedField(widget.username),
-
-                    const SizedBox(height: 18),
-
-                    _buildLabel('Mã xác nhận'),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: _otpController,
-                      hintText: 'Nhập OTP',
-                      keyboardType: TextInputType.number,
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _buildLabel('Mật khẩu mới'),
-                    const SizedBox(height: 8),
-                    _buildPasswordField(
-                      controller: _newPassController,
-                      hintText: 'Nhập mật khẩu mới',
-                      obscure: _obscureNew,
-                      onToggle: () =>
-                          setState(() => _obscureNew = !_obscureNew),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    _buildLabel('Xác nhận mật khẩu'),
-                    const SizedBox(height: 8),
-                    _buildPasswordField(
-                      controller: _confirmPassController,
-                      hintText: 'Nhập lại mật khẩu',
-                      obscure: _obscureConfirm,
-                      onToggle: () => setState(
-                          () => _obscureConfirm = !_obscureConfirm),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    if (_newPassController.text.isNotEmpty)
-                      _buildPasswordRequirements(),
-
-                    const SizedBox(height: 32),
-
-                    _buildSubmitButton(),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  // ================= WIDGETS =================
-
+  // ================= WIDGET HELPERS =================
   Widget _buildIconCircle() {
     return Container(
       width: 96,
@@ -271,16 +229,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(fontWeight: FontWeight.w500),
-    );
+    return Text(text, style: const TextStyle(fontWeight: FontWeight.w500));
   }
 
   Widget _buildLockedField(String value) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFF3F4F6),
         borderRadius: BorderRadius.circular(12),
@@ -289,58 +243,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return TextField(
-      controller: controller,
-      enabled: !_isLoading,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(hintText: hintText),
-    );
-  }
-
-  Widget _buildPasswordField({
-    required TextEditingController controller,
-    required String hintText,
-    required bool obscure,
-    required VoidCallback onToggle,
-  }) {
-    return TextField(
-      controller: controller,
-      enabled: !_isLoading,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hintText,
-        suffixIcon: IconButton(
-          icon: Icon(
-              obscure ? Icons.visibility_off : Icons.visibility),
-          onPressed: onToggle,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return SizedBox(
-      height: 54,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : handleResetPassword,
-        child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Cập nhật mật khẩu'),
-      ),
-    );
-  }
-
   Widget _buildPasswordRequirements() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Độ mạnh: $_strengthLabel",
-            style: TextStyle(color: _strengthColor)),
+        Text(
+          "Độ mạnh: $_strengthLabel",
+          style: TextStyle(color: _strengthColor),
+        ),
       ],
     );
   }

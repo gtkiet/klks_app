@@ -9,7 +9,7 @@ import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/splash/screens/splash_screen.dart';
-import '../features/profile/screens/edit_avatar_screen.dart';
+// import '../features/profile/screens/edit_avatar_screen.dart';
 
 class AppRoutes {
   // ================= ROUTE NAMES =================
@@ -27,56 +27,26 @@ class AppRoutes {
   // ================= ROUTE GENERATOR =================
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      /// ===== PUBLIC =====
       case splash:
-        return _guard(
-          settings,
-          const SplashScreen(),
-          requiresAuth: false,
-        );
+        return _buildRoute(const SplashScreen(), settings);
 
       case login:
-        return _guard(
-          settings,
-          const LoginScreen(),
-          requiresAuth: false,
-        );
+        return _guard(settings, const LoginScreen(), requiresAuth: false);
 
       case register:
-        return _guard(
-          settings,
-          const RegisterScreen(),
-          requiresAuth: false,
-        );
+        return _guard(settings, const RegisterScreen(), requiresAuth: false);
 
       case forgotPassword:
-        return _guard(
-          settings,
-          const ForgotPasswordScreen(),
-          requiresAuth: false,
-        );
+        return _guard(settings, const ForgotPasswordScreen(), requiresAuth: false);
 
-      /// ===== PROTECTED =====
       case main:
-        return _guard(
-          settings,
-          const MainScreen(),
-          requiresAuth: true,
-        );
+        return _guard(settings, const MainScreen(), requiresAuth: true);
 
       case home:
-        return _guard(
-          settings,
-          const HomeScreen(),
-          requiresAuth: true,
-        );
+        return _guard(settings, const HomeScreen(), requiresAuth: true);
 
-      case editAvatar:
-        return _guard(
-          settings,
-          const EditAvatarScreen(),
-          requiresAuth: true,
-        );
+      // case editAvatar:
+      //   return _guard(settings, const EditAvatarScreen(), requiresAuth: true);
 
       default:
         return _buildRoute(
@@ -97,26 +67,40 @@ class AppRoutes {
     return MaterialPageRoute(
       settings: settings,
       builder: (context) {
-        final auth = context.read<AuthProvider>();
+        return Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            /// 🔥 Splash handling
+            if (auth.status == AuthStatus.unknown) {
+              return const SplashScreen();
+            }
 
-        /// 🔥 Trạng thái chưa xác định (Splash đang xử lý)
-        if (auth.status == AuthStatus.unknown) {
-          return const SplashScreen();
-        }
+            /// 🔒 Chưa login → redirect về login
+            if (requiresAuth && !auth.isLoggedIn) {
+              _redirect(context, login);
+              return const SizedBox();
+            }
 
-        /// 🔒 Chưa login mà vào route protected
-        if (requiresAuth && !auth.isLoggedIn) {
-          return const LoginScreen();
-        }
+            /// 🔒 Đã login → redirect về main
+            if (!requiresAuth && auth.isLoggedIn) {
+              _redirect(context, main);
+              return const SizedBox();
+            }
 
-        /// 🔒 Đã login mà vào login/register
-        if (!requiresAuth && auth.isLoggedIn) {
-          return const MainScreen();
-        }
-
-        return page;
+            return page;
+          },
+        );
       },
     );
+  }
+
+  // ================= REDIRECT HELPER =================
+  static void _redirect(BuildContext context, String route) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        route,
+        (route) => false,
+      );
+    });
   }
 
   // ================= HELPER =================

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config/app_routes.dart';
-import 'core/network/api_client.dart'; // 👈 thêm
+import 'core/network/api_client.dart';
 import 'features/auth/providers/auth_provider.dart';
-import 'features/profile/providers/profile_provider.dart';
+// import 'features/profile/providers/profile_provider.dart';
 
 /// 🔥 GLOBAL NAVIGATOR
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -38,9 +38,9 @@ class AppProviders extends StatelessWidget {
           },
         ),
 
-        ChangeNotifierProvider(
-          create: (_) => ProfileProvider(),
-        ),
+        // ChangeNotifierProvider(
+        //   create: (_) => ProfileProvider(),
+        // ),
       ],
       child: child,
     );

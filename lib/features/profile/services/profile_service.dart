@@ -1,44 +1,55 @@
 import 'dart:io';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_response.dart';
 import '../../../models/user_profile.dart';
 
 class ProfileService {
   // ================= GET PROFILE =================
-  static Future<UserProfile> getProfile() async {
-    final data = await ApiClient.post(
-      "/api/profile/get-profile",
-      body: {},
-    );
+  Future<ApiResponse<UserProfile>> getProfile() async {
+    try {
+      final res = await ApiClient.post<Map<String, dynamic>>(
+        "/api/profile/get-profile",
+        body: {},
+      );
 
-    if (data["isOk"] == true && data["result"] != null) {
-      return UserProfile.fromJson(data["result"]);
+      if (res.isOk && res.data?["result"] != null) {
+        return ApiResponse.success(
+          UserProfile.fromJson(res.data!["result"]),
+        );
+      }
+
+      return ApiResponse.failure(
+        message: res.data?["errors"]?[0]?["description"] ?? "Lấy hồ sơ thất bại",
+      );
+    } catch (e) {
+      return ApiResponse.failure(message: "Lấy hồ sơ thất bại: $e");
     }
-
-    throw Exception(
-      data["errors"]?[0]?["description"] ?? "Lấy hồ sơ thất bại",
-    );
   }
 
   // ================= CHANGE AVATAR =================
-  static Future<String> changeAvatar(File file) async {
-    final data = await ApiClient.uploadFile(
-      "/api/profile/change-avatar",
-      fieldName: "avatar",
-      filePath: file.path,
-    );
+  Future<ApiResponse<String>> changeAvatar(File file) async {
+    try {
+      final res = await ApiClient.uploadFile<Map<String, dynamic>>(
+        "/api/profile/change-avatar",
+        fieldName: "avatar",
+        filePath: file.path,
+      );
 
-    if (data["isOk"] == true && data["result"] != null) {
-      return data["result"];
+      if (res.isOk && res.data?["result"] != null) {
+        return ApiResponse.success(res.data!["result"] as String);
+      }
+
+      return ApiResponse.failure(
+        message: res.data?["errors"]?[0]?["description"] ?? "Upload avatar thất bại",
+      );
+    } catch (e) {
+      return ApiResponse.failure(message: "Upload avatar thất bại: $e");
     }
-
-    throw Exception(
-      data["errors"]?[0]?["description"] ?? "Upload avatar failed",
-    );
   }
 
   // ================= UPDATE PROFILE =================
-  static Future<UserProfile> updateProfile({
+  Future<ApiResponse<UserProfile>> updateProfile({
     required String firstName,
     required String lastName,
     required String phoneNumber,
@@ -47,25 +58,31 @@ class ProfileService {
     required int gioiTinhId,
     required String diaChi,
   }) async {
-    final data = await ApiClient.put(
-      "/api/profile",
-      body: {
-        "firstName": firstName,
-        "lastName": lastName,
-        "phoneNumber": phoneNumber,
-        "idCard": idCard,
-        "dob": dob.toIso8601String(),
-        "gioiTinhId": gioiTinhId,
-        "diaChi": diaChi,
-      },
-    );
+    try {
+      final res = await ApiClient.put<Map<String, dynamic>>(
+        "/api/profile",
+        body: {
+          "firstName": firstName,
+          "lastName": lastName,
+          "phoneNumber": phoneNumber,
+          "idCard": idCard,
+          "dob": dob.toIso8601String(),
+          "gioiTinhId": gioiTinhId,
+          "diaChi": diaChi,
+        },
+      );
 
-    if (data["isOk"] == true && data["result"] != null) {
-      return UserProfile.fromJson(data["result"]);
+      if (res.isOk && res.data?["result"] != null) {
+        return ApiResponse.success(
+          UserProfile.fromJson(res.data!["result"]),
+        );
+      }
+
+      return ApiResponse.failure(
+        message: res.data?["errors"]?[0]?["description"] ?? "Cập nhật hồ sơ thất bại",
+      );
+    } catch (e) {
+      return ApiResponse.failure(message: "Cập nhật hồ sơ thất bại: $e");
     }
-
-    throw Exception(
-      data["errors"]?[0]?["description"] ?? "Cập nhật hồ sơ thất bại",
-    );
   }
 }

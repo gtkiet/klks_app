@@ -1,205 +1,137 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../config/app_routes.dart';
-import '../services/profile_service.dart';
 import '../../../models/user_profile.dart';
-import '../../auth/services/auth_service.dart';
+import '../providers/profile_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import 'edit_profile_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  UserProfile? profile;
-  bool loading = true;
-  String? error;
-
-  final AuthService _authService = AuthService();
-
-  @override
-  void initState() {
-    super.initState();
-    loadProfile();
-  }
-
-  Future<void> loadProfile() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
-
-    UserProfile? data;
-    String? err;
-
-    try {
-      data = await ProfileService.getProfile();
-    } catch (e) {
-      err = "Không tải được dữ liệu";
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      profile = data;
-      error = err;
-      loading = false;
-    });
-  }
-
-  Future<void> _goToEdit() async {
-    if (profile == null) return;
-
-    final updated = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => EditProfileScreen(profile: profile!)),
-    );
-
-    if (updated != null && mounted) {
-      setState(() => profile = updated);
-    }
-  }
-
-  Future<void> _changeAvatar() async {
-    final result = await Navigator.pushNamed(
-      context,
-      AppRoutes.editAvatar,
-      arguments: profile?.anhDaiDienUrl,
-    );
-
-    /// 👉 reload từ server để chắc chắn sync
-    if (result != null) {
-      await loadProfile();
-    }
-  }
-
-  Future<void> _logout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Xác nhận"),
-        content: const Text("Bạn có chắc muốn đăng xuất không?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Hủy"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Đăng xuất"),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    /// 🔥 loading overlay
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
-    await _authService.logout();
-
-    if (!mounted) return;
-
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.login,
-      (route) => false,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfileProvider()..loadProfile()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: Consumer2<ProfileProvider, AuthProvider>(
+        builder: (context, profileProvider, authProvider, _) {
+          if (profileProvider.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-    if (error != null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(error!),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: loadProfile,
-                child: const Text("Thử lại"),
+          if (profileProvider.error != null) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(profileProvider.error!),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: profileProvider.refresh,
+                      child: const Text("Thử lại"),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      );
-    }
+            );
+          }
 
-    if (profile == null) {
-      return const Scaffold(body: Center(child: Text("Không có dữ liệu")));
-    }
+          final profile = profileProvider.profile;
+          if (profile == null) {
+            return const Scaffold(
+              body: Center(child: Text("Không có dữ liệu")),
+            );
+          }
 
-    return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: loadProfile,
-        child: Column(
-          children: [
-            _buildAppBar(context),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
+          return Scaffold(
+            body: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: profileProvider.refresh,
                 child: Column(
                   children: [
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-                    _buildBody(),
+                    _buildAppBar(context),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          children: [
+                            _buildHeader(context, profileProvider, profile),
+                            const SizedBox(height: 16),
+                            _buildBody(context, profileProvider, authProvider, profile),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ================= APP BAR =================
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+          const Text(
+            'Hồ sơ người dùng',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ],
       ),
     );
   }
 
   // ================= HEADER =================
-
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, ProfileProvider provider, UserProfile profile) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
       child: Column(
         children: [
           GestureDetector(
-            onTap: _changeAvatar,
+            onTap: () async => await _changeAvatar(context, provider),
             child: CircleAvatar(
               radius: 50,
               backgroundColor: const Color(0xFF5BA4A4),
-              backgroundImage: profile!.anhDaiDienUrl.isNotEmpty
-                  ? NetworkImage(profile!.anhDaiDienUrl)
+              backgroundImage: profile.anhDaiDienUrl.isNotEmpty
+                  ? NetworkImage(profile.anhDaiDienUrl)
                   : null,
-              child: profile!.anhDaiDienUrl.isEmpty
+              child: profile.anhDaiDienUrl.isEmpty
                   ? const Icon(Icons.person, size: 50, color: Colors.white)
                   : null,
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            profile!.fullName,
+            profile.fullName,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
-          Text(
-            profile!.email,
-            style: const TextStyle(color: Color(0xFF6B7280)),
-          ),
+          Text(profile.email, style: const TextStyle(color: Color(0xFF6B7280))),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: _goToEdit,
+            onPressed: () async => await _goToEdit(context, provider, profile),
             icon: const Icon(Icons.edit),
             label: const Text('Chỉnh sửa hồ sơ'),
           ),
@@ -209,30 +141,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // ================= BODY =================
-
-  Widget _buildBody() {
+  Widget _buildBody(
+    BuildContext context,
+    ProfileProvider profileProvider,
+    AuthProvider authProvider,
+    UserProfile profile,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           _section("THÔNG TIN CÁ NHÂN", [
-            _row(Icons.badge_outlined, "CCCD", profile!.idCard),
-            _row(Icons.person_outline, "Giới tính", profile!.gioiTinhName),
-            _row(Icons.calendar_today, "Ngày sinh", profile!.formattedDob),
+            _row(Icons.badge_outlined, "CCCD", profile.idCard),
+            _row(Icons.person_outline, "Giới tính", profile.gioiTinhName),
+            _row(Icons.calendar_today, "Ngày sinh", profile.formattedDob),
           ]),
           const SizedBox(height: 16),
           _section("LIÊN HỆ", [
-            _row(Icons.phone, "SĐT", profile!.phoneNumber),
-            _row(Icons.email, "Email", profile!.email),
-            _row(Icons.home, "Địa chỉ", profile!.diaChi),
+            _row(Icons.phone, "SĐT", profile.phoneNumber),
+            _row(Icons.email, "Email", profile.email),
+            _row(Icons.home, "Địa chỉ", profile.diaChi),
           ]),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: _logout, child: const Text("Đăng xuất")),
+          ElevatedButton(
+            onPressed: authProvider.isLoggingOut
+                ? null
+                : () async => await authProvider.logout(),
+            child: authProvider.isLoggingOut
+                ? const CircularProgressIndicator()
+                : const Text("Đăng xuất"),
+          ),
         ],
       ),
     );
   }
 
+  // ================= HELPERS =================
   Widget _section(String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,26 +202,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ),
-          const Text(
-            'Hồ sơ người dùng',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
+  // ================= NAVIGATION =================
+  Future<void> _goToEdit(BuildContext context, ProfileProvider provider, UserProfile profile) async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditProfileScreen(profile: profile)),
     );
+
+    if (updated != null && updated is UserProfile) {
+      provider.updateLocalProfile(updated); // update Provider ngay
+    }
+  }
+
+  Future<void> _changeAvatar(BuildContext context, ProfileProvider provider) async {
+    final result = await Navigator.pushNamed(
+      context,
+      AppRoutes.editAvatar,
+      arguments: provider.profile?.anhDaiDienUrl,
+    );
+
+    if (result != null) {
+      await provider.loadProfile(force: true); // reload avatar mới
+    }
   }
 }

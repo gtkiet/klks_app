@@ -6,8 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
+import 'package:provider/provider.dart';
 
-import '../services/profile_service.dart';
+import '../providers/profile_provider.dart';
+// import '../../../models/user_profile.dart';
 
 class EditAvatarScreen extends StatefulWidget {
   const EditAvatarScreen({super.key});
@@ -46,11 +48,9 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
     final imageHeight = decoded.height.toDouble();
 
     const boxSize = 230.0;
-
     final scaleX = boxSize / imageWidth;
     final scaleY = boxSize / imageHeight;
 
-    // 🔥 chọn scale nhỏ nhất để FIT
     final fitScale = math.max(scaleX, scaleY);
 
     setState(() {
@@ -70,13 +70,11 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
 
     if (image != null) {
       final file = File(image.path);
-
       setState(() {
         selectedImage = file;
         _resetTransform();
       });
-
-      await _fitImage(file); // 🔥 FIX
+      await _fitImage(file);
     }
   }
 
@@ -88,13 +86,11 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
 
     if (image != null) {
       final file = File(image.path);
-
       setState(() {
         selectedImage = file;
         _resetTransform();
       });
-
-      await _fitImage(file); // 🔥 FIX
+      await _fitImage(file);
     }
   }
 
@@ -110,13 +106,10 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
   /// =========================
   Future<File> _exportImage() async {
     await Future.delayed(const Duration(milliseconds: 100));
-
     final context = _previewKey.currentContext;
     final boundary = context!.findRenderObject() as RenderRepaintBoundary;
-
     final image = await boundary.toImage(pixelRatio: 3);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
     final pngBytes = byteData!.buffer.asUint8List();
 
     final decoded = img.decodeImage(pngBytes)!;
@@ -126,22 +119,19 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
     final file = File(
       "${tempDir.path}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg",
     );
-
     await file.writeAsBytes(jpgBytes);
-
     return file;
   }
 
   /// =========================
-  /// SAVE AVATAR
+  /// SAVE AVATAR (UPDATE PROVIDER)
   /// =========================
   Future<void> _saveAvatar() async {
     if (isLoading) return;
-
     if (selectedImage == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Vui lòng chọn ảnh")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Vui lòng chọn ảnh")),
+      );
       return;
     }
 
@@ -149,61 +139,56 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
 
     try {
       final file = await _exportImage();
-      final newUrl = await ProfileService.changeAvatar(file);
+      final provider = context.read<ProfileProvider>();
+
+      final success = await provider.changeAvatar(file);
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Cập nhật avatar thành công")),
-      );
-
-      Navigator.pop(context, newUrl);
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Cập nhật avatar thành công")),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(provider.error ?? "Cập nhật thất bại")),
+        );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e")),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final avatarUrl = ModalRoute.of(context)?.settings.arguments as String?;
+    final provider = context.watch<ProfileProvider>();
+    final avatarUrl = selectedImage != null
+        ? null
+        : provider.profile?.anhDaiDienUrl ?? "";
 
     return Scaffold(
       appBar: AppBar(title: const Text('Chỉnh sửa ảnh đại diện')),
       body: Column(
         children: [
           const SizedBox(height: 20),
-
-          /// PREVIEW
           Center(child: _buildCropBox(avatarUrl)),
-
           const SizedBox(height: 20),
-
-          /// ACTIONS
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _btn(Icons.camera_alt, _pickFromCamera),
               _btn(Icons.photo, _pickFromGallery),
-              _btn(Icons.rotate_left, () {
-                setState(() => _rotation -= 90);
-              }),
-              _btn(Icons.rotate_right, () {
-                setState(() => _rotation += 90);
-              }),
-              _btn(Icons.flip, () {
-                setState(() => _flipHorizontal = !_flipHorizontal);
-              }),
+              _btn(Icons.rotate_left, () => setState(() => _rotation -= 90)),
+              _btn(Icons.rotate_right, () => setState(() => _rotation += 90)),
+              _btn(Icons.flip, () => setState(() => _flipHorizontal = !_flipHorizontal)),
             ],
           ),
-
           const Spacer(),
-
           Padding(
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
@@ -222,9 +207,6 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
     return IconButton(onPressed: onTap, icon: Icon(icon));
   }
 
-  /// =========================
-  /// CROP BOX (FIX DRAG + SCALE)
-  /// =========================
   Widget _buildCropBox(String? avatarUrl) {
     final url = avatarUrl ?? "";
 
@@ -237,10 +219,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
       onScaleUpdate: (details) {
         setState(() {
           _scale = (_startScale * details.scale).clamp(0.5, 5.0);
-
           final delta = details.focalPoint - _dragStart;
           final limit = 120.0 * _scale;
-
           _dragOffset = Offset(
             (_dragStartOffset.dx + delta.dx).clamp(-limit, limit),
             (_dragStartOffset.dy + delta.dy).clamp(-limit, limit),
@@ -266,8 +246,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
               child: selectedImage != null
                   ? Image.file(selectedImage!, fit: BoxFit.cover)
                   : (url.isNotEmpty
-                        ? Image.network(url, fit: BoxFit.cover)
-                        : const Icon(Icons.person, size: 80)),
+                      ? Image.network(url, fit: BoxFit.cover)
+                      : const Icon(Icons.person, size: 80)),
             ),
           ),
         ),

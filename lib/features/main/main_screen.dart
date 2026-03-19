@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../home/screens/home_screen.dart';
-import '../profile/screens/profile_screen.dart';
+// import '../profile/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -35,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
     _NavItem(
       icon: Icons.person_rounded,
       label: 'Cá nhân',
-      page: ProfileScreen(),
+      page: Center(child: Text("Cá nhân")),
     ),
   ];
 

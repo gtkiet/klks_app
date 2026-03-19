@@ -1,127 +1,106 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../models/user_profile.dart';
-import '../../profile/services/profile_service.dart';
+import '../../profile/screens/profile_screen.dart';
+import '../../profile/providers/profile_provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  UserProfile? profile;
-  bool loading = true;
-  String? error;
-
-  @override
-  void initState() {
-    super.initState();
-    loadProfile();
-  }
-
-  Future<void> loadProfile() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
-
-    UserProfile? data;
-    String? err;
-
-    try {
-      data = await ProfileService.getProfile();
-    } catch (e) {
-      err = "Không tải được dữ liệu";
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      profile = data;
-      error = err;
-      loading = false;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return ChangeNotifierProvider(
+      create: (_) => ProfileProvider()..loadProfile(),
+      child: Consumer<ProfileProvider>(
+        builder: (context, provider, _) {
+          if (provider.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-    if (error != null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(error!),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: loadProfile,
-                child: const Text("Thử lại"),
+          if (provider.error != null) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(provider.error!),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: provider.refresh,
+                      child: const Text("Thử lại"),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      );
-    }
+            );
+          }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: loadProfile,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Header(profile: profile),
-                const SizedBox(height: 20),
-                const _QuickActions(),
-                const SizedBox(height: 20),
-                const _MainContent(),
-              ],
+          final profile = provider.profile;
+
+          return Scaffold(
+            backgroundColor: const Color(0xFFF5F5F5),
+            body: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: provider.refresh,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Header(),
+                      const SizedBox(height: 20),
+                      _QuickActions(),
+                      const SizedBox(height: 20),
+                      const _MainContent(),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
 
 /// =========================
-/// 🔥 HEADER (DÙNG REAL DATA)
+/// 🔥 HEADER
 /// =========================
 class _Header extends StatelessWidget {
-  final UserProfile? profile;
-
-  const _Header({this.profile});
-
   @override
   Widget build(BuildContext context) {
-    final name = profile?.fullName.isNotEmpty == true
-        ? profile!.fullName
-        : "Người dùng";
-
+    final provider = Provider.of<ProfileProvider>(context);
+    final profile = provider.profile;
+    final name = (profile?.fullName.isNotEmpty == true) ? profile!.fullName : "Người dùng";
     final avatarUrl = profile?.anhDaiDienUrl ?? "";
 
     return Row(
       children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: const Color(0xFFE5E7EB),
-          backgroundImage:
-              avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
-          child: avatarUrl.isEmpty
-              ? const Icon(Icons.person, color: Colors.grey)
-              : null,
+        GestureDetector(
+          onTap: () async {
+            if (profile != null) {
+              final updated = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+              if (updated != null && updated is UserProfile) {
+                provider.updateLocalProfile(updated);
+              }
+            }
+          },
+          child: CircleAvatar(
+            radius: 26,
+            backgroundColor: const Color(0xFFE5E7EB),
+            backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+            child: avatarUrl.isEmpty
+                ? const Icon(Icons.person, color: Colors.grey)
+                : null,
+          ),
         ),
         const SizedBox(width: 12),
         Column(
@@ -160,45 +139,65 @@ class _Header extends StatelessWidget {
 /// 🔥 QUICK ACTIONS
 /// =========================
 class _QuickActions extends StatelessWidget {
-  const _QuickActions();
-
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ProfileProvider>(context);
+    final profile = provider.profile;
+
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       physics: const NeverScrollableScrollPhysics(),
-      children: const [
+      children: [
         _ActionItem(
           icon: Icons.person_outline,
           label: "Hồ sơ",
+          onTap: () async {
+            if (profile != null) {
+              final updated = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+              if (updated != null && updated is UserProfile) {
+                provider.updateLocalProfile(updated);
+              }
+            }
+          },
         ),
         _ActionItem(
           icon: Icons.notifications_outlined,
           label: "Thông báo",
+          onTap: () {},
         ),
         _ActionItem(
           icon: Icons.settings_outlined,
           label: "Cài đặt",
+          onTap: () {},
         ),
         _ActionItem(
           icon: Icons.help_outline,
           label: "Hỗ trợ",
+          onTap: () {},
         ),
       ],
     );
   }
 }
 
+/// =========================
+/// 🔥 ACTION ITEM
+/// =========================
 class _ActionItem extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
   const _ActionItem({
     required this.icon,
     required this.label,
+    required this.onTap,
   });
 
   @override
@@ -207,7 +206,7 @@ class _ActionItem extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -293,9 +292,6 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-/// =========================
-/// 🔥 EMPTY STATE
-/// =========================
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 

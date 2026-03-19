@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../models/user_profile.dart';
-import '../services/profile_service.dart';
+import '../providers/profile_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile profile;
@@ -73,7 +74,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => isLoading = true);
 
     try {
-      final updated = await ProfileService.updateProfile(
+      final provider = context.read<ProfileProvider>();
+      final success = await provider.updateProfile(
         firstName: firstNameCtrl.text.trim(),
         lastName: lastNameCtrl.text.trim(),
         phoneNumber: phoneCtrl.text.trim(),
@@ -85,15 +87,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Cập nhật thành công')));
-
-      Navigator.pop(context, updated);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cập nhật thành công')),
+        );
+        Navigator.pop(context, provider.profile);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(provider.error ?? "Cập nhật thất bại")),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e")),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -169,34 +176,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  /// ===== BASIC INFO =====
                   _section("Thông tin cá nhân"),
-
                   _input(label: "Họ", ctrl: firstNameCtrl),
                   _input(label: "Tên", ctrl: lastNameCtrl),
-
-                  /// ===== CONTACT =====
                   _section("Liên hệ"),
-
                   _input(
                     label: "Số điện thoại",
                     ctrl: phoneCtrl,
                     validator: _phoneValidator,
                     type: TextInputType.phone,
                   ),
-
                   _input(
                     label: "CCCD",
                     ctrl: idCardCtrl,
                     validator: _idValidator,
                     type: TextInputType.number,
                   ),
-
                   _input(label: "Địa chỉ", ctrl: addressCtrl),
-
-                  /// ===== DOB =====
                   _section("Khác"),
-
                   ListTile(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -208,10 +205,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     trailing: const Icon(Icons.calendar_today),
                     onTap: _pickDate,
                   ),
-
                   const SizedBox(height: 16),
-
-                  /// ===== GENDER =====
                   DropdownButtonFormField<int>(
                     value: gioiTinhId,
                     items: const [
@@ -227,9 +221,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
@@ -246,8 +238,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-
-          /// LOADING OVERLAY
           if (isLoading) Container(color: Colors.black.withOpacity(0.1)),
         ],
       ),

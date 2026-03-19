@@ -35,21 +35,33 @@ class UserProfile {
   /// 🔥 FROM JSON (SAFE)
   /// =========================
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    int? parseInt(dynamic val) {
+      if (val == null) return null;
+      if (val is int) return val;
+      return int.tryParse(val.toString());
+    }
+
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is DateTime) return val;
+      return DateTime.tryParse(val.toString());
+    }
+
     return UserProfile(
-      id: json["id"] ?? 0,
-      username: json["username"] ?? "",
-      email: json["email"] ?? "",
-      firstName: json["firstName"] ?? "",
-      lastName: json["lastName"] ?? "",
-      phoneNumber: json["phoneNumber"] ?? "",
-      idCard: json["idCard"] ?? "",
-      diaChi: json["diaChi"] ?? "",
-      dob: json["dob"] != null ? DateTime.tryParse(json["dob"]) : null,
-      gioiTinhId: json["gioiTinhId"],
-      gioiTinhName: json["gioiTinhName"] ?? "",
-      roleId: json["roleId"],
-      roleName: json["roleName"] ?? "",
-      anhDaiDienUrl: json["anhDaiDienUrl"] ?? "",
+      id: parseInt(json["id"]) ?? 0,
+      username: json["username"]?.toString() ?? "",
+      email: json["email"]?.toString() ?? "",
+      firstName: json["firstName"]?.toString() ?? "",
+      lastName: json["lastName"]?.toString() ?? "",
+      phoneNumber: json["phoneNumber"]?.toString() ?? "",
+      idCard: json["idCard"]?.toString() ?? "",
+      diaChi: json["diaChi"]?.toString() ?? "",
+      dob: parseDate(json["dob"]),
+      gioiTinhId: parseInt(json["gioiTinhId"]),
+      gioiTinhName: json["gioiTinhName"]?.toString() ?? "",
+      roleId: parseInt(json["roleId"]),
+      roleName: json["roleName"]?.toString() ?? "",
+      anhDaiDienUrl: json["anhDaiDienUrl"]?.toString() ?? "",
     );
   }
 
@@ -68,9 +80,8 @@ class UserProfile {
       "diaChi": diaChi,
       "dob": dob?.toIso8601String(),
       "gioiTinhId": gioiTinhId,
-      "gioiTinhName": gioiTinhName,
+      // gioiTinhName, roleName chỉ đọc, thường API update không cần
       "roleId": roleId,
-      "roleName": roleName,
       "anhDaiDienUrl": anhDaiDienUrl,
     };
   }
@@ -115,10 +126,19 @@ class UserProfile {
   /// =========================
   /// 🔥 HELPER
   /// =========================
-  String get fullName => "$firstName $lastName";
 
+  /// Trả về "First Last", trim và bỏ khoảng trắng thừa
+  String get fullName {
+    final parts = [firstName, lastName].map((e) => e.trim()).where((e) => e.isNotEmpty);
+    return parts.join(" ");
+  }
+
+  /// Trả về "dd/MM/yyyy", trả "" nếu null
   String get formattedDob {
     if (dob == null) return "";
-    return "${dob!.day}/${dob!.month}/${dob!.year}";
+    return "${dob!.day.toString().padLeft(2, '0')}/${dob!.month.toString().padLeft(2, '0')}/${dob!.year}";
   }
+
+  /// Tạo bản sao chỉ update avatar
+  UserProfile copyWithAvatar(String url) => copyWith(anhDaiDienUrl: url);
 }

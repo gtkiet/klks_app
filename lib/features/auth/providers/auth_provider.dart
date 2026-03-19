@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../../../main.dart'; // 👈 dùng navigatorKey
+import '../../../main.dart';
 import '../../../config/app_routes.dart';
+import '../../../core/network/api_response.dart';
 import '../services/auth_service.dart';
 
-enum AuthStatus {
-  unknown,
-  authenticated,
-  unauthenticated
-}
+enum AuthStatus { unknown, authenticated, unauthenticated }
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   AuthStatus _status = AuthStatus.unknown;
-  bool _isLoading = false;
+  bool _isLoading = false;       // trạng thái chung (login/register/forgot/reset)
+  bool _isLoggingOut = false;    // trạng thái riêng cho logout
+  String? _error;
 
   AuthStatus get status => _status;
   bool get isLoading => _isLoading;
-
+  bool get isLoggingOut => _isLoggingOut;
+  String? get error => _error;
   bool get isLoggedIn => _status == AuthStatus.authenticated;
 
   // ================= INIT =================
@@ -27,10 +27,8 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final success = await _authService.tryAutoLogin();
-
-      _status = success
-          ? AuthStatus.authenticated
-          : AuthStatus.unauthenticated;
+      _status =
+          success ? AuthStatus.authenticated : AuthStatus.unauthenticated;
     } catch (_) {
       _status = AuthStatus.unauthenticated;
     }
@@ -39,28 +37,37 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // ================= LOGIN =================
-  Future<Map<String, dynamic>> login({
+  Future<bool> login({
     required String username,
     required String password,
   }) async {
     _setLoading(true);
+    _error = null;
 
-    final result = await _authService.login(
-      username: username,
-      password: password,
-    );
+    try {
+      final ApiResponse res = await _authService.login(
+        username: username,
+        password: password,
+      );
 
-    if (result["isOk"] == true) {
-      _status = AuthStatus.authenticated;
-      notifyListeners();
+      if (res.isOk) {
+        _status = AuthStatus.authenticated;
+        notifyListeners();
+        return true;
+      } else {
+        _error = res.message;
+        return false;
+      }
+    } catch (_) {
+      _error = "Lỗi kết nối, vui lòng thử lại";
+      return false;
+    } finally {
+      _setLoading(false);
     }
-
-    _setLoading(false);
-    return result;
   }
 
   // ================= REGISTER =================
-  Future<Map<String, dynamic>> register({
+  Future<bool> register({
     required String username,
     required String email,
     required String password,
@@ -68,35 +75,61 @@ class AuthProvider extends ChangeNotifier {
     required String lastName,
     required String phoneNumber,
     required String idCard,
-    required String dob,
-    required int gioiTinhId,
+    required DateTime? dob,
+    required int genderId,
     required String address,
   }) async {
     _setLoading(true);
+    _error = null;
 
-    final result = await _authService.register(
-      username: username,
-      email: email,
-      password: password,
-      firstName: firstName,
-      lastName: lastName,
-      phoneNumber: phoneNumber,
-      idCard: idCard,
-      dob: dob,
-      gioiTinhId: gioiTinhId,
-      address: address,
-    );
+    if (username.isEmpty ||
+        password.isEmpty ||
+        email.isEmpty ||
+        dob == null ||
+        genderId == 0) {
+      _error = "Vui lòng nhập đầy đủ thông tin";
+      _setLoading(false);
+      return false;
+    }
 
-    _setLoading(false);
-    return result;
+    try {
+      final ApiResponse res = await _authService.register(
+        username: username,
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber,
+        idCard: idCard,
+        dob: dob.toIso8601String(),
+        gioiTinhId: genderId,
+        address: address,
+      );
+
+      if (res.isOk) {
+        return true;
+      } else {
+        _error = res.message;
+        return false;
+      }
+    } catch (_) {
+      _error = "Lỗi kết nối, vui lòng thử lại";
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // ================= LOGOUT =================
   Future<void> logout() async {
-    _setLoading(true);
+    _isLoggingOut = true;
+    notifyListeners();
 
-    await _authService.logout();
+    try {
+      await _authService.logout();
+    } catch (_) {}
 
+    _isLoggingOut = false;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
 
@@ -107,7 +140,6 @@ class AuthProvider extends ChangeNotifier {
   void forceLogout() {
     _status = AuthStatus.unauthenticated;
     notifyListeners();
-
     _navigateToLogin();
   }
 
@@ -123,5 +155,49 @@ class AuthProvider extends ChangeNotifier {
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  // ================= FORGOT PASSWORD =================
+  Future<ApiResponse<void>> forgotPassword({required String username}) async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      final res = await _authService.forgotPassword(username: username);
+      if (!res.isOk) _error = res.message;
+      return res;
+    } catch (_) {
+      _error = "Lỗi kết nối, vui lòng thử lại";
+      return ApiResponse.failure(message: _error);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // ================= RESET PASSWORD =================
+  Future<ApiResponse<void>> resetPassword({
+    required String username,
+    required String resetCode,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      final res = await _authService.resetPassword(
+        username: username,
+        resetCode: resetCode,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+      if (!res.isOk) _error = res.message;
+      return res;
+    } catch (_) {
+      _error = "Lỗi kết nối, vui lòng thử lại";
+      return ApiResponse.failure(message: _error);
+    } finally {
+      _setLoading(false);
+    }
   }
 }

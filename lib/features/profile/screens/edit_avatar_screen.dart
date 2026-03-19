@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 
 import '../services/profile_service.dart';
 
+import '../../../widgets/app_button.dart';
+
 class EditAvatarScreen extends StatefulWidget {
   const EditAvatarScreen({super.key});
 
@@ -178,12 +180,13 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
             child: SizedBox(
               width: double.infinity,
               height: 48,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _saveAvatar,
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Lưu"),
-              ),
+              // child: ElevatedButton(
+              //   onPressed: _isLoading ? null : _saveAvatar,
+              //   child: _isLoading
+              //       ? const CircularProgressIndicator(color: Colors.white)
+              //       : const Text("Lưu"),
+              // ),
+              child: EditButton(onPressed: _saveAvatar, isLoading: _isLoading),
             ),
           ),
         ],

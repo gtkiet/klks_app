@@ -53,29 +53,6 @@ class SubmitButton extends StatelessWidget {
   }
 }
 
-/// ────────────── LOGOUT BUTTON ──────────────
-class LogoutButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final bool isLoading;
-
-  const LogoutButton({
-    super.key,
-    required this.onPressed,
-    this.isLoading = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SubmitButton(
-      onPressed: onPressed,
-      label: 'Đăng xuất',
-      isLoading: isLoading,
-      backgroundColor: const Color(0xFFEF4444), // màu đỏ
-      foregroundColor: Colors.white,
-    );
-  }
-}
-
 /// ────────────── EDIT BUTTON ──────────────
 class EditButton extends StatelessWidget {
   final VoidCallback? onPressed;

@@ -33,6 +33,9 @@ class KLKSApp extends StatelessWidget {
       initialRoute: AppRoutes.splash,
 
       routes: AppRoutes.routes,
+
+      // ✅ QUAN TRỌNG
+      onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
 }

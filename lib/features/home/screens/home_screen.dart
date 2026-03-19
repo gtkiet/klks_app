@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/app_routes.dart';
 import '../../../core/storage/user_session.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -113,8 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
           CircleAvatar(
             radius: 24,
             backgroundColor: const Color(0xFFCBD5E1),
-            backgroundImage: (user.avatarUrl != null &&
-                    user.avatarUrl!.isNotEmpty)
+            backgroundImage:
+                (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
                 ? NetworkImage(user.avatarUrl!)
                 : null,
             child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
@@ -129,10 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Text(
                   'XIN CHÀO,',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF6B7280),
-                  ),
+                  style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
                 ),
                 Text(
                   user.fullName ?? 'Người dùng',
@@ -196,10 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(height: 10),
                 Text(
                   'Tốt',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -213,43 +208,55 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-      ),
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
     );
   }
 
   // ================= SHORTCUT =================
+  void _showPlaceholder(String title) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Text('$title đang được phát triển'),
+      ),
+    );
+  }
+
   Widget _buildShortcuts() {
     final items = [
-      Icons.lightbulb,
-      Icons.credit_card,
-      Icons.design_services,
-      Icons.person_add,
+      _ShortcutItem(icon: Icons.apartment, label: 'Cư trú', route: AppRoutes.residences),
     ];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: items
-          .map(
-            (icon) => Column(
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEEF2FF),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon),
+      children: items.map((item) {
+        return GestureDetector(
+          onTap: () {
+            if (item.route != null &&
+                AppRoutes.routes.containsKey(item.route)) {
+              Navigator.pushNamed(context, item.route!);
+            } else {
+              _showPlaceholder(item.label);
+            }
+          },
+          child: Column(
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 8),
-                const Text("Item"),
-              ],
-            ),
-          )
-          .toList(),
+                child: Icon(item.icon),
+              ),
+              const SizedBox(height: 8),
+              Text(item.label),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -282,20 +289,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ================= NOTIFICATION =================
   Widget _buildNotifications() {
-    final items = [
-      "Thông báo 1",
-      "Thông báo 2",
-      "Thông báo 3",
-    ];
+    final items = ["Thông báo 1", "Thông báo 2", "Thông báo 3"];
 
     return SizedBox(
       height: 120,
       child: PageView.builder(
         controller: _notifController,
         itemCount: items.length,
-        itemBuilder: (_, i) =>
-            Card(child: Center(child: Text(items[i]))),
+        itemBuilder: (_, i) => Card(child: Center(child: Text(items[i]))),
       ),
     );
   }
+}
+
+class _ShortcutItem {
+  final IconData icon;
+  final String label;
+  final String? route;
+
+  const _ShortcutItem({
+    required this.icon,
+    required this.label,
+    this.route,
+  });
 }

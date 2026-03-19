@@ -19,10 +19,8 @@ class ProfileService {
       if (data["isOk"] == true && data["result"] != null) {
         final profile = UserProfile.fromJson(data["result"]);
 
-        // 🔥 OPTIONAL: sync lại session (tránh lệch data)
-        final session = UserSession();
-        session.fullName = "${profile.lastName} ${profile.firstName}";
-        session.avatarUrl = profile.anhDaiDienUrl;
+        // 🔥 Sync full session
+        _syncSession(profile, data);
 
         return profile;
       }
@@ -45,8 +43,9 @@ class ProfileService {
       if (data["isOk"] == true && data["result"] != null) {
         final newAvatarUrl = data["result"];
 
-        // 🔥 UPDATE SESSION NGAY
-        UserSession().avatarUrl = newAvatarUrl;
+        // 🔥 Update session avatar ngay
+        final session = UserSession();
+        session.avatarUrl = newAvatarUrl;
 
         return newAvatarUrl;
       }
@@ -86,11 +85,9 @@ class ProfileService {
       if (data["isOk"] == true && data["result"] != null) {
         final profile = UserProfile.fromJson(data["result"]);
 
-        // 🔥 UPDATE SESSION NGAY
-        final session = UserSession();
-        session.fullName = "${profile.lastName} ${profile.firstName}";
-        session.avatarUrl = profile.anhDaiDienUrl;
-      
+        // 🔥 Sync full session
+        _syncSession(profile, data);
+
         return profile;
       }
 
@@ -99,6 +96,26 @@ class ProfileService {
       );
     } catch (e) {
       throw Exception("Lỗi cập nhật hồ sơ");
+    }
+  }
+
+  // ================= HELPER: SYNC SESSION =================
+  static void _syncSession(UserProfile profile, Map<String, dynamic> data) {
+    final session = UserSession();
+
+    session.userId = profile.id;
+    session.username = profile.username;
+    session.email = profile.email;
+    session.fullName = profile.fullName;
+    session.role = profile.roleName;
+    session.avatarUrl = profile.anhDaiDienUrl;
+
+    // Cập nhật token nếu API trả về (ví dụ khi login hoặc refresh)
+    if (data.containsKey('accessToken') && data['accessToken'] != null) {
+      session.accessToken = data['accessToken'];
+    }
+    if (data.containsKey('refreshToken') && data['refreshToken'] != null) {
+      session.refreshToken = data['refreshToken'];
     }
   }
 }

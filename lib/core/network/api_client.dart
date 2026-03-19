@@ -123,7 +123,8 @@ class ApiClient {
 
     _isRefreshing = true;
 
-    final success = await _authService.refreshAccessToken();
+    // AuthService.refreshAccessToken() trả Map<String,dynamic>
+    final refreshResult = await _authService.refreshAccessToken();
 
     _isRefreshing = false;
 
@@ -133,7 +134,7 @@ class ApiClient {
     }
     _queue.clear();
 
-    if (!success) {
+    if (refreshResult["success"] != true) {
       await AuthHelper.forceLogout();
       throw Exception("SESSION_EXPIRED");
     }

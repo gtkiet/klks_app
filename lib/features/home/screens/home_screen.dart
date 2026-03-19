@@ -10,9 +10,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _lightOn = true;
-  bool _acOn = true;
-
   final PageController _notifController = PageController();
 
   @override
@@ -21,20 +18,19 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // 🔥 KEY FIX: rebuild khi quay lại màn hình
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    setState(() {}); // đảm bảo luôn lấy data mới từ UserSession
+    setState(() {}); // luôn lấy data mới từ UserSession
   }
 
   @override
   Widget build(BuildContext context) {
     final user = UserSession();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFF3F4F6),
+      child: SafeArea(
         child: Column(
           children: [
             _buildTopBar(user),
@@ -44,56 +40,52 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildWeatherRow(),
-                    const SizedBox(height: 24),
-
                     _buildSectionTitle('Lối tắt nhanh'),
                     const SizedBox(height: 14),
                     _buildShortcuts(),
                     const SizedBox(height: 24),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildSectionTitle('Trạng thái căn hộ'),
-                        const Text(
-                          'Tất cả',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF2563EB),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    _buildDeviceCard(
-                      icon: Icons.lightbulb_rounded,
-                      iconColor: const Color(0xFFF59E0B),
-                      iconBg: const Color(0xFFFEF3C7),
-                      title: 'Hệ thống đèn',
-                      subtitle: '3 thiết bị đang bật',
-                      value: _lightOn,
-                      onChanged: (v) => setState(() => _lightOn = v),
-                    ),
+                    // Hồ sơ & Căn hộ
+                    _buildSectionLabel('HỒ SƠ & CĂN HỘ', color: const Color(0xFF2563EB)),
                     const SizedBox(height: 12),
-
-                    _buildDeviceCard(
-                      icon: Icons.ac_unit_rounded,
-                      iconColor: const Color(0xFF2563EB),
-                      iconBg: const Color(0xFFEFF6FF),
-                      title: 'Điều hòa (PK)',
-                      subtitle: 'Đang chạy • 25°C',
-                      value: _acOn,
-                      onChanged: (v) => setState(() => _acOn = v),
-                    ),
-
+                    _buildMenuCard([
+                      _MenuItem(icon: Icons.badge_outlined, label: 'Thông tin cá nhân'),
+                      _MenuItem(icon: Icons.lock_reset_rounded, label: 'Thay đổi mật khẩu'),
+                      _MenuItem(icon: Icons.apartment_rounded, label: 'Chi tiết căn hộ'),
+                      _MenuItem(icon: Icons.group_outlined, label: 'Danh sách thành viên'),
+                      _MenuItem(icon: Icons.directions_car_outlined, label: 'Phương tiện đăng ký', isLast: true),
+                    ]),
                     const SizedBox(height: 24),
 
-                    _buildSectionTitle('Thông báo từ BQL'),
-                    const SizedBox(height: 14),
-                    _buildNotifications(),
+                    // Hóa đơn & Thanh toán
+                    _buildSectionLabel('HÓA ĐƠN & THANH TOÁN', color: const Color(0xFF2563EB)),
+                    const SizedBox(height: 12),
+                    _buildMenuCard([
+                      _MenuItem(icon: Icons.receipt_long_outlined, label: 'Danh sách hóa đơn'),
+                      _MenuItem(icon: Icons.account_balance_wallet_outlined, label: 'Chi tiết phí'),
+                      _MenuItem(icon: Icons.payment_rounded, label: 'Thanh toán & Ủy nhiệm chi'),
+                      _MenuItem(icon: Icons.history_rounded, label: 'Lịch sử giao dịch', isLast: true),
+                    ]),
+                    const SizedBox(height: 24),
+
+                    // Dịch vụ & Tiện ích
+                    _buildSectionLabel('DỊCH VỤ & TIỆN ÍCH', color: const Color(0xFF2563EB)),
+                    const SizedBox(height: 12),
+                    _buildMenuCard([
+                      _MenuItem(icon: Icons.build_outlined, label: 'Tạo yêu cầu sửa chữa', badge: 'MỚI', badgeColor: const Color(0xFF2563EB)),
+                      _MenuItem(icon: Icons.format_list_bulleted_rounded, label: 'Theo dõi tiến độ'),
+                      _MenuItem(icon: Icons.event_available_outlined, label: 'Đăng ký tiện ích chung', isLast: true),
+                    ]),
+                    const SizedBox(height: 24),
+
+                    // Cộng đồng & Thông báo
+                    _buildSectionLabel('CỘNG ĐỒNG & THÔNG BÁO', color: const Color(0xFF2563EB)),
+                    const SizedBox(height: 12),
+                    _buildMenuCard([
+                      _MenuItem(icon: Icons.notifications_outlined, label: 'Xem thông báo mới'),
+                      _MenuItem(icon: Icons.how_to_vote_outlined, label: 'Khảo sát & Bầu cử cư dân'),
+                      _MenuItem(icon: Icons.support_agent_rounded, label: 'Hỗ trợ Virtual Assistant', badge: 'AI', badgeColor: const Color(0xFF6B7280), isLast: true),
+                    ]),
                   ],
                 ),
               ),
@@ -114,8 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
           CircleAvatar(
             radius: 24,
             backgroundColor: const Color(0xFFCBD5E1),
-            backgroundImage:
-                (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
+            backgroundImage: (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
                 ? NetworkImage(user.avatarUrl!)
                 : null,
             child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
@@ -123,93 +114,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 : null,
           ),
           const SizedBox(width: 12),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'XIN CHÀO,',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
-                ),
-                Text(
-                  user.fullName ?? 'Người dùng',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                const Text('XIN CHÀO,', style: TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
+                Text(user.fullName ?? 'Người dùng', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
               ],
             ),
           ),
-
           const Icon(Icons.notifications_outlined),
         ],
       ),
     );
   }
 
-  // ================= WEATHER =================
-  Widget _buildWeatherRow() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 5,
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2563EB),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Nhiệt độ", style: TextStyle(color: Colors.white70)),
-                SizedBox(height: 10),
-                Text(
-                  '28°C',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Không khí"),
-                SizedBox(height: 10),
-                Text(
-                  'Tốt',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   // ================= TITLE =================
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-    );
+    return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800));
   }
 
   // ================= SHORTCUT =================
@@ -225,91 +147,150 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildShortcuts() {
     final items = [
-      _ShortcutItem(icon: Icons.apartment, label: 'Cư trú', route: AppRoutes.residences),
+      _ShortcutItem(icon: Icons.home_work_rounded, label: 'Căn hộ\nCủa tôi', route: AppRoutes.residences),
+      _ShortcutItem(icon: Icons.receipt_long_rounded, label: 'Thanh toán\nHóa đơn'),
+      _ShortcutItem(icon: Icons.build_rounded, label: 'Yêu cầu\nKỹ thuật'),
     ];
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: items.map((item) {
-        return GestureDetector(
-          onTap: () {
-            if (item.route != null &&
-                AppRoutes.routes.containsKey(item.route)) {
-              Navigator.pushNamed(context, item.route!);
-            } else {
-              _showPlaceholder(item.label);
-            }
-          },
-          child: Column(
-            children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(16),
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              if (item.route != null && AppRoutes.routes.containsKey(item.route)) {
+                Navigator.pushNamed(context, item.route!);
+              } else {
+                _showPlaceholder(item.label);
+              }
+            },
+            child: Column(
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(item.icon, size: 32, color: const Color(0xFF2563EB)),
                 ),
-                child: Icon(item.icon),
-              ),
-              const SizedBox(height: 8),
-              Text(item.label),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  item.label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                ),
+              ],
+            ),
           ),
         );
       }).toList(),
     );
   }
 
-  // ================= DEVICE =================
-  Widget _buildDeviceCard({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
+  // ================= MENU CARD =================
+  Widget _buildSectionLabel(String text, {Color color = const Color(0xFF6B7280)}) {
+    return Text(text, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.8));
+  }
+
+  Widget _buildMenuCard(List<_MenuItem> items) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF3F4F6)),
       ),
-      child: Row(
-        children: [
-          Icon(icon),
-          const SizedBox(width: 12),
-          Expanded(child: Text(title)),
-          Switch(value: value, onChanged: onChanged),
-        ],
-      ),
+      child: Column(children: items.map(_buildMenuRow).toList()),
     );
   }
 
-  // ================= NOTIFICATION =================
-  Widget _buildNotifications() {
-    final items = ["Thông báo 1", "Thông báo 2", "Thông báo 3"];
-
-    return SizedBox(
-      height: 120,
-      child: PageView.builder(
-        controller: _notifController,
-        itemCount: items.length,
-        itemBuilder: (_, i) => Card(child: Center(child: Text(items[i]))),
-      ),
+  Widget _buildMenuRow(_MenuItem item) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            _showPlaceholder(item.label);
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Icon(
+                    item.icon,
+                    size: 18,
+                    color: const Color(0xFF374151),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                if (item.badge != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: (item.badgeColor ?? const Color(0xFF2563EB)).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      item.badge!,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: item.badgeColor ?? const Color(0xFF2563EB),
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Icon(Icons.chevron_right_rounded, size: 18, color: const Color(0xFF9CA3AF)),
+              ],
+            ),
+          ),
+        ),
+        if (!item.isLast)
+          Divider(height: 1, thickness: 1, indent: 66, endIndent: 16, color: const Color(0xFFF3F4F6)),
+      ],
     );
   }
 }
 
+// ================= DATA MODELS =================
 class _ShortcutItem {
   final IconData icon;
   final String label;
   final String? route;
+  const _ShortcutItem({required this.icon, required this.label, this.route});
+}
 
-  const _ShortcutItem({
+class _MenuItem {
+  final IconData icon;
+  final String label;
+  final String? badge;
+  final Color? badgeColor;
+  final bool isLast;
+
+  const _MenuItem({
     required this.icon,
     required this.label,
-    this.route,
+    this.badge,
+    this.badgeColor,
+    this.isLast = false,
   });
 }

@@ -5,7 +5,6 @@ import '../services/profile_service.dart';
 import '../../../models/user_profile.dart';
 import '../../auth/services/auth_service.dart';
 import 'edit_profile_screen.dart';
-
 import '../../../widgets/profile_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {

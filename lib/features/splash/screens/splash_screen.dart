@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../config/app_routes.dart';
 import '../../auth/services/auth_service.dart';
 import '../../profile/services/profile_service.dart';
-// import '../../../core/storage/user_session.dart';
+import '../../../models/user_profile.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,49 +18,66 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _init();
+    _initSplash();
   }
 
-  Future<void> _init() async {
+  Future<void> _initSplash() async {
     try {
-      // 1️⃣ Thử auto-login + refresh token
+      // 🔹 1️⃣ Thử auto-login / refresh token
       final authResult = await _authService.tryAutoLogin();
 
       if (!mounted) return;
 
       if (authResult["success"] == true) {
-        // 2️⃣ Lấy profile info để sync session
-        final profile = await ProfileService.getProfile();
+        // 🔹 2️⃣ Lấy profile để sync session
+        UserProfile? profile;
+        try {
+          profile = await ProfileService.getProfile().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
+        } catch (e, st) {
+          debugPrint('Profile fetch error: $e\n$st');
+          profile = null;
+        }
+
+        if (!mounted) return;
 
         if (profile != null) {
-          // profile info đã cập nhật session
+          // ✅ Profile load thành công → đi MainScreen
           _goMain();
         } else {
-          // không lấy được profile → logout
+          // ⚠️ Profile load thất bại → logout và đi Login
           await _authService.logout();
           _goLogin();
         }
       } else {
-        // chưa login hoặc refresh thất bại
+        // ❌ Auto-login thất bại → đi Login
         _goLogin();
       }
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Splash init error: $e\n$st');
       _goLogin();
     }
   }
 
   void _goMain() {
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, AppRoutes.main);
   }
 
   void _goLogin() {
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      body: const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

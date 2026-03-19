@@ -5,7 +5,7 @@ import 'config/app_routes.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ QUAN TRỌNG
+  WidgetsFlutterBinding.ensureInitialized();
 
   runApp(const KLKSApp());
 }
@@ -29,7 +29,7 @@ class KLKSApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      /// 🔥 luôn bắt đầu từ splash
+      /// 🔥 LUÔN đi qua splash
       initialRoute: AppRoutes.splash,
 
       routes: AppRoutes.routes,

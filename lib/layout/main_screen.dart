@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../features/profile/screens/profile_screen.dart';
+import '../features/home/screens/home_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,25 +13,31 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentTab = 0;
 
-  /// =========================
-  /// 🔥 NAV CONFIG (SINGLE SOURCE)
-  /// =========================
-  final List<_NavItem> _navItems = const [
-    _NavItem(
-      icon: Icons.home_rounded,
-      label: 'Trang chủ',
-      page: Center(child: Text("Home")),
-    ),
-    _NavItem(
-      icon: Icons.person_rounded,
-      label: 'Cá nhân',
-      page: ProfileScreen(),
-    ),
-  ];
+  // =========================
+  // CONFIG
+  // =========================
+  static const _activeColor = Color(0xFF2563EB);
+  static const _inactiveColor = Color(0xFF9CA3AF);
 
-  /// =========================
-  /// 🔥 BACK HANDLING (ANDROID)
-  /// =========================
+  // =========================
+  // NAV ITEMS (DÙNG BUILDER)
+  // =========================
+  List<_NavItem> get _navItems => [
+        const _NavItem(
+          icon: Icons.home_rounded,
+          label: 'Trang chủ',
+          builder: HomeScreen.new,
+        ),
+        const _NavItem(
+          icon: Icons.person_rounded,
+          label: 'Cá nhân',
+          builder: ProfileScreen.new,
+        ),
+      ];
+
+  // =========================
+  // BACK HANDLING (ANDROID)
+  // =========================
   Future<bool> _onWillPop() async {
     if (_currentTab != 0) {
       setState(() => _currentTab = 0);
@@ -45,58 +52,79 @@ class _MainScreenState extends State<MainScreen> {
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: IndexedStack(
-          index: _currentTab,
-          children: _navItems.map((e) => e.page).toList(),
+
+        // ================= BODY =================
+        // 🔥 FIX: luôn rebuild screen khi đổi tab
+        body: _navItems[_currentTab].builder(),
+
+        // ================= BOTTOM NAV =================
+        bottomNavigationBar: _BottomNavBar(
+          items: _navItems,
+          currentIndex: _currentTab,
+          onTap: (index) {
+            if (index == _currentTab) return;
+            setState(() => _currentTab = index);
+          },
         ),
-        bottomNavigationBar: _buildBottomNav(),
       ),
     );
   }
+}
 
-  Widget _buildBottomNav() {
+// =========================
+// NAV ITEM MODEL (DÙNG BUILDER)
+// =========================
+class _NavItem {
+  final IconData icon;
+  final String label;
+  final Widget Function() builder;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.builder,
+  });
+}
+
+// =========================
+// CUSTOM BOTTOM NAV BAR
+// =========================
+class _BottomNavBar extends StatelessWidget {
+  final List<_NavItem> items;
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _BottomNavBar({
+    required this.items,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+        border: Border(
+          top: BorderSide(color: Color(0xFFE5E7EB)),
+        ),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
-            children: List.generate(_navItems.length, (i) {
-              final item = _navItems[i];
-              final active = i == _currentTab;
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isActive = index == currentIndex;
 
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _currentTab = i),
+                  onTap: () => onTap(index),
                   behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 26,
-                        color: active
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFF9CA3AF),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: active
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                          color: active
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF9CA3AF),
-                        ),
-                      ),
-                    ],
+                  child: _NavBarItemWidget(
+                    item: item,
+                    isActive: isActive,
                   ),
                 ),
               );
@@ -108,14 +136,43 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-class _NavItem {
-  final IconData icon;
-  final String label;
-  final Widget page;
+// =========================
+// NAV ITEM WIDGET
+// =========================
+class _NavBarItemWidget extends StatelessWidget {
+  final _NavItem item;
+  final bool isActive;
 
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.page,
+  const _NavBarItemWidget({
+    required this.item,
+    required this.isActive,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          item.icon,
+          size: 26,
+          color: isActive
+              ? _MainScreenState._activeColor
+              : _MainScreenState._inactiveColor,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          item.label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight:
+                isActive ? FontWeight.w700 : FontWeight.w400,
+            color: isActive
+                ? _MainScreenState._activeColor
+                : _MainScreenState._inactiveColor,
+          ),
+        ),
+      ],
+    );
+  }
 }

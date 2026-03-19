@@ -115,7 +115,7 @@ class UserProfile {
   /// =========================
   /// 🔥 HELPER
   /// =========================
-  String get fullName => "$firstName $lastName";
+  String get fullName => "$lastName $firstName";
 
   String get formattedDob {
     if (dob == null) return "";

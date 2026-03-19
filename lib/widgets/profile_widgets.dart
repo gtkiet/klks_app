@@ -17,48 +17,52 @@ class InfoRow {
 
 /// ── AVATAR WIDGET ───────────────────────
 class AvatarWidget extends StatelessWidget {
+  final String? imageUrl;
   final double size;
   final VoidCallback? onTap;
-  final String? imageUrl;
+  final bool showBorder;
 
-  const AvatarWidget({super.key, this.size = 100, this.onTap, this.imageUrl});
+  const AvatarWidget({
+    super.key,
+    this.imageUrl,
+    this.size = 80,
+    this.onTap,
+    this.showBorder = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xFF5BA4A4),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 3),
-          ),
-          child: ClipOval(
-            child: imageUrl != null && imageUrl!.isNotEmpty
-                ? Image.network(imageUrl!, fit: BoxFit.cover)
-                : Icon(Icons.person, size: size * 0.5, color: Colors.white),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: onTap,
-            child: Container(
-              width: size * 0.32,
-              height: size * 0.32,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2563EB),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: showBorder ? Border.all(color: Colors.blueAccent, width: 2) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-          ),
+          ],
+          image: imageUrl != null && imageUrl!.isNotEmpty
+              ? DecorationImage(
+                  image: NetworkImage(imageUrl!),
+                  fit: BoxFit.cover,
+                )
+              : null,
+          color: imageUrl == null ? Colors.grey[200] : null,
         ),
-      ],
+        child: imageUrl == null || imageUrl!.isEmpty
+            ? Icon(
+                Icons.person,
+                size: size * 0.5,
+                color: Colors.grey[500],
+              )
+            : null,
+      ),
     );
   }
 }

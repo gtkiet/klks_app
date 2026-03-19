@@ -153,14 +153,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   const LabelText(text: "Họ"),
                   CustomTextField(
-                    controller: firstNameCtrl,
+                    controller: lastNameCtrl,
                     hintText: "Họ",
                     validator: _required,
                   ),
                   const SizedBox(height: 16),
                   const LabelText(text: "Tên"),
                   CustomTextField(
-                    controller: lastNameCtrl,
+                    controller: firstNameCtrl,
                     hintText: "Tên",
                     validator: _required,
                   ),

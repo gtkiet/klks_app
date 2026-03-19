@@ -83,14 +83,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text("Xác nhận"),
         content: const Text("Bạn có chắc muốn đăng xuất không?"),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Hủy"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Đăng xuất"),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Hủy")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Đăng xuất")),
         ],
       ),
     );
@@ -112,38 +106,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-
+    if (loading) return const Center(child: CircularProgressIndicator());
     if (error != null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(error!),
-              const SizedBox(height: 12),
-              ElevatedButton(onPressed: loadProfile, child: const Text("Thử lại")),
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(error!),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: loadProfile, child: const Text("Thử lại")),
+          ],
         ),
       );
     }
+    if (profile == null) return const Center(child: Text("Không có dữ liệu"));
 
-    if (profile == null) return const Scaffold(body: Center(child: Text("Không có dữ liệu")));
-
-    return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: loadProfile,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              _buildAppBar(),
-              _buildHeader(),
-              const SizedBox(height: 16),
-              _buildBody(),
-            ],
-          ),
+    return RefreshIndicator(
+      onRefresh: loadProfile,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 16),
+            _buildBody(),
+          ],
         ),
       ),
     );
@@ -156,18 +143,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
       child: Column(
         children: [
+          const SizedBox(height: 20),
           GestureDetector(
             onTap: _changeAvatar,
-            child: AvatarWidget(
-              size: 100,
-              onTap: _changeAvatar,
-            ),
+            child: AvatarWidget(size: 100, onTap: _changeAvatar, imageUrl: profile!.anhDaiDienUrl),
           ),
           const SizedBox(height: 16),
-          Text(
-            profile!.fullName,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-          ),
+          Text(profile!.fullName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(profile!.email, style: const TextStyle(color: Color(0xFF6B7280))),
           const SizedBox(height: 20),
@@ -205,27 +187,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 20),
           LogoutButton(onTap: _logout),
           const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  // ================= APP BAR =================
-  Widget _buildAppBar() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ),
-          const Text('Hồ sơ người dùng', style: TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
     );

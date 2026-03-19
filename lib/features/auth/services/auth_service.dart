@@ -1,5 +1,6 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/storage/user_session.dart';
 
 class AuthService {
   final SecureStorage _storage = SecureStorage();
@@ -18,7 +19,7 @@ class AuthService {
     required String address,
   }) async {
     try {
-      final response = await ApiClient.post(
+      return await ApiClient.post(
         "/api/auth/register",
         body: {
           "username": username,
@@ -33,44 +34,46 @@ class AuthService {
           "diaChi": address,
         },
       );
-
-      return response;
     } catch (e) {
       return _error("Lỗi kết nối");
     }
   }
 
   // ================= LOGIN =================
-  Future<Map<String, dynamic>> login({
+  Future<bool> login({
     required String username,
     required String password,
   }) async {
     try {
       final data = await ApiClient.post(
         "/api/auth/login",
-        body: {
-          "username": username,
-          "password": password,
-        },
+        body: {"username": username, "password": password},
       );
 
       if (data["isOk"] == true && data["result"] != null) {
+        final result = data["result"];
+
+        // 1️⃣ Lưu token (secure)
         await _storage.saveTokens(
-          accessToken: data["result"]["accessToken"],
-          refreshToken: data["result"]["refreshToken"],
+          accessToken: result["accessToken"],
+          refreshToken: result["refreshToken"],
         );
+
+        // 2️⃣ Lưu user (runtime)
+        UserSession().setUserData(result);
+
+        return true;
       }
 
-      return data;
-    } catch (e) {
-      return _error("Lỗi kết nối");
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 
   // ================= REFRESH TOKEN =================
   Future<bool> refreshAccessToken() async {
     final refreshToken = await _storage.getRefreshToken();
-
     if (refreshToken == null) return false;
 
     try {
@@ -80,9 +83,18 @@ class AuthService {
       );
 
       if (data["isOk"] == true && data["result"] != null) {
+        final result = data["result"];
+
+        // 1️⃣ Lưu lại token mới
         await _storage.saveTokens(
-          accessToken: data["result"]["accessToken"],
-          refreshToken: data["result"]["refreshToken"],
+          accessToken: result["accessToken"],
+          refreshToken: result["refreshToken"],
+        );
+
+        // 2️⃣ Update runtime token
+        UserSession().updateTokens(
+          accessToken: result["accessToken"],
+          refreshToken: result["refreshToken"],
         );
 
         return true;
@@ -94,16 +106,38 @@ class AuthService {
 
   // ================= AUTO LOGIN =================
   Future<bool> tryAutoLogin() async {
-    final accessToken = await _storage.getAccessToken();
+    final tokens = await _storage.getTokens();
+
+    final accessToken = tokens["accessToken"];
+    final refreshToken = tokens["refreshToken"];
 
     if (accessToken == null) return false;
 
+    // 1️⃣ Gán token vào session
+    UserSession().updateTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken ?? "",
+    );
+
     try {
-      await ApiClient.get("/api/auth/me");
-      return true;
+      // 2️⃣ Lấy lại thông tin user
+      final data = await ApiClient.get("/api/auth/me");
+
+      if (data["isOk"] == true && data["result"] != null) {
+        UserSession().setUserData({
+          ...data["result"],
+          "accessToken": accessToken,
+          "refreshToken": refreshToken,
+        });
+
+        return true;
+      }
     } catch (_) {
+      // 3️⃣ Nếu token hết hạn → thử refresh
       return await refreshAccessToken();
     }
+
+    return false;
   }
 
   // ================= LOGOUT =================
@@ -113,6 +147,7 @@ class AuthService {
     } catch (_) {}
 
     await _storage.clearTokens();
+    UserSession().clear();
   }
 
   // ================= FORGOT PASSWORD =================

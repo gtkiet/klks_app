@@ -39,17 +39,18 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await _authService.login(
+      final success = await _authService.login(
         username: username,
         password: password,
       );
 
       if (!mounted) return;
 
-      if (response["isOk"] == true) {
+      if (success) {
+        // Sau khi login thành công, UserSession đã có dữ liệu toàn cục
         Navigator.pushReplacementNamed(context, AppRoutes.main);
       } else {
-        _showError(_extractError(response));
+        _showError("Đăng nhập thất bại, vui lòng kiểm tra lại thông tin");
       }
     } catch (e) {
       _showError("Lỗi kết nối, vui lòng thử lại");
@@ -58,21 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  String _extractError(dynamic response) {
-    try {
-      if (response["errors"] != null &&
-          response["errors"] is List &&
-          response["errors"].isNotEmpty) {
-        return response["errors"][0]["description"] ?? "Đăng nhập thất bại";
-      }
-    } catch (_) {}
-    return "Đăng nhập thất bại";
-  }
-
   void _showError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -127,7 +117,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        // Username
                         LabelText(text: "Tên đăng nhập"),
                         const SizedBox(height: 8),
                         CustomTextField(
@@ -136,7 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Password
                         LabelText(text: "Mật khẩu"),
                         const SizedBox(height: 8),
                         PasswordField(
@@ -166,7 +154,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Login button
                         SubmitButton(
                           label: "Đăng nhập",
                           onPressed: _login,

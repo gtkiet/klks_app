@@ -6,13 +6,22 @@ import '../features/home/screens/home_screen.dart';
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
+  // =========================
+  // GLOBAL CONTROL (CHO APP ROUTES)
+  // =========================
+  static final GlobalKey<MainScreenState> navigatorKey =
+      GlobalKey<MainScreenState>();
+
+  static void switchTab(int index) {
+    navigatorKey.currentState?.switchTab(index);
+  }
+
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _currentTab = 0;
-  late final PageController _pageController;
 
   // =========================
   // CONFIG
@@ -20,45 +29,51 @@ class _MainScreenState extends State<MainScreen> {
   static const _activeColor = Color(0xFF2563EB);
   static const _inactiveColor = Color(0xFF9CA3AF);
 
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _currentTab);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  // =========================
+  // PUBLIC METHOD (CHO ROUTE GỌI)
+  // =========================
+  void switchTab(int index) {
+    if (_currentTab == index) return;
+    setState(() => _currentTab = index);
   }
 
   // =========================
-  // NAV ITEMS (DÙNG BUILDER)
+  // NAV ITEMS (GIỮ INSTANCE)
   // =========================
-  List<_NavItem> get _navItems => [
-        const _NavItem(icon: Icons.home_rounded, label: 'Trang chủ', builder: HomeScreen.new),
-        _NavItem(icon: Icons.receipt_long_rounded, label: 'Hóa đơn', builder: _placeholderBuilder('Hóa đơn')),
-        _NavItem(icon: Icons.build_rounded, label: 'Dịch vụ', builder: _placeholderBuilder('Dịch vụ')),
-        _NavItem(icon: Icons.group_outlined, label: 'Cộng đồng', builder: _placeholderBuilder('Cộng đồng')),
-        const _NavItem(icon: Icons.person_rounded, label: 'Cá nhân', builder: ProfileScreen.new),
-      ];
-
-  static Widget Function() _placeholderBuilder(String title) {
-    return () => Center(
-          child: Text(
-            '$title đang phát triển',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-        );
-  }
+  late final List<_NavItem> _navItems = [
+    const _NavItem(
+      icon: Icons.home_rounded,
+      label: 'Trang chủ',
+      screen: HomeScreen(),
+    ),
+    const _NavItem(
+      icon: Icons.receipt_long_rounded,
+      label: 'Hóa đơn',
+      screen: _PlaceholderScreen(title: 'Hóa đơn'),
+    ),
+    const _NavItem(
+      icon: Icons.build_rounded,
+      label: 'Dịch vụ',
+      screen: _PlaceholderScreen(title: 'Dịch vụ'),
+    ),
+    const _NavItem(
+      icon: Icons.group_outlined,
+      label: 'Cộng đồng',
+      screen: _PlaceholderScreen(title: 'Cộng đồng'),
+    ),
+    const _NavItem(
+      icon: Icons.person_rounded,
+      label: 'Cá nhân',
+      screen: ProfileScreen(),
+    ),
+  ];
 
   // =========================
-  // BACK HANDLING (ANDROID)
+  // BACK HANDLING
   // =========================
   Future<bool> _onWillPop() async {
     if (_currentTab != 0) {
       setState(() => _currentTab = 0);
-      _pageController.jumpToPage(0);
       return false;
     }
     return true;
@@ -70,18 +85,19 @@ class _MainScreenState extends State<MainScreen> {
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: PageView(
-          controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: _navItems.map((e) => e.builder()).toList(),
+
+        // ✅ GIỮ STATE CÁC TAB
+        body: IndexedStack(
+          index: _currentTab,
+          children: _navItems.map((e) => e.screen).toList(),
         ),
+
         bottomNavigationBar: _BottomNavBar(
           items: _navItems,
           currentIndex: _currentTab,
           onTap: (index) {
             if (index == _currentTab) return;
             setState(() => _currentTab = index);
-            _pageController.jumpToPage(index);
           },
         ),
       ),
@@ -95,9 +111,32 @@ class _MainScreenState extends State<MainScreen> {
 class _NavItem {
   final IconData icon;
   final String label;
-  final Widget Function() builder;
+  final Widget screen;
 
-  const _NavItem({required this.icon, required this.label, required this.builder});
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.screen,
+  });
+}
+
+// =========================
+// PLACEHOLDER SCREEN
+// =========================
+class _PlaceholderScreen extends StatelessWidget {
+  final String title;
+
+  const _PlaceholderScreen({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        '$title đang phát triển',
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 }
 
 // =========================
@@ -134,7 +173,10 @@ class _BottomNavBar extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => onTap(index),
                   behavior: HitTestBehavior.opaque,
-                  child: _NavBarItemWidget(item: item, isActive: isActive),
+                  child: _NavBarItemWidget(
+                    item: item,
+                    isActive: isActive,
+                  ),
                 ),
               );
             }),
@@ -146,30 +188,51 @@ class _BottomNavBar extends StatelessWidget {
 }
 
 // =========================
-// NAV ITEM WIDGET
+// NAV ITEM UI
 // =========================
 class _NavBarItemWidget extends StatelessWidget {
   final _NavItem item;
   final bool isActive;
 
-  const _NavBarItemWidget({required this.item, required this.isActive});
+  const _NavBarItemWidget({
+    required this.item,
+    required this.isActive,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(item.icon, size: 26, color: isActive ? _MainScreenState._activeColor : _MainScreenState._inactiveColor),
-        const SizedBox(height: 4),
-        Text(
-          item.label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-            color: isActive ? _MainScreenState._activeColor : _MainScreenState._inactiveColor,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: isActive
+          ? BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            item.icon,
+            size: 26,
+            color: isActive
+                ? MainScreenState._activeColor
+                : MainScreenState._inactiveColor,
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            item.label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+              color: isActive
+                  ? MainScreenState._activeColor
+                  : MainScreenState._inactiveColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

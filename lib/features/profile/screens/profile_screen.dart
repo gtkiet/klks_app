@@ -4,7 +4,7 @@ import '../../../config/app_routes.dart';
 import '../services/profile_service.dart';
 import '../../../models/user_profile.dart';
 import '../../auth/services/auth_service.dart';
-import 'edit_profile_screen.dart';
+// import 'edit_profile_screen.dart';
 import '../../../widgets/profile_widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -53,14 +53,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _goToEdit() async {
     if (profile == null) return;
 
-    final updated = await Navigator.push(
+    final updated = await Navigator.pushNamed(
       context,
-      MaterialPageRoute(builder: (_) => EditProfileScreen(profile: profile!)),
+      // MaterialPageRoute(builder: (_) => EditProfileScreen(profile: profile!)),
+      AppRoutes.editProfile,
+      arguments: profile!,
     );
 
     if (updated != null && mounted) {
-      setState(() => profile = updated);
+      setState(() => profile = updated as UserProfile?);
     }
+  }
+
+  Future<void> _changePassword() async {
+    final updated = await Navigator.pushNamed(
+      context,
+      AppRoutes.changePassword,
+    );
   }
 
   Future<void> _changeAvatar() async {
@@ -82,8 +91,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text("Xác nhận"),
         content: const Text("Bạn có chắc muốn đăng xuất không?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Hủy")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Đăng xuất")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Hủy"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Đăng xuất"),
+          ),
         ],
       ),
     );
@@ -100,7 +115,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
   @override
@@ -113,7 +132,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Text(error!),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: loadProfile, child: const Text("Thử lại")),
+            ElevatedButton(
+              onPressed: loadProfile,
+              child: const Text("Thử lại"),
+            ),
           ],
         ),
       );
@@ -125,11 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 16),
-            _buildBody(),
-          ],
+          children: [_buildHeader(), const SizedBox(height: 16), _buildBody()],
         ),
       ),
     );
@@ -145,12 +163,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 20),
           GestureDetector(
             onTap: _changeAvatar,
-            child: AvatarWidget(size: 100, onTap: _changeAvatar, imageUrl: profile!.anhDaiDienUrl),
+            child: AvatarWidget(
+              size: 100,
+              onTap: _changeAvatar,
+              imageUrl: profile!.anhDaiDienUrl,
+            ),
           ),
           const SizedBox(height: 16),
-          Text(profile!.fullName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(
+            profile!.fullName,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 4),
-          Text(profile!.email, style: const TextStyle(color: Color(0xFF6B7280))),
+          Text(
+            profile!.email,
+            style: const TextStyle(color: Color(0xFF6B7280)),
+          ),
           const SizedBox(height: 20),
           EditProfileButton(onPressed: _goToEdit),
         ],
@@ -161,15 +189,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ================= BODY =================
   Widget _buildBody() {
     final personalInfo = [
-      InfoRow(icon: Icons.badge_outlined, label: "CCCD", value: profile!.idCard),
-      InfoRow(icon: Icons.person_outline, label: "Giới tính", value: profile!.gioiTinhName),
-      InfoRow(icon: Icons.calendar_today, label: "Ngày sinh", value: profile!.formattedDob, isLast: true),
+      InfoRow(
+        icon: Icons.badge_outlined,
+        label: "CCCD",
+        value: profile!.idCard,
+      ),
+      InfoRow(
+        icon: Icons.person_outline,
+        label: "Giới tính",
+        value: profile!.gioiTinhName,
+      ),
+      InfoRow(
+        icon: Icons.calendar_today,
+        label: "Ngày sinh",
+        value: profile!.formattedDob,
+        isLast: true,
+      ),
     ];
 
     final contactInfo = [
       InfoRow(icon: Icons.phone, label: "SĐT", value: profile!.phoneNumber),
       InfoRow(icon: Icons.email, label: "Email", value: profile!.email),
-      InfoRow(icon: Icons.home, label: "Địa chỉ", value: profile!.diaChi, isLast: true),
+      InfoRow(
+        icon: Icons.home,
+        label: "Địa chỉ",
+        value: profile!.diaChi,
+        isLast: true,
+      ),
     ];
 
     return Padding(
@@ -184,6 +230,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 8),
           InfoCard(rows: contactInfo),
           const SizedBox(height: 20),
+          ChangePasswordButton(onPressed: _changePassword),
+          const SizedBox(height: 8),
           LogoutButton(onTap: _logout),
           const SizedBox(height: 16),
         ],

@@ -11,10 +11,7 @@ class ProfileService {
   // ================= GET PROFILE =================
   static Future<UserProfile?> getProfile() async {
     try {
-      final data = await ApiClient.post(
-        "/api/profile/get-profile",
-        body: {},
-      );
+      final data = await ApiClient.post("/api/profile/get-profile", body: {});
 
       if (data["isOk"] == true && data["result"] != null) {
         final profile = UserProfile.fromJson(data["result"]);
@@ -117,5 +114,35 @@ class ProfileService {
     if (data.containsKey('refreshToken') && data['refreshToken'] != null) {
       session.refreshToken = data['refreshToken'];
     }
+  }
+
+  /// ================= CHANGE PASSWORD =================
+  Future<Map<String, dynamic>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      return await ApiClient.post(
+        "/api/profile/change-password",
+        body: {
+          "oldPassword": oldPassword,
+          "newPassword": newPassword,
+          "confirmPassword": confirmPassword,
+        },
+      );
+    } catch (_) {
+      return _error("Lỗi kết nối");
+    }
+  }
+
+  /// ================= HELPER =================
+  Map<String, dynamic> _error(String message) {
+    return {
+      "isOk": false,
+      "errors": [
+        {"description": message},
+      ],
+    };
   }
 }

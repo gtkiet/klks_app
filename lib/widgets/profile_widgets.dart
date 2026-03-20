@@ -39,7 +39,9 @@ class AvatarWidget extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: showBorder ? Border.all(color: Colors.blueAccent, width: 2) : null,
+          border: showBorder
+              ? Border.all(color: Colors.blueAccent, width: 2)
+              : null,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -56,11 +58,7 @@ class AvatarWidget extends StatelessWidget {
           color: imageUrl == null ? Colors.grey[200] : null,
         ),
         child: imageUrl == null || imageUrl!.isEmpty
-            ? Icon(
-                Icons.person,
-                size: size * 0.5,
-                color: Colors.grey[500],
-              )
+            ? Icon(Icons.person, size: size * 0.5, color: Colors.grey[500])
             : null,
       ),
     );
@@ -82,13 +80,53 @@ class EditProfileButton extends StatelessWidget {
         icon: const Icon(Icons.edit_rounded, size: 18),
         label: const Text(
           'Chỉnh sửa hồ sơ',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.2),
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2563EB),
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChangePasswordButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const ChangePasswordButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.lock_reset_rounded, size: 18),
+        label: const Text(
+          'Đổi mật khẩu',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFFFD700), // cùng màu với EditProfile
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
     );
@@ -120,7 +158,11 @@ class LogoutButton extends StatelessWidget {
                 SizedBox(width: 12),
                 Text(
                   'Đăng xuất',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFFEF4444)),
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFEF4444),
+                  ),
                 ),
               ],
             ),
@@ -197,21 +239,25 @@ class InfoRowWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(row.label,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF9CA3AF),
-                          letterSpacing: 0.5,
-                        )),
+                    Text(
+                      row.label,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF9CA3AF),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                     const SizedBox(height: 3),
-                    Text(row.value,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
-                          height: 1.4,
-                        )),
+                    Text(
+                      row.value,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF111827),
+                        height: 1.4,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -219,7 +265,13 @@ class InfoRowWidget extends StatelessWidget {
           ),
         ),
         if (!row.isLast)
-          Divider(height: 1, thickness: 1, indent: 70, endIndent: 16, color: const Color(0xFFF3F4F6)),
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 70,
+            endIndent: 16,
+            color: const Color(0xFFF3F4F6),
+          ),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../config/app_routes.dart';
 import '../../../core/storage/user_session.dart';
+import '../../../layout/main_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,9 +22,40 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    setState(() {}); // luôn lấy data mới từ UserSession
+    setState(() {});
   }
 
+  // ================= NAVIGATION CORE =================
+  void _navigate(String route) {
+    switch (route) {
+      // ===== TAB =====
+      case AppRoutes.homeTab:
+        MainScreen.switchTab(0);
+        return;
+
+      case AppRoutes.billTab:
+        MainScreen.switchTab(1);
+        return;
+
+      case AppRoutes.serviceTab:
+        MainScreen.switchTab(2);
+        return;
+
+      case AppRoutes.communityTab:
+        MainScreen.switchTab(3);
+        return;
+
+      case AppRoutes.profileTab:
+        MainScreen.switchTab(4);
+        return;
+
+      // ===== NORMAL SCREEN =====
+      default:
+        Navigator.pushNamed(context, route);
+    }
+  }
+
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     final user = UserSession();
@@ -42,49 +74,142 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildSectionTitle('Lối tắt nhanh'),
                     const SizedBox(height: 14),
-                    _buildShortcuts(),
-                    const SizedBox(height: 24),
-
-                    // Hồ sơ & Căn hộ
-                    _buildSectionLabel('HỒ SƠ & CĂN HỘ', color: const Color(0xFF2563EB)),
-                    const SizedBox(height: 12),
-                    _buildMenuCard([
-                      _MenuItem(icon: Icons.badge_outlined, label: 'Thông tin cá nhân'),
-                      _MenuItem(icon: Icons.lock_reset_rounded, label: 'Thay đổi mật khẩu'),
-                      _MenuItem(icon: Icons.apartment_rounded, label: 'Chi tiết căn hộ'),
-                      _MenuItem(icon: Icons.group_outlined, label: 'Danh sách thành viên'),
-                      _MenuItem(icon: Icons.directions_car_outlined, label: 'Phương tiện đăng ký', isLast: true),
+                    _buildShortcuts([
+                      _ShortcutItem(
+                        icon: Icons.home_work_rounded,
+                        label: 'Căn hộ\nCủa tôi',
+                        route: AppRoutes.residences,
+                      ),
+                      _ShortcutItem(
+                        icon: Icons.receipt_long_rounded,
+                        label: 'Thanh toán\nHóa đơn',
+                        route: AppRoutes.billTab,
+                      ),
+                      _ShortcutItem(
+                        icon: Icons.build_rounded,
+                        label: 'Yêu cầu\nKỹ thuật',
+                        route: AppRoutes.serviceTab,
+                      ),
                     ]),
+
                     const SizedBox(height: 24),
 
-                    // Hóa đơn & Thanh toán
-                    _buildSectionLabel('HÓA ĐƠN & THANH TOÁN', color: const Color(0xFF2563EB)),
+                    // ================= HỒ SƠ =================
+                    _buildSectionLabel(
+                      'HỒ SƠ & CĂN HỘ',
+                      color: const Color(0xFF2563EB),
+                    ),
                     const SizedBox(height: 12),
                     _buildMenuCard([
-                      _MenuItem(icon: Icons.receipt_long_outlined, label: 'Danh sách hóa đơn'),
-                      _MenuItem(icon: Icons.account_balance_wallet_outlined, label: 'Chi tiết phí'),
-                      _MenuItem(icon: Icons.payment_rounded, label: 'Thanh toán & Ủy nhiệm chi'),
-                      _MenuItem(icon: Icons.history_rounded, label: 'Lịch sử giao dịch', isLast: true),
+                      _MenuItem(
+                        icon: Icons.badge_outlined,
+                        label: 'Thông tin cá nhân',
+                        route: AppRoutes.profileTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.lock_reset_rounded,
+                        label: 'Thay đổi mật khẩu',
+                        route: AppRoutes.changePassword,
+                      ),
+                      _MenuItem(
+                        icon: Icons.apartment_rounded,
+                        label: 'Danh sách cư trú',
+                        route: AppRoutes.residences,
+                      ),
+                      _MenuItem(
+                        icon: Icons.directions_car_outlined,
+                        label: 'Phương tiện đăng ký',
+                        isLast: true,
+                      ),
                     ]),
+
                     const SizedBox(height: 24),
 
-                    // Dịch vụ & Tiện ích
-                    _buildSectionLabel('DỊCH VỤ & TIỆN ÍCH', color: const Color(0xFF2563EB)),
+                    // ================= HÓA ĐƠN =================
+                    _buildSectionLabel(
+                      'HÓA ĐƠN & THANH TOÁN',
+                      color: const Color(0xFF2563EB),
+                    ),
                     const SizedBox(height: 12),
                     _buildMenuCard([
-                      _MenuItem(icon: Icons.build_outlined, label: 'Tạo yêu cầu sửa chữa', badge: 'MỚI', badgeColor: const Color(0xFF2563EB)),
-                      _MenuItem(icon: Icons.format_list_bulleted_rounded, label: 'Theo dõi tiến độ'),
-                      _MenuItem(icon: Icons.event_available_outlined, label: 'Đăng ký tiện ích chung', isLast: true),
+                      _MenuItem(
+                        icon: Icons.receipt_long_outlined,
+                        label: 'Danh sách hóa đơn',
+                        route: AppRoutes.billTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.account_balance_wallet_outlined,
+                        label: 'Chi tiết phí',
+                        route: AppRoutes.billTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.payment_rounded,
+                        label: 'Thanh toán & Ủy nhiệm chi',
+                        route: AppRoutes.billTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.history_rounded,
+                        label: 'Lịch sử giao dịch',
+                        route: AppRoutes.billTab,
+                        isLast: true,
+                      ),
                     ]),
+
                     const SizedBox(height: 24),
 
-                    // Cộng đồng & Thông báo
-                    _buildSectionLabel('CỘNG ĐỒNG & THÔNG BÁO', color: const Color(0xFF2563EB)),
+                    // ================= DỊCH VỤ =================
+                    _buildSectionLabel(
+                      'DỊCH VỤ & TIỆN ÍCH',
+                      color: const Color(0xFF2563EB),
+                    ),
                     const SizedBox(height: 12),
                     _buildMenuCard([
-                      _MenuItem(icon: Icons.notifications_outlined, label: 'Xem thông báo mới'),
-                      _MenuItem(icon: Icons.how_to_vote_outlined, label: 'Khảo sát & Bầu cử cư dân'),
-                      _MenuItem(icon: Icons.support_agent_rounded, label: 'Hỗ trợ Virtual Assistant', badge: 'AI', badgeColor: const Color(0xFF6B7280), isLast: true),
+                      _MenuItem(
+                        icon: Icons.build_outlined,
+                        label: 'Tạo yêu cầu sửa chữa',
+                        route: AppRoutes.serviceTab,
+                        badge: 'MỚI',
+                        badgeColor: const Color(0xFF2563EB),
+                      ),
+                      _MenuItem(
+                        icon: Icons.format_list_bulleted_rounded,
+                        label: 'Theo dõi tiến độ',
+                        route: AppRoutes.serviceTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.event_available_outlined,
+                        label: 'Đăng ký tiện ích chung',
+                        route: AppRoutes.serviceTab,
+                        isLast: true,
+                      ),
+                    ]),
+
+                    const SizedBox(height: 24),
+
+                    // ================= CỘNG ĐỒNG =================
+                    _buildSectionLabel(
+                      'CỘNG ĐỒNG & THÔNG BÁO',
+                      color: const Color(0xFF2563EB),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMenuCard([
+                      _MenuItem(
+                        icon: Icons.notifications_outlined,
+                        label: 'Xem thông báo mới',
+                        route: AppRoutes.communityTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.how_to_vote_outlined,
+                        label: 'Khảo sát & Bầu cử cư dân',
+                        route: AppRoutes.communityTab,
+                      ),
+                      _MenuItem(
+                        icon: Icons.support_agent_rounded,
+                        label: 'Hỗ trợ Virtual Assistant',
+                        badge: 'AI',
+                        badgeColor: const Color(0xFF6B7280),
+                        isLast: true,
+                      ),
                     ]),
                   ],
                 ),
@@ -106,7 +231,8 @@ class _HomeScreenState extends State<HomeScreen> {
           CircleAvatar(
             radius: 24,
             backgroundColor: const Color(0xFFCBD5E1),
-            backgroundImage: (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
+            backgroundImage:
+                (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
                 ? NetworkImage(user.avatarUrl!)
                 : null,
             child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
@@ -118,8 +244,17 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('XIN CHÀO,', style: TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                Text(user.fullName ?? 'Người dùng', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                const Text(
+                  'XIN CHÀO,',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+                ),
+                Text(
+                  user.fullName ?? 'Người dùng',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ],
             ),
           ),
@@ -129,12 +264,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= TITLE =================
+  // ================= COMMON UI =================
   Widget _buildSectionTitle(String title) {
-    return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800));
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+    );
   }
 
-  // ================= SHORTCUT =================
   void _showPlaceholder(String title) {
     showModalBottomSheet(
       context: context,
@@ -145,20 +282,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildShortcuts() {
-    final items = [
-      _ShortcutItem(icon: Icons.home_work_rounded, label: 'Căn hộ\nCủa tôi', route: AppRoutes.residences),
-      _ShortcutItem(icon: Icons.receipt_long_rounded, label: 'Thanh toán\nHóa đơn'),
-      _ShortcutItem(icon: Icons.build_rounded, label: 'Yêu cầu\nKỹ thuật'),
-    ];
-
+  Widget _buildShortcuts(List<_ShortcutItem> items) {
     return Row(
       children: items.map((item) {
         return Expanded(
           child: GestureDetector(
             onTap: () {
-              if (item.route != null && AppRoutes.routes.containsKey(item.route)) {
-                Navigator.pushNamed(context, item.route!);
+              if (item.route != null) {
+                _navigate(item.route!);
               } else {
                 _showPlaceholder(item.label);
               }
@@ -172,13 +303,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: const Color(0xFFEEF2FF),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(item.icon, size: 32, color: const Color(0xFF2563EB)),
+                  child: Icon(
+                    item.icon,
+                    size: 32,
+                    color: const Color(0xFF2563EB),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   item.label,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF374151),
+                  ),
                 ),
               ],
             ),
@@ -188,9 +327,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= MENU CARD =================
-  Widget _buildSectionLabel(String text, {Color color = const Color(0xFF6B7280)}) {
-    return Text(text, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.8));
+  Widget _buildSectionLabel(
+    String text, {
+    Color color = const Color(0xFF6B7280),
+  }) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: color,
+        letterSpacing: 0.8,
+      ),
+    );
   }
 
   Widget _buildMenuCard(List<_MenuItem> items) {
@@ -209,7 +358,11 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         GestureDetector(
           onTap: () {
-            _showPlaceholder(item.label);
+            if (item.route != null) {
+              _navigate(item.route!);
+            } else {
+              _showPlaceholder(item.label);
+            }
           },
           behavior: HitTestBehavior.opaque,
           child: Padding(
@@ -223,65 +376,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(9),
                   ),
-                  child: Icon(
-                    item.icon,
-                    size: 18,
-                    color: const Color(0xFF374151),
-                  ),
+                  child: Icon(item.icon, size: 18),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
-                  child: Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF111827),
-                    ),
-                  ),
+                  child: Text(item.label, style: const TextStyle(fontSize: 15)),
                 ),
-                if (item.badge != null) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: (item.badgeColor ?? const Color(0xFF2563EB)).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      item.badge!,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: item.badgeColor ?? const Color(0xFF2563EB),
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Icon(Icons.chevron_right_rounded, size: 18, color: const Color(0xFF9CA3AF)),
+                const Icon(Icons.chevron_right_rounded),
               ],
             ),
           ),
         ),
-        if (!item.isLast)
-          Divider(height: 1, thickness: 1, indent: 66, endIndent: 16, color: const Color(0xFFF3F4F6)),
+        if (!item.isLast) const Divider(indent: 66, endIndent: 16, height: 1),
       ],
     );
   }
 }
 
-// ================= DATA MODELS =================
+// ================= MODELS =================
 class _ShortcutItem {
   final IconData icon;
   final String label;
   final String? route;
+
   const _ShortcutItem({required this.icon, required this.label, this.route});
 }
 
 class _MenuItem {
   final IconData icon;
   final String label;
+  final String? route;
   final String? badge;
   final Color? badgeColor;
   final bool isLast;
@@ -289,6 +413,7 @@ class _MenuItem {
   const _MenuItem({
     required this.icon,
     required this.label,
+    this.route,
     this.badge,
     this.badgeColor,
     this.isLast = false,

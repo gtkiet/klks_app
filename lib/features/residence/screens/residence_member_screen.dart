@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/app_button.dart';
+import '../../../widgets/widgets.dart';
 import '../services/residence_service.dart';
 
 class ResidenceMemberScreen extends StatefulWidget {

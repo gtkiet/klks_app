@@ -3,8 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../models/user_profile.dart';
 import '../services/profile_service.dart';
-import '../../../widgets/form_field.dart';
-import '../../../widgets/app_button.dart';
+import '../../../widgets/widgets.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile profile;
@@ -208,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 30),
 
                   /// ===== ACTION BUTTONS =====
-                  EditButton(onPressed: _submit, isLoading: isLoading),
+                  SubmitButton(onPressed: _submit, isLoading: isLoading),
                   const SizedBox(height: 16),
                   CancelButton(onPressed: () => Navigator.pop(context)),
                   const SizedBox(height: 16),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+// import '../styles/widget_styles.dart';
 
-/// ── MODEL ───────────────────────────────
 class InfoRow {
   final IconData icon;
   final String label;
@@ -15,7 +15,6 @@ class InfoRow {
   });
 }
 
-/// ── AVATAR WIDGET ───────────────────────
 class AvatarWidget extends StatelessWidget {
   final String? imageUrl;
   final double size;
@@ -65,134 +64,22 @@ class AvatarWidget extends StatelessWidget {
   }
 }
 
-/// ── BUTTONS ─────────────────────────────
-class EditProfileButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  const EditProfileButton({super.key, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.edit_rounded, size: 18),
-        label: const Text(
-          'Chỉnh sửa hồ sơ',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2563EB),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class ChangePasswordButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const ChangePasswordButton({super.key, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.lock_reset_rounded, size: 18),
-        label: const Text(
-          'Đổi mật khẩu',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFFD700), // cùng màu với EditProfile
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class LogoutButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const LogoutButton({super.key, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFECACA)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: const [
-                Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 22),
-                SizedBox(width: 12),
-                Text(
-                  'Đăng xuất',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFEF4444),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// ── SECTION LABEL ───────────────────────
 class SectionLabel extends StatelessWidget {
   final String text;
   const SectionLabel({super.key, required this.text});
 
   @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: Color(0xFF374151),
-        letterSpacing: 0.8,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      color: Color(0xFF374151),
+      letterSpacing: 0.8,
+    ),
+  );
 }
 
-/// ── INFO CARD ───────────────────────────
 class InfoCard extends StatelessWidget {
   final List<InfoRow> rows;
   const InfoCard({super.key, required this.rows});

@@ -48,7 +48,7 @@ class _ResidenceListScreenState extends State<ResidenceListScreen> {
   }
 
   Widget _buildCard(Residence r) {
-    final isOwner = r.loaiQuanHeTen == "CHỦ HỘ";
+    final isOwner = r.loaiQuanHeCuTruId == 1;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),

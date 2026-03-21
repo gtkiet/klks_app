@@ -4,8 +4,8 @@ import '../../../config/app_routes.dart';
 import '../services/profile_service.dart';
 import '../../../models/user_profile.dart';
 import '../../auth/services/auth_service.dart';
-// import 'edit_profile_screen.dart';
-import '../../../widgets/profile_widgets.dart';
+
+import '../../../widgets/widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -180,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: const TextStyle(color: Color(0xFF6B7280)),
           ),
           const SizedBox(height: 20),
-          EditProfileButton(onPressed: _goToEdit),
+          EditButton(label: 'Chỉnh sửa hồ sơ', onPressed: _goToEdit),
         ],
       ),
     );
@@ -230,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 8),
           InfoCard(rows: contactInfo),
           const SizedBox(height: 20),
-          ChangePasswordButton(onPressed: _changePassword),
+          EditButton(label: "Đổi mật khẩu", onPressed: _changePassword),
           const SizedBox(height: 8),
           LogoutButton(onTap: _logout),
           const SizedBox(height: 16),

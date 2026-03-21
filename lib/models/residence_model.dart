@@ -1,5 +1,6 @@
 class Residence {
   final int id;
+  final int loaiQuanHeCuTruId;
   final String loaiQuanHeTen;
   final DateTime ngayBatDau;
 
@@ -19,6 +20,7 @@ class Residence {
 
   Residence({
     required this.id,
+    required this.loaiQuanHeCuTruId,
     required this.loaiQuanHeTen,
     required this.ngayBatDau,
     required this.toaNhaId,
@@ -36,6 +38,7 @@ class Residence {
   factory Residence.fromJson(Map<String, dynamic> json) {
     return Residence(
       id: json['id'],
+      loaiQuanHeCuTruId: json['loaiQuanHeCuTruId'],
       loaiQuanHeTen: json['loaiQuanHeTen'] ?? '',
       ngayBatDau: DateTime.parse(json['ngayBatDau']),
       toaNhaId: json['toaNhaId'],

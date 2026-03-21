@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../../../widgets/form_field.dart';
-import '../../../widgets/app_button.dart';
+import '../../../widgets/widgets.dart';
 import 'reset_password.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -62,7 +61,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showSuccess(String message) {
@@ -125,12 +126,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       label: 'Gửi mã xác nhận',
                       onPressed: _sendRequest,
                       isLoading: _isLoading,
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
                     ),
                     const SizedBox(height: 40),
+                    CancelButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
 
-                    _buildHelpSection(),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -185,15 +186,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Icons.lock_reset_rounded,
         size: 48,
         color: Color(0xFF2563EB),
-      ),
-    );
-  }
-
-  Widget _buildHelpSection() {
-    return const Center(
-      child: Text(
-        'Bạn gặp khó khăn?',
-        style: TextStyle(color: Color(0xFF6B7280)),
       ),
     );
   }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/profile_service.dart';
-import '../../../widgets/form_field.dart';
-import '../../../widgets/app_button.dart';
+import '../../../widgets/widgets.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -72,15 +71,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   /// ================= UI HELPERS =================
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// ================= UI =================
@@ -88,9 +87,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
-      appBar: AppBar(
-        title: const Text("Đổi mật khẩu"),
-      ),
+      appBar: AppBar(title: const Text("Đổi mật khẩu")),
 
       /// ===== BODY =====
       body: Stack(
@@ -103,10 +100,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 /// ===== HEADER =====
                 const Text(
                   "Bảo mật tài khoản",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 const Text(
@@ -125,7 +119,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
                         blurRadius: 10,
-                      )
+                      ),
                     ],
                   ),
                   child: Column(
@@ -168,9 +162,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.2),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -180,7 +172,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         padding: const EdgeInsets.all(16),
         child: SubmitButton(
           label: "Đổi mật khẩu",
-          onPressed: _isLoading ? null : _submit,
+          onPressed: _submit,
           isLoading: _isLoading,
         ),
       ),

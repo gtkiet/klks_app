@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../../../widgets/form_field.dart';
-import '../../../widgets/app_button.dart';
+import '../../../widgets/widgets.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String username;
@@ -95,9 +94,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     final hasMinLength = p.length >= 8;
     final hasUppercase = p.contains(RegExp(r'[A-Z]'));
-    final hasNumberOrSpecial = p.contains(RegExp(r'[0-9!@#\$%^&*(),.?":{}|<>]'));
+    final hasNumberOrSpecial = p.contains(
+      RegExp(r'[0-9!@#\$%^&*(),.?":{}|<>]'),
+    );
 
-    final score = (hasMinLength ? 1 : 0) + (hasUppercase ? 1 : 0) + (hasNumberOrSpecial ? 1 : 0);
+    final score =
+        (hasMinLength ? 1 : 0) +
+        (hasUppercase ? 1 : 0) +
+        (hasNumberOrSpecial ? 1 : 0);
 
     setState(() {
       if (p.isEmpty) {
@@ -122,7 +126,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   // ================= HELPERS =================
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showSuccess(String message) {
@@ -164,7 +170,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     const Text(
                       'Đặt lại mật khẩu',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -184,12 +193,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                     const LabelText(text: 'Mật khẩu mới'),
                     const SizedBox(height: 6),
-                    PasswordField(controller: _newPassController, hintText: 'Nhập mật khẩu mới'),
+                    PasswordField(
+                      controller: _newPassController,
+                      hintText: 'Nhập mật khẩu mới',
+                    ),
                     const SizedBox(height: 18),
 
                     const LabelText(text: 'Xác nhận mật khẩu'),
                     const SizedBox(height: 6),
-                    PasswordField(controller: _confirmPassController, hintText: 'Nhập lại mật khẩu'),
+                    PasswordField(
+                      controller: _confirmPassController,
+                      hintText: 'Nhập lại mật khẩu',
+                    ),
                     const SizedBox(height: 20),
 
                     if (_newPassController.text.isNotEmpty)
@@ -221,7 +236,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         color: Color(0xFFDDE3F5),
         shape: BoxShape.circle,
       ),
-      child: const Icon(Icons.lock_reset_rounded, size: 48, color: Color(0xFF2563EB)),
+      child: const Icon(
+        Icons.lock_reset_rounded,
+        size: 48,
+        color: Color(0xFF2563EB),
+      ),
     );
   }
 

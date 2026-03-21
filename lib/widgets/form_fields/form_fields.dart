@@ -1,51 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../styles/widget_styles.dart';
 
-/// ────────────── COMMON STYLES ──────────────
-const TextStyle kLabelTextStyle = TextStyle(
-  fontSize: 14,
-  fontWeight: FontWeight.w500,
-  color: Color(0xFF374151),
-);
-
-const TextStyle kInputTextStyle = TextStyle(
-  fontSize: 15,
-  color: Color(0xFF111827),
-);
-
-const TextStyle kHintTextStyle = TextStyle(
-  fontSize: 15,
-  color: Color(0xFF9CA3AF),
-);
-
-BoxDecoration kInputDecoration() => BoxDecoration(
-  color: Colors.white,
-  borderRadius: BorderRadius.circular(12),
-  border: Border.all(color: const Color(0xFFE5E7EB)),
-);
-
-EdgeInsets kContentPadding() =>
-    const EdgeInsets.symmetric(horizontal: 16, vertical: 15);
-
-/// ────────────── LABEL ──────────────
 class LabelText extends StatelessWidget {
   final String text;
   const LabelText({super.key, required this.text});
 
   @override
-  Widget build(BuildContext context) {
-    return Text(text, style: kLabelTextStyle);
-  }
+  Widget build(BuildContext context) => Text(text, style: kLabelTextStyle);
 }
 
-/// ────────────── CUSTOM TEXT FIELD ──────────────
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final TextInputType keyboardType;
   final List<TextInputFormatter>? inputFormatters;
-  final String? Function(String?)? validator; // thêm validator
+  final String? Function(String?)? validator;
 
   const CustomTextField({
     super.key,
@@ -61,7 +32,6 @@ class CustomTextField extends StatelessWidget {
     return Container(
       decoration: kInputDecoration(),
       child: TextFormField(
-        // TextFormField để validator hoạt động
         controller: controller,
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
@@ -78,7 +48,6 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-/// ────────────── PASSWORD FIELD ──────────────
 class PasswordField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
@@ -125,7 +94,6 @@ class _PasswordFieldState extends State<PasswordField> {
   }
 }
 
-/// ────────────── DATE FIELD ──────────────
 class DateField extends StatelessWidget {
   final DateTime? selectedDate;
   final VoidCallback onTap;
@@ -172,7 +140,6 @@ class DateField extends StatelessWidget {
   }
 }
 
-/// ────────────── GENERIC DROPDOWN FIELD ──────────────
 class DropdownField<T> extends StatelessWidget {
   final T? selectedValue;
   final List<T> options;

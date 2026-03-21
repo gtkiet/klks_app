@@ -57,6 +57,7 @@ class ProfileService {
 
   // ================= UPDATE PROFILE =================
   static Future<UserProfile> updateProfile({
+    required String email,
     required String firstName,
     required String lastName,
     required String phoneNumber,
@@ -69,6 +70,7 @@ class ProfileService {
       final data = await ApiClient.put(
         "/api/profile",
         body: {
+          "email": email,
           "firstName": firstName,
           "lastName": lastName,
           "phoneNumber": phoneNumber,

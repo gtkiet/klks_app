@@ -90,6 +90,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final updated = await ProfileService.updateProfile(
+        email: widget.profile.email,
         firstName: firstNameCtrl.text.trim(),
         lastName: lastNameCtrl.text.trim(),
         phoneNumber: phoneCtrl.text.trim(),

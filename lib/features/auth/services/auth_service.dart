@@ -193,6 +193,7 @@ class AuthService {
     required String username,
     required String resetCode,
     required String newPassword,
+    required String confirmPassword,
   }) async {
     try {
       return await ApiClient.post(
@@ -201,6 +202,7 @@ class AuthService {
           "username": username,
           "resetCode": resetCode,
           "newPassword": newPassword,
+          "confirmPassword": confirmPassword,
         },
       );
     } catch (e) {

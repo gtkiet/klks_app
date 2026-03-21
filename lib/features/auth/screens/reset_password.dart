@@ -69,6 +69,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         username: widget.username,
         resetCode: otp,
         newPassword: newPass,
+        confirmPassword: confirmPass,
       );
 
       if (!mounted) return;

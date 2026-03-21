@@ -180,7 +180,8 @@ class _EditAvatarScreenState extends State<EditAvatarScreen> {
             child: SizedBox(
               width: double.infinity,
               height: 48,
-              child: SubmitButton(
+              child: PrimaryButton(
+                label: 'Lưu avatar',
                 onPressed: _saveAvatar,
                 isLoading: _isLoading,
               ),

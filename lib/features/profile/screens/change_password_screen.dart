@@ -170,7 +170,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       /// ===== STICKY BUTTON =====
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
-        child: SubmitButton(
+        child: PrimaryButton(
           label: "Đổi mật khẩu",
           onPressed: _submit,
           isLoading: _isLoading,

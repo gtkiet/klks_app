@@ -1,16 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import '../styles/widget_styles.dart';
 
+/// ────────────── COMMON STYLES ──────────────
+const double kFieldBorderRadius = 12.0;
+const EdgeInsets kFieldContentPadding = EdgeInsets.symmetric(
+  horizontal: 16,
+  vertical: 15,
+);
+
+const TextStyle kLabelTextStyle = TextStyle(
+  fontSize: 14,
+  fontWeight: FontWeight.w500,
+  color: Color(0xFF374151),
+);
+
+const TextStyle kInputTextStyle = TextStyle(
+  fontSize: 15,
+  color: Color(0xFF111827),
+);
+
+const TextStyle kHintTextStyle = TextStyle(
+  fontSize: 15,
+  color: Color(0xFF9CA3AF),
+);
+
+BoxDecoration kFieldDecoration({Color color = Colors.white}) => BoxDecoration(
+  color: color,
+  borderRadius: BorderRadius.circular(kFieldBorderRadius),
+  border: Border.all(color: const Color(0xFFE5E7EB)),
+);
+
+/// ────────────── LABEL ──────────────
 class LabelText extends StatelessWidget {
   final String text;
   const LabelText({super.key, required this.text});
 
   @override
-  Widget build(BuildContext context) => Text(text, style: kLabelTextStyle);
+  Widget build(BuildContext context) {
+    return Text(text, style: kLabelTextStyle);
+  }
 }
 
+/// ────────────── CUSTOM TEXT FIELD ──────────────
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -30,7 +62,7 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: kInputDecoration(),
+      decoration: kFieldDecoration(),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
@@ -41,13 +73,14 @@ class CustomTextField extends StatelessWidget {
           hintText: hintText,
           hintStyle: kHintTextStyle,
           border: InputBorder.none,
-          contentPadding: kContentPadding(),
+          contentPadding: kFieldContentPadding,
         ),
       ),
     );
   }
 }
 
+/// ────────────── PASSWORD FIELD ──────────────
 class PasswordField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
@@ -68,7 +101,7 @@ class _PasswordFieldState extends State<PasswordField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: kInputDecoration(),
+      decoration: kFieldDecoration(),
       child: TextField(
         controller: widget.controller,
         obscureText: _obscure,
@@ -76,6 +109,8 @@ class _PasswordFieldState extends State<PasswordField> {
         decoration: InputDecoration(
           hintText: widget.hintText,
           hintStyle: kHintTextStyle,
+          border: InputBorder.none,
+          contentPadding: kFieldContentPadding,
           suffixIcon: IconButton(
             icon: Icon(
               _obscure
@@ -86,14 +121,13 @@ class _PasswordFieldState extends State<PasswordField> {
             ),
             onPressed: () => setState(() => _obscure = !_obscure),
           ),
-          border: InputBorder.none,
-          contentPadding: kContentPadding(),
         ),
       ),
     );
   }
 }
 
+/// ────────────── DATE FIELD ──────────────
 class DateField extends StatelessWidget {
   final DateTime? selectedDate;
   final VoidCallback onTap;
@@ -113,8 +147,8 @@ class DateField extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: kContentPadding(),
-        decoration: kInputDecoration(),
+        padding: kFieldContentPadding,
+        decoration: kFieldDecoration(),
         child: Row(
           children: [
             Expanded(
@@ -140,6 +174,7 @@ class DateField extends StatelessWidget {
   }
 }
 
+/// ────────────── DROPDOWN FIELD ──────────────
 class DropdownField<T> extends StatelessWidget {
   final T? selectedValue;
   final List<T> options;
@@ -158,7 +193,7 @@ class DropdownField<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: kInputDecoration(),
+      decoration: kFieldDecoration(),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: selectedValue,
@@ -173,6 +208,127 @@ class DropdownField<T> extends StatelessWidget {
               .map((e) => DropdownMenuItem(value: e, child: Text(e.toString())))
               .toList(),
           onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+/// ────────────── SEARCH FIELD ──────────────
+class SearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final VoidCallback? onClear;
+
+  const SearchField({
+    super.key,
+    required this.controller,
+    this.hintText = 'Tìm kiếm',
+    this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: kFieldDecoration(),
+      child: TextField(
+        controller: controller,
+        style: kInputTextStyle,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: kHintTextStyle,
+          border: InputBorder.none,
+          contentPadding: kFieldContentPadding,
+          prefixIcon: const Icon(Icons.search, color: Color(0xFF6B7280)),
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF9CA3AF)),
+                  onPressed: onClear,
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+}
+
+/// ────────────── NUMBER FIELD ──────────────
+class NumberField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+
+  const NumberField({
+    super.key,
+    required this.controller,
+    this.hintText = 'Nhập số',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomTextField(
+      controller: controller,
+      hintText: hintText,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+    );
+  }
+}
+
+/// ────────────── SWITCH FIELD ──────────────
+class SwitchField extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final String label;
+
+  const SwitchField({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: kLabelTextStyle),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: const Color(0xFF2563EB),
+        ),
+      ],
+    );
+  }
+}
+
+/// ────────────── MULTI-LINE TEXT FIELD ──────────────
+class MultiLineTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final int maxLines;
+
+  const MultiLineTextField({
+    super.key,
+    required this.controller,
+    this.hintText = 'Nhập nội dung',
+    this.maxLines = 5,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: kFieldDecoration(),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        style: kInputTextStyle,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: kHintTextStyle,
+          border: InputBorder.none,
+          contentPadding: kFieldContentPadding,
         ),
       ),
     );

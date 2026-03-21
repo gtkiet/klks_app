@@ -211,7 +211,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       _buildPasswordRequirements(),
                     const SizedBox(height: 32),
 
-                    SubmitButton(
+                    PrimaryButton(
                       isLoading: _isLoading,
                       onPressed: handleResetPassword,
                       label: 'Cập nhật mật khẩu',

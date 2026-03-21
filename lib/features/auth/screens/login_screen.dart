@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        SubmitButton(
+                        PrimaryButton(
                           label: "Đăng nhập",
                           onPressed: _login,
                           isLoading: _isLoading,

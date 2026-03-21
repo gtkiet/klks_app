@@ -85,7 +85,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 40),
                     Center(child: _buildIconCircle()),
@@ -122,13 +122,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    SubmitButton(
+                    PrimaryButton(
                       label: 'Gửi mã xác nhận',
                       onPressed: _sendRequest,
                       isLoading: _isLoading,
                     ),
-                    const SizedBox(height: 40),
-                    CancelButton(
+                    const SizedBox(height: 20),
+                    SecondaryButton(
+                      label: 'Quay lại',
                       onPressed: () => Navigator.of(context).maybePop(),
                     ),
 

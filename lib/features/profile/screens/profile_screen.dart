@@ -147,7 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
-          children: [_buildHeader(), const SizedBox(height: 16), _buildBody()],
+          children: [_buildHeader(), _buildBody()],
         ),
       ),
     );
@@ -159,6 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
       child: Column(
+        
         children: [
           const SizedBox(height: 20),
           GestureDetector(
@@ -179,8 +180,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profile!.email,
             style: const TextStyle(color: Color(0xFF6B7280)),
           ),
-          const SizedBox(height: 20),
-          EditButton(label: 'Chỉnh sửa hồ sơ', onPressed: _goToEdit),
         ],
       ),
     );
@@ -221,7 +220,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          SuccessButton(label: "Chỉnh sửa hồ sơ", onPressed: _goToEdit),
+          const SizedBox(height: 20),
           SectionLabel(text: "THÔNG TIN CÁ NHÂN"),
           const SizedBox(height: 8),
           InfoCard(rows: personalInfo),
@@ -230,9 +232,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 8),
           InfoCard(rows: contactInfo),
           const SizedBox(height: 20),
-          EditButton(label: "Đổi mật khẩu", onPressed: _changePassword),
+          SuccessButton(label: "Đổi mật khẩu", onPressed: _changePassword),
           const SizedBox(height: 8),
-          LogoutButton(onTap: _logout),
+          DangerButton(label: "Đăng xuất", onPressed: _logout),
           const SizedBox(height: 16),
         ],
       ),

@@ -207,9 +207,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   const SizedBox(height: 30),
 
                   /// ===== ACTION BUTTONS =====
-                  SubmitButton(onPressed: _submit, isLoading: isLoading),
+                  PrimaryButton(onPressed: _submit, isLoading: isLoading, label: 'Lưu'),
                   const SizedBox(height: 16),
-                  CancelButton(onPressed: () => Navigator.pop(context)),
+                  SecondaryButton(onPressed: () => Navigator.pop(context), label: 'Hủy'),
                   const SizedBox(height: 16),
                 ],
               ),

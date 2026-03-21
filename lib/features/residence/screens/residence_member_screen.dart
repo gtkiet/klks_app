@@ -173,7 +173,7 @@ class _ResidenceMemberScreenState extends State<ResidenceMemberScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                   const SizedBox(height: 16),
-                  SubmitButton(label: 'Thử lại', onPressed: _fetchMembers),
+                  PrimaryButton(label: 'Thử lại', onPressed: _fetchMembers),
                 ],
               ),
             )

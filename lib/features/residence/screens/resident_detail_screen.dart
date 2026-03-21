@@ -90,7 +90,7 @@ class _ResidentDetailScreenState extends State<ResidentDetailScreen> {
         children: [
           Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 16)),
           const SizedBox(height: 12),
-          SubmitButton(
+          PrimaryButton(
             label: 'Thử lại',
             onPressed: _fetchData,
           ),

@@ -1,7 +1,16 @@
+// lib/features/auth/screens/login_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/extensions/context_ext.dart';
+import '../../../core/utils/validators.dart';
+import '../../../core/widgets/widgets.dart';
+import '../../../core/guards/auth_guard.dart';
+import '../../../core/errors/app_exception.dart';
+import '../../../routes/app_routes.dart';
+import '../../../core/theme/theme.dart';
 import '../services/auth_service.dart';
-import '../../../config/app_routes.dart';
-import '../../../widgets/widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,12 +20,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isLoading = false;
-
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -25,174 +34,88 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _handleLogin() async {
     FocusScope.of(context).unfocus();
-
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (username.isEmpty || password.isEmpty) {
-      _showError("Vui lòng nhập đầy đủ thông tin");
-      return;
-    }
+    if (_isLoading) return;
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final success = await _authService.login(
-        username: username,
-        password: password,
+      await _authService.login(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
       );
-
+      AuthGuard.instance.setAuthenticated();
+      context.go(AppRoutes.home);
+    } on AppException catch (e) {
       if (!mounted) return;
-
-      if (success) {
-        // Sau khi login thành công, UserSession đã có dữ liệu toàn cục
-        Navigator.pushReplacementNamed(context, AppRoutes.main);
-      } else {
-        _showError("Đăng nhập thất bại, vui lòng kiểm tra lại thông tin");
-      }
-    } catch (e) {
-      _showError("Lỗi kết nối, vui lòng thử lại");
+      _showError(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showError('Đã có lỗi xảy ra');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    final colors = context.colors;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: AppText.body(message, style: TextStyle(color: colors.onError)),
+        backgroundColor: colors.error,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final maxWidth = 480.0;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      resizeToAvoidBottomInset: true,
+      backgroundColor: colors.background,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 24,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeader(),
-                  _buildHeroImage(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Chào mừng bạn đến với\nSmart Living',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF111827),
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Trải nghiệm không gian sống hiện đại và an toàn',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-
-                        LabelText(text: "Tên đăng nhập"),
-                        const SizedBox(height: 8),
-                        CustomTextField(
-                          controller: _usernameController,
-                          hintText: "Nhập tên đăng nhập",
-                        ),
-                        const SizedBox(height: 20),
-
-                        LabelText(text: "Mật khẩu"),
-                        const SizedBox(height: 8),
-                        PasswordField(
-                          controller: _passwordController,
-                          hintText: "Nhập mật khẩu",
-                        ),
-                        const SizedBox(height: 10),
-
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.forgotPassword,
-                              );
-                            },
-                            child: const Text(
-                              'Quên mật khẩu?',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF2563EB),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        PrimaryButton(
-                          label: "Đăng nhập",
-                          onPressed: _login,
-                          isLoading: _isLoading,
-                        ),
-                        const SizedBox(height: 20),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Chưa có tài khoản? ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF6B7280),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.register,
-                                );
-                              },
-                              child: const Text(
-                                'Đăng ký',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ),
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Container(
+                  decoration: context.isDark
+                      ? AppStyles.cardDark.copyWith(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
                             ),
                           ],
+                        )
+                      : AppStyles.card,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppSpacing.h24,
+                      _buildLoginHeader(),
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: _LoginForm(
+                          formKey: _formKey,
+                          usernameController: _usernameController,
+                          passwordController: _passwordController,
+                          isLoading: _isLoading,
+                          onLogin: _handleLogin,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -201,41 +124,137 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.apartment_rounded,
-              color: Color(0xFF2563EB),
-              size: 26,
-            ),
+  Widget _buildLoginHeader() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/icons/app_icon.png', width: 48, height: 48, semanticLabel: 'App Logo'),
+            AppSpacing.w12,
+            Flexible(child: AppText.title('PKK - Chung cư thông minh')),
+          ],
+        ),
+        AppSpacing.h16,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppConstants.radiusMD),
+          child: Stack(
+            children: [
+              Image.asset(
+                'assets/images/login_img.jpg',
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+              Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.25),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusMD),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          const Text(
-            'Smart Living',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
+        ),
+        AppSpacing.h24,
+      ],
     );
   }
+}
 
-  Widget _buildHeroImage() {
-    return Container(
-      height: 200,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0D0D0D), Color(0xFF2C2C2C), Color(0xFF1A1208)],
-        ),
+class _LoginForm extends StatelessWidget {
+  final GlobalKey<FormState> formKey;
+  final TextEditingController usernameController;
+  final TextEditingController passwordController;
+  final bool isLoading;
+  final VoidCallback onLogin;
+
+  const _LoginForm({
+    required this.formKey,
+    required this.usernameController,
+    required this.passwordController,
+    required this.isLoading,
+    required this.onLogin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Form(
+      key: formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppText.title('Chào mừng bạn đến với PKK'),
+          AppSpacing.h8,
+          AppText.body('Trải nghiệm không gian sống hiện đại và an toàn'),
+          AppSpacing.h24,
+
+          AppInputField(
+            controller: usernameController,
+            label: 'Tên đăng nhập',
+            hint: 'Nhập tên đăng nhập',
+            prefix: Icon(Icons.person),
+            textInputAction: TextInputAction.next,
+            validator: (v) => Validators.required(v, field: 'Tên đăng nhập'),
+          ),
+          AppSpacing.h16,
+
+          AppPasswordField(
+            controller: passwordController,
+            label: 'Mật khẩu',
+            prefix: const Icon(Icons.lock),
+            textInputAction: TextInputAction.done,
+            validator: (v) => Validators.required(v, field: 'Mật khẩu'),
+            onFieldSubmitted: (_) => onLogin(),
+          ),
+          AppSpacing.h16,
+
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () => context.go(AppRoutes.forgotPassword),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: AppText.body('Quên mật khẩu?', style: TextStyle(fontWeight: FontWeight.w600, color: colors.primary)),
+              ),
+            ),
+          ),
+          AppSpacing.h16,
+
+          AppButton(
+            text: 'Đăng nhập',
+            loading: isLoading,
+            onPressed: isLoading ? null : onLogin,
+            type: AppButtonType.primary,
+          ),
+          AppSpacing.h20,
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppText.body('Chưa có tài khoản? ', style: TextStyle(color: colors.onBackground.withOpacity(0.6))),
+              GestureDetector(
+                onTap: () => context.go(AppRoutes.register),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: AppText.body('Đăng ký', style: TextStyle(fontWeight: FontWeight.w600, color: colors.primary)),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

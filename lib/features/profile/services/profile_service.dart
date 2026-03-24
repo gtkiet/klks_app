@@ -1,62 +1,78 @@
+// file: lib/features/profile/services/profile_service.dart
+
 import 'dart:io';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/user_session.dart';
-import '../../../models/user_profile.dart';
+import '../../../core/errors/app_exception.dart';
+import '../../../core/errors/error_parser.dart';
+import '../model/user_profile.dart';
 
+/// ProfileService handles profile-related API calls:
+/// - Get profile
+/// - Update profile
+/// - Change avatar
+/// - Change password
+/// 
+/// Also syncs data into UserSession for app-wide access.
 class ProfileService {
-  static const storage = FlutterSecureStorage();
+  final ApiClient _apiClient = ApiClient.instance;
+  final UserSession _session = UserSession();
 
-  // ================= GET PROFILE =================
-  static Future<UserProfile?> getProfile() async {
+  /// ===================== GET PROFILE =====================
+  Future<UserProfile?> getProfile() async {
     try {
-      final data = await ApiClient.post("/api/profile/get-profile", body: {});
+      final response = await _apiClient.dio.post(
+        "/api/profile/get-profile",
+        data: {},
+      );
 
-      if (data["isOk"] == true && data["result"] != null) {
-        final profile = UserProfile.fromJson(data["result"]);
+      final data = response.data;
 
-        // 🔥 Sync full session
+      if (data['isOk'] == true && data['result'] != null) {
+        final profile = UserProfile.fromJson(data['result']);
         _syncSession(profile, data);
-
         return profile;
       }
 
       return null;
-    } catch (e) {
-      return null;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (_) {
+      throw AppException('Không thể lấy thông tin profile');
     }
   }
 
-  // ================= CHANGE AVATAR =================
-  static Future<String?> changeAvatar(File file) async {
+  /// ===================== CHANGE AVATAR =====================
+  Future<String?> changeAvatar(File file) async {
     try {
-      final data = await ApiClient.uploadFile(
+      final response = await _apiClient.uploadFile(
         "/api/profile/change-avatar",
         fieldName: "avatar",
         filePath: file.path,
       );
 
-      if (data["isOk"] == true && data["result"] != null) {
-        final newAvatarUrl = data["result"];
+      final data = response.data;
 
-        // 🔥 Update session avatar ngay
-        final session = UserSession();
-        session.avatarUrl = newAvatarUrl;
-
+      if (data['isOk'] == true && data['result'] != null) {
+        final newAvatarUrl = data['result'];
+        _session.avatarUrl = newAvatarUrl;
         return newAvatarUrl;
       }
 
-      throw Exception(
-        data["errors"]?[0]?["description"] ?? "Upload avatar failed",
+      throw AppException(
+        data['errors']?[0]?['description'] ?? 'Upload avatar thất bại',
       );
-    } catch (e) {
-      throw Exception("Lỗi upload avatar");
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (_) {
+      throw AppException('Lỗi upload avatar');
     }
   }
 
-  // ================= UPDATE PROFILE =================
-  static Future<UserProfile> updateProfile({
+  /// ===================== UPDATE PROFILE =====================
+  Future<UserProfile> updateProfile({
     required String email,
     required String firstName,
     required String lastName,
@@ -67,9 +83,9 @@ class ProfileService {
     required String diaChi,
   }) async {
     try {
-      final data = await ApiClient.put(
+      final response = await _apiClient.dio.put(
         "/api/profile",
-        body: {
+        data: {
           "email": email,
           "firstName": firstName,
           "lastName": lastName,
@@ -81,70 +97,90 @@ class ProfileService {
         },
       );
 
-      if (data["isOk"] == true && data["result"] != null) {
-        final profile = UserProfile.fromJson(data["result"]);
+      final data = response.data;
 
-        // 🔥 Sync full session
+      if (data['isOk'] == true && data['result'] != null) {
+        final profile = UserProfile.fromJson(data['result']);
         _syncSession(profile, data);
-
         return profile;
       }
 
-      throw Exception(
-        data["errors"]?[0]?["description"] ?? "Cập nhật hồ sơ thất bại",
+      throw AppException(
+        data['errors']?[0]?['description'] ?? 'Cập nhật hồ sơ thất bại',
       );
-    } catch (e) {
-      throw Exception("Lỗi cập nhật hồ sơ");
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (_) {
+      throw AppException('Lỗi cập nhật hồ sơ');
     }
   }
 
-  // ================= HELPER: SYNC SESSION =================
-  static void _syncSession(UserProfile profile, Map<String, dynamic> data) {
-    final session = UserSession();
-
-    session.userId = profile.id;
-    session.username = profile.username;
-    session.email = profile.email;
-    session.fullName = profile.fullName;
-    session.role = profile.roleName;
-    session.avatarUrl = profile.anhDaiDienUrl;
-
-    // Cập nhật token nếu API trả về (ví dụ khi login hoặc refresh)
-    if (data.containsKey('accessToken') && data['accessToken'] != null) {
-      session.accessToken = data['accessToken'];
-    }
-    if (data.containsKey('refreshToken') && data['refreshToken'] != null) {
-      session.refreshToken = data['refreshToken'];
-    }
-  }
-
-  /// ================= CHANGE PASSWORD =================
-  Future<Map<String, dynamic>> changePassword({
+  /// ===================== CHANGE PASSWORD =====================
+  Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
     required String confirmPassword,
   }) async {
     try {
-      return await ApiClient.post(
+      if (newPassword != confirmPassword) {
+        throw AppException('Mật khẩu mới không khớp');
+      }
+
+      final response = await _apiClient.dio.post(
         "/api/profile/change-password",
-        body: {
+        data: {
           "oldPassword": oldPassword,
           "newPassword": newPassword,
           "confirmPassword": confirmPassword,
         },
       );
+
+      final data = response.data;
+
+      if (data['isOk'] != true) {
+        throw AppException(ErrorParser.parse(data));
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     } catch (_) {
-      return _error("Lỗi kết nối");
+      throw AppException('Lỗi đổi mật khẩu');
     }
   }
 
-  /// ================= HELPER =================
-  Map<String, dynamic> _error(String message) {
-    return {
-      "isOk": false,
-      "errors": [
-        {"description": message},
-      ],
-    };
+  /// ===================== HELPER: SYNC SESSION =====================
+  void _syncSession(UserProfile profile, Map<String, dynamic> data) {
+    _session.userId = profile.id;
+    _session.username = profile.username;
+    _session.email = profile.email;
+    _session.fullName = profile.fullName;
+    _session.role = profile.roleName;
+    _session.avatarUrl = profile.anhDaiDienUrl;
+
+    if (data['accessToken'] != null) _session.accessToken = data['accessToken'];
+    if (data['refreshToken'] != null) _session.refreshToken = data['refreshToken'];
+  }
+
+  /// ===================== HELPER: DIO ERROR =====================
+  AppException _handleDioError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return AppException('Kết nối quá chậm, vui lòng thử lại');
+    }
+
+    if (e.response != null) {
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode == 401) {
+        return AppException('Phiên đăng nhập đã hết hạn', code: 401);
+      }
+
+      return AppException(
+        ErrorParser.parse(e.response?.data),
+        code: statusCode,
+      );
+    }
+
+    return AppException('Không thể kết nối đến server');
   }
 }

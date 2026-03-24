@@ -1,72 +1,43 @@
+// core/storage/secure_storage.dart
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+/// A thin wrapper around FlutterSecureStorage.
+///
+/// Responsibility:
+/// - Low-level secure read/write/delete
+/// - No business logic
+///
+/// Usage:
+/// final storage = SecureStorage();
+/// await storage.write(key: 'access_token', value: token);
+/// final token = await storage.read(key: 'access_token');
 class SecureStorage {
-  // =========================
-  // 🔒 Singleton
-  // =========================
-  static final SecureStorage _instance = SecureStorage._internal();
-  factory SecureStorage() => _instance;
   SecureStorage._internal();
+
+  static final SecureStorage _instance = SecureStorage._internal();
+
+  factory SecureStorage() => _instance;
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  // =========================
-  // 🔑 KEYS
-  // =========================
-  static const String _accessTokenKey = "accessToken";
-  static const String _refreshTokenKey = "refreshToken";
-
-  // =========================
-  // 💾 SAVE TOKENS (QUAN TRỌNG NHẤT)
-  // =========================
-  Future<void> saveTokens({
-    required String accessToken,
-    required String refreshToken,
-  }) async {
-    await Future.wait([
-      _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
-    ]);
+  /// Write value securely
+  Future<void> write({required String key, required String value}) async {
+    await _storage.write(key: key, value: value);
   }
 
-  // =========================
-  // 📥 GET TOKENS
-  // =========================
-  Future<String?> getAccessToken() async {
-    return _storage.read(key: _accessTokenKey);
+  /// Read value securely
+  Future<String?> read({required String key}) async {
+    return _storage.read(key: key);
   }
 
-  Future<String?> getRefreshToken() async {
-    return _storage.read(key: _refreshTokenKey);
+  /// Delete a specific key
+  Future<void> delete({required String key}) async {
+    await _storage.delete(key: key);
   }
 
-  // 👉 Lấy cả 2 cùng lúc (rất hữu ích)
-  Future<Map<String, String?>> getTokens() async {
-    final results = await Future.wait([
-      _storage.read(key: _accessTokenKey),
-      _storage.read(key: _refreshTokenKey),
-    ]);
-
-    return {
-      "accessToken": results[0],
-      "refreshToken": results[1],
-    };
-  }
-
-  // =========================
-  // 🗑 CLEAR TOKENS
-  // =========================
-  Future<void> clearTokens() async {
-    await Future.wait([
-      _storage.delete(key: _accessTokenKey),
-      _storage.delete(key: _refreshTokenKey),
-    ]);
-  }
-
-  // =========================
-  // ❌ CLEAR ALL (DEBUG)
-  // =========================
-  Future<void> clearAll() async {
+  /// Clear all secure storage
+  Future<void> clear() async {
     await _storage.deleteAll();
   }
 }

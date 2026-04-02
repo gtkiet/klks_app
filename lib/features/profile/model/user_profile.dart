@@ -1,18 +1,20 @@
-// lib/features/profile/model/user_profile.dart
-
 class UserProfile {
   final String id;
   final String username;
   final String email;
+
   final String firstName;
   final String lastName;
-  final String fullName;
+
   final String? phoneNumber;
-  final String? idCard;
+  final String? diaChi;
+
   final DateTime? dob;
   final int? gioiTinhId;
-  final String? diaChi;
-  final String? roleName;
+  final String? gioiTinhName;
+
+  final List<String> roles;
+
   final String? anhDaiDienUrl;
 
   UserProfile({
@@ -21,17 +23,18 @@ class UserProfile {
     required this.email,
     required this.firstName,
     required this.lastName,
-    required this.fullName,
+    required this.roles,
     this.phoneNumber,
-    this.idCard,
+    this.diaChi,
     this.dob,
     this.gioiTinhId,
-    this.diaChi,
-    this.roleName,
+    this.gioiTinhName,
     this.anhDaiDienUrl,
   });
 
-  /// Tạo từ JSON
+  String get fullName => '$lastName $firstName'.trim();
+
+  /// ===================== FROM JSON =====================
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: json['id']?.toString() ?? '',
@@ -39,18 +42,17 @@ class UserProfile {
       email: json['email'] ?? '',
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
-      fullName: json['fullName'] ?? '${json['firstName'] ?? ''} ${json['lastName'] ?? ''}'.trim(),
       phoneNumber: json['phoneNumber'],
-      idCard: json['idCard'],
+      diaChi: json['diaChi'],
       dob: json['dob'] != null ? DateTime.tryParse(json['dob']) : null,
       gioiTinhId: json['gioiTinhId'],
-      diaChi: json['diaChi'],
-      roleName: json['roleName'],
+      gioiTinhName: json['gioiTinhName'],
+      roles: (json['roles'] as List?)?.map((e) => e.toString()).toList() ?? [],
       anhDaiDienUrl: json['anhDaiDienUrl'],
     );
   }
 
-  /// Chuyển sang JSON
+  /// ===================== TO JSON =====================
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -58,31 +60,29 @@ class UserProfile {
       'email': email,
       'firstName': firstName,
       'lastName': lastName,
-      'fullName': fullName,
       'phoneNumber': phoneNumber,
-      'idCard': idCard,
+      'diaChi': diaChi,
       'dob': dob?.toIso8601String(),
       'gioiTinhId': gioiTinhId,
-      'diaChi': diaChi,
-      'roleName': roleName,
+      'gioiTinhName': gioiTinhName,
+      'roles': roles,
       'anhDaiDienUrl': anhDaiDienUrl,
     };
   }
 
-  /// Tạo bản sao với một số field có thể thay đổi
+  /// ===================== COPY WITH =====================
   UserProfile copyWith({
     String? id,
     String? username,
     String? email,
     String? firstName,
     String? lastName,
-    String? fullName,
     String? phoneNumber,
-    String? idCard,
+    String? diaChi,
     DateTime? dob,
     int? gioiTinhId,
-    String? diaChi,
-    String? roleName,
+    String? gioiTinhName,
+    List<String>? roles,
     String? anhDaiDienUrl,
   }) {
     return UserProfile(
@@ -91,13 +91,12 @@ class UserProfile {
       email: email ?? this.email,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
-      fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
-      idCard: idCard ?? this.idCard,
+      diaChi: diaChi ?? this.diaChi,
       dob: dob ?? this.dob,
       gioiTinhId: gioiTinhId ?? this.gioiTinhId,
-      diaChi: diaChi ?? this.diaChi,
-      roleName: roleName ?? this.roleName,
+      gioiTinhName: gioiTinhName ?? this.gioiTinhName,
+      roles: roles ?? this.roles,
       anhDaiDienUrl: anhDaiDienUrl ?? this.anhDaiDienUrl,
     );
   }

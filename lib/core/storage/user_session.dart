@@ -1,11 +1,10 @@
 // lib/core/storage/user_session.dart
 
 import 'secure_storage.dart';
-import '../constants/storage_keys.dart';
 
 class _SessionKeys {
-  static const accessToken = StorageKeys.accessToken;
-  static const refreshToken = StorageKeys.refreshToken;
+  static const accessToken = 'accessToken';
+  static const refreshToken = 'refreshToken';
 
   // Profile keys
   static const userId = 'userId';

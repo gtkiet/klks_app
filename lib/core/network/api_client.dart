@@ -13,9 +13,9 @@ class ApiClient {
   Dio _createDio() {
     final options = BaseOptions(
       baseUrl: AppConfig.baseUrl,
-      connectTimeout: const Duration(seconds: AppConfig.timeout),
-      receiveTimeout: const Duration(seconds: AppConfig.timeout),
-      sendTimeout: const Duration(seconds: AppConfig.timeout),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -26,19 +26,4 @@ class ApiClient {
     return dio;
   }
 
-  /// Upload a file
-  Future<Response> uploadFile(
-    String path, {
-    required String fieldName,
-    required String filePath,
-    Map<String, dynamic>? extraData,
-  }) async {
-    final file = await MultipartFile.fromFile(filePath);
-    final formData = FormData.fromMap({
-      fieldName: file,
-      if (extraData != null) ...extraData,
-    });
-
-    return dio.post(path, data: formData);
-  }
 }

@@ -1,110 +1,94 @@
-/// core/network/auth_api.dart
+// /// core/network/auth_api.dart
 
-import 'package:dio/dio.dart';
+// import 'package:dio/dio.dart';
 
-import '../config/app_config.dart';
-import '../constants/api_constants.dart';
-import '../constants/storage_keys.dart';
+// import '../config/app_config.dart';
 
-/// ─────────────────────────────────────────────────────────
-/// AUTH API (SAFE - NO INTERCEPTOR)
-/// ─────────────────────────────────────────────────────────
-///
-/// 🔥 QUAN TRỌNG:
-/// - Dùng Dio RIÊNG (không interceptor)
-/// - Tránh loop vô hạn khi refresh token
-///
-class AuthApi {
-  AuthApi() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: AppConfig.baseUrl,
-        connectTimeout: const Duration(seconds: AppConfig.timeout),
-        receiveTimeout: const Duration(seconds: AppConfig.timeout),
-        sendTimeout: const Duration(seconds: AppConfig.timeout),
-        headers: {'Content-Type': ApiConstants.applicationJson},
-      ),
-    );
-  }
+// /// ─────────────────────────────────────────────────────────
+// /// AUTH API (SAFE - NO INTERCEPTOR)
+// /// ─────────────────────────────────────────────────────────
+// ///
+// /// 🔥 QUAN TRỌNG:
+// /// - Dùng Dio RIÊNG (không interceptor)
+// /// - Tránh loop vô hạn khi refresh token
+// ///
+// class AuthApi {
+//   AuthApi() {
+//     _dio = Dio(
+//       BaseOptions(
+//         baseUrl: AppConfig.baseUrl,
+//         connectTimeout: const Duration(seconds: 30),
+//         receiveTimeout: const Duration(seconds: 30),
+//         sendTimeout: const Duration(seconds: 30),
+//         headers: {'Content-Type': 'application/json'},
+//       ),
+//     );
+//   }
 
-  late final Dio _dio;
+//   late final Dio _dio;
 
-  /// ===================== LOGIN =====================
-  Future<Response> login({required String username, required String password}) {
-    return _dio.post(
-      ApiConstants.login,
-      data: {'username': username, 'password': password},
-    );
-  }
+//   /// ===================== LOGIN =====================
+//   Future<Response> login({required String username, required String password}) {
+//     return _dio.post(
+//       '/api/auth/login',
+//       data: {'username': username, 'password': password},
+//     );
+//   }
 
-  /// ===================== REGISTER =====================
-  Future<Response> register({
-    required String username,
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-    required String phoneNumber,
-    required String idCard,
-    required DateTime dob,
-    required int gioiTinhId,
-    required String diaChi,
-  }) {
-    return _dio.post(
-      ApiConstants.register,
-      data: {
-        "username": username,
-        "email": email,
-        "password": password,
-        "firstName": firstName,
-        "lastName": lastName,
-        "phoneNumber": phoneNumber,
-        "idCard": idCard,
-        "dob": dob.toIso8601String(),
-        "gioiTinhId": gioiTinhId,
-        "diaChi": diaChi,
-      },
-    );
-  }
+//   /// ===================== REFRESH TOKEN =====================
+//   Future<Response> refreshToken({required String refreshToken}) {
+//     return _dio.post(
+//       '/api/auth/refresh-token',
+//       data: {'refreshToken': refreshToken},
+//     );
+//   }
 
-  /// ===================== REFRESH TOKEN =====================
-  Future<Response> refreshToken({required String refreshToken}) {
-    return _dio.post(
-      ApiConstants.refreshToken,
-      data: {StorageKeys.refreshToken: refreshToken},
-    );
-  }
+//   /// ===================== REGISTER =====================
+//   Future<Response> register({
+//     required String email,
+//     required String password,
+//     required String confirmPassword,
+//   }) {
+//     return _dio.post(
+//       '/api/auth/register',
+//       data: {
+//         "email": email,
+//         "password": password,
+//         "confirmPassword": confirmPassword,
+//       },
+//     );
+//   }
 
-  /// ===================== LOGOUT =====================
-  Future<Response> logout() {
-    return _dio.post(ApiConstants.logout);
-  }
+//   /// ===================== LOGOUT =====================
+//   Future<Response> logout() {
+//     return _dio.post('/api/auth/logout');
+//   }
 
-  /// ===================== PROFILE =====================
-  Future<Response> getProfile() {
-    return _dio.get(ApiConstants.getProfile);
-  }
+//   /// ===================== PROFILE =====================
+//   Future<Response> getProfile() {
+//     return _dio.get('/api/auth/get-profile');
+//   }
 
-  /// ===================== FORGOT PASSWORD =====================
-  Future<Response> forgotPassword({required String username}) {
-    return _dio.post(ApiConstants.forgotPassword, data: {'username': username});
-  }
+//   /// ===================== FORGOT PASSWORD =====================
+//   Future<Response> forgotPassword({required String username}) {
+//     return _dio.post('/api/auth/forgot-password', data: {'username': username});
+//   }
 
-  /// ===================== RESET PASSWORD =====================
-  Future<Response> resetPassword({
-    required String username,
-    required String resetCode,
-    required String newPassword,
-    required String confirmPassword,
-  }) {
-    return _dio.post(
-      ApiConstants.resetPassword,
-      data: {
-        'username': username,
-        'resetCode': resetCode,
-        'newPassword': newPassword,
-        'confirmPassword': confirmPassword,
-      },
-    );
-  }
-}
+//   /// ===================== RESET PASSWORD =====================
+//   Future<Response> resetPassword({
+//     required String username,
+//     required String resetCode,
+//     required String newPassword,
+//     required String confirmPassword,
+//   }) {
+//     return _dio.post(
+//       '/api/auth/reset-password',
+//       data: {
+//         'username': username,
+//         'resetCode': resetCode,
+//         'newPassword': newPassword,
+//         'confirmPassword': confirmPassword,
+//       },
+//     );
+//   }
+// }

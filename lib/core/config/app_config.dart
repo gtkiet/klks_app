@@ -17,17 +17,17 @@ class AppConfig {
   static const String baseUrl =
       "https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net";
 
-  /// ── TIMEOUT CONFIG (seconds) ───────────
-  static const int timeout = 10;
+  // /// ── TIMEOUT CONFIG (seconds) ───────────
+  // static const int timeout = 10;
 
-  /// ── TOKEN CONFIG ────────────────────────────
-  /// Access token expire: 1 hour
-  static const Duration accessTokenExpiry = Duration(hours: 1);
+  // /// ── TOKEN CONFIG ────────────────────────────
+  // /// Access token expire: 1 hour
+  // static const Duration accessTokenExpiry = Duration(hours: 1);
 
-  /// ── PAGINATION DEFAULT ──────────────────────
-  static const int defaultPage = 1;
-  static const int defaultPageSize = 20;
+  // /// ── PAGINATION DEFAULT ──────────────────────
+  // static const int defaultPage = 1;
+  // static const int defaultPageSize = 20;
 
-  /// ── APP INFO ────────────────────────────────
-  static const String appName = 'PKK - Chung cư thông minh';
+  // /// ── APP INFO ────────────────────────────────
+  // static const String appName = 'PKK - Chung cư thông minh';
 }

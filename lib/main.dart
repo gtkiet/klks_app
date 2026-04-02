@@ -8,7 +8,7 @@ import 'core/guards/auth_guard.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  AuthGuard.instance.init();
+  await AuthGuard.instance.init();
 
   runApp(const App());
 }

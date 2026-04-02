@@ -1,157 +1,102 @@
+// lib/features/auth/services/auth_service.dart
 import 'package:dio/dio.dart';
-
-import '../../../core/network/auth_api.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/storage/user_session.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/error_parser.dart';
+import '../models/user_model.dart';
 
 class AuthService {
-  final AuthApi _authApi = AuthApi();
+  AuthService() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: AppConfig.baseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
+  }
+
+  late final Dio _dio;
   final UserSession _session = UserSession();
 
   /// ===================== LOGIN =====================
-  Future<void> login({
+  Future<UserModel> login({
     required String username,
     required String password,
   }) async {
-    try {
-      _validateLoginInput(username, password);
+    _validateLoginInput(username, password);
 
-      final response = await _authApi.login(
-        username: username.trim(),
-        password: password.trim(),
+    try {
+      final response = await _dio.post(
+        '/api/auth/login',
+        data: {'username': username.trim(), 'password': password.trim()},
       );
 
       final data = response.data;
-
       if (data['isOk'] == true && data['result'] != null) {
-        final result = data['result'];
+        final user = UserModel.fromJson(data['result']);
 
-        final accessToken = result['accessToken'];
-        final refreshToken = result['refreshToken'];
-
-        if (accessToken == null || refreshToken == null) {
+        if (user.accessToken.isEmpty || user.refreshToken.isEmpty) {
           throw AppException('Token không hợp lệ');
         }
 
         await _session.saveTokens(
-          accessToken: accessToken,
-          refreshToken: refreshToken,
+          accessToken: user.accessToken,
+          refreshToken: user.refreshToken,
         );
+
+        return user;
       } else {
         throw AppException(ErrorParser.parse(data));
       }
     } on DioException catch (e) {
       throw _handleDioError(e);
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw AppException('Đã có lỗi xảy ra');
+    } catch (e) {
+      throw AppException('Đã có lỗi xảy ra: $e');
     }
   }
 
   /// ===================== REGISTER =====================
-  Future<Map<String, dynamic>> register({
-    required String username,
+  Future<UserModel> register({
     required String email,
     required String password,
-    required String firstName,
-    required String lastName,
-    required String phoneNumber,
-    required String idCard,
-    required DateTime dob,
-    required int gioiTinhId,
-    required String diaChi,
+    required String confirmPassword,
   }) async {
     try {
-      final response = await _authApi.register(
-        username: username,
-        email: email,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-        idCard: idCard,
-        dob: dob,
-        gioiTinhId: gioiTinhId,
-        diaChi: diaChi,
+      final response = await _dio.post(
+        '/api/auth/register',
+        data: {
+          'email': email.trim(),
+          'password': password.trim(),
+          'confirmPassword': confirmPassword.trim(),
+        },
       );
 
       final data = response.data;
-
       if (data['isOk'] == true && data['result'] != null) {
-        return data['result'];
+        final user = UserModel.fromJson(data['result']);
+        await _session.saveTokens(
+          accessToken: user.accessToken,
+          refreshToken: user.refreshToken,
+        );
+        return user;
       }
 
       throw AppException(ErrorParser.parse(data));
     } on DioException catch (e) {
       throw _handleDioError(e);
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw AppException('Đã có lỗi xảy ra');
-    }
-  }
-
-  /// ===================== REFRESH TOKEN =====================
-  Future<void> refreshToken() async {
-    try {
-      final refreshToken = await _session.getRefreshToken();
-
-      if (refreshToken == null || refreshToken.isEmpty) {
-        throw AppException('Không có refresh token');
-      }
-
-      final response = await _authApi.refreshToken(
-        refreshToken: refreshToken,
-      );
-
-      final data = response.data;
-
-      if (data['isOk'] == true && data['result'] != null) {
-        final result = data['result'];
-
-        await _session.saveTokens(
-          accessToken: result['accessToken'],
-          refreshToken: result['refreshToken'],
-        );
-      } else {
-        throw AppException(ErrorParser.parse(data));
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (_) {
-      throw AppException('Không thể refresh token');
-    }
-  }
-
-  /// ===================== AUTO LOGIN =====================
-  Future<bool> tryAutoLogin() async {
-    try {
-      final accessToken = await _session.getAccessToken();
-
-      if (accessToken != null && accessToken.isNotEmpty) {
-        return true;
-      }
-
-      final refreshToken = await _session.getRefreshToken();
-
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        await this.refreshToken().timeout(const Duration(seconds: 5));
-        return true;
-      }
-
-      return false;
-    } catch (_) {
-      await _session.clearSession();
-      return false;
+    } catch (e) {
+      throw AppException('Đã có lỗi xảy ra: $e');
     }
   }
 
   /// ===================== LOGOUT =====================
   Future<void> logout() async {
     try {
-      await _authApi.logout();
+      await _dio.post('/api/auth/logout');
     } catch (_) {
       // ignore server error
     } finally {
@@ -160,50 +105,64 @@ class AuthService {
   }
 
   /// ===================== FORGOT PASSWORD =====================
-  Future<void> forgotPassword({required String username}) async {
+  Future<String> forgotPassword({required String username}) async {
+    if (username.trim().isEmpty) throw AppException('Vui lòng nhập username');
+
     try {
-      final response = await _authApi.forgotPassword(username: username);
+      final response = await _dio.post(
+        '/api/auth/forgot-password',
+        data: {'username': username.trim()},
+      );
 
       final data = response.data;
-
-      if (data['isOk'] != true) {
-        throw AppException(ErrorParser.parse(data));
+      if (data['isOk'] == true) {
+        return data['result'] ?? '';
       }
+
+      throw AppException(ErrorParser.parse(data));
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } catch (e) {
+      throw AppException('Đã có lỗi xảy ra: $e');
     }
   }
 
   /// ===================== RESET PASSWORD =====================
-  Future<void> resetPassword({
+  Future<String> resetPassword({
     required String username,
     required String resetCode,
     required String newPassword,
     required String confirmPassword,
   }) async {
-    try {
-      if (newPassword != confirmPassword) {
-        throw AppException('Mật khẩu không khớp');
-      }
+    if (newPassword.trim() != confirmPassword.trim()) {
+      throw AppException('Mật khẩu không khớp');
+    }
 
-      final response = await _authApi.resetPassword(
-        username: username,
-        resetCode: resetCode,
-        newPassword: newPassword,
-        confirmPassword: confirmPassword,
+    try {
+      final response = await _dio.post(
+        '/api/auth/reset-password',
+        data: {
+          'username': username.trim(),
+          'resetCode': resetCode.trim(),
+          'newPassword': newPassword.trim(),
+          'confirmPassword': confirmPassword.trim(),
+        },
       );
 
       final data = response.data;
-
-      if (data['isOk'] != true) {
-        throw AppException(ErrorParser.parse(data));
+      if (data['isOk'] == true) {
+        return data['result'] ?? '';
       }
+
+      throw AppException(ErrorParser.parse(data));
     } on DioException catch (e) {
       throw _handleDioError(e);
+    } catch (e) {
+      throw AppException('Đã có lỗi xảy ra: $e');
     }
   }
 
-  /// ===================== DIO ERROR =====================
+  /// ===================== DIO ERROR HANDLER =====================
   AppException _handleDioError(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
@@ -229,12 +188,7 @@ class AuthService {
 
   /// ===================== VALIDATION =====================
   void _validateLoginInput(String username, String password) {
-    if (username.trim().isEmpty) {
-      throw AppException('Vui lòng nhập username');
-    }
-
-    if (password.trim().isEmpty) {
-      throw AppException('Vui lòng nhập password');
-    }
+    if (username.trim().isEmpty) throw AppException('Vui lòng nhập username');
+    if (password.trim().isEmpty) throw AppException('Vui lòng nhập password');
   }
 }

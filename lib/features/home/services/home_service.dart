@@ -1,5 +1,5 @@
 import '../../../core/guards/auth_guard.dart';
-import '../../auth/services/auth_service.dart';
+// import '../../auth/services/auth_service.dart';
 import '../../profile/services/profile_service.dart';
 import '../models/home_data.dart';
 
@@ -16,7 +16,7 @@ import '../models/home_data.dart';
 /// - Banner / Slider data
 /// ─────────────────────────────────────────────────────────
 class HomeService {
-  final AuthService _authService = AuthService();
+  // final AuthService _authService = AuthService();
   final ProfileService _profileService = ProfileService();
 
   /// Lấy data cho HomeScreen
@@ -28,8 +28,8 @@ class HomeService {
 
       // Trả về dữ liệu thực tế nếu có
       return HomeData(
-        fullName: profile?.fullName ?? 'Người dùng',
-        avatarUrl: profile?.anhDaiDienUrl,
+        fullName: profile.fullName,
+        avatarUrl: profile.anhDaiDienUrl,
       );
     } catch (e) {
       // Trường hợp lỗi API hoặc exception, trả fallback
@@ -44,7 +44,7 @@ class HomeService {
   /// - Gọi AuthService để clear session / token
   /// - Gọi AuthGuard để redirect về login nếu cần
   Future<void> logout() async {
-    await _authService.logout();
+    // await _authService.logout();
     AuthGuard.instance.logout();
   }
 }

@@ -1,5 +1,3 @@
-// file: lib/features/profile/services/profile_service.dart
-
 import 'dart:io';
 import 'package:dio/dio.dart';
 
@@ -9,111 +7,88 @@ import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/error_parser.dart';
 import '../model/user_profile.dart';
 
-/// ProfileService handles profile-related API calls:
-/// - Get profile
-/// - Update profile
-/// - Change avatar
-/// - Change password
-/// 
-/// Also syncs data into UserSession for app-wide access.
 class ProfileService {
   final ApiClient _apiClient = ApiClient.instance;
   final UserSession _session = UserSession();
 
   /// ===================== GET PROFILE =====================
-  Future<UserProfile?> getProfile() async {
+  Future<UserProfile> getProfile() async {
     try {
-      final response = await _apiClient.dio.post(
-        "/api/profile/get-profile",
-        data: {},
-      );
+      final response = await _apiClient.dio.post("/api/profile/get-profile");
 
       final data = response.data;
 
       if (data['isOk'] == true && data['result'] != null) {
         final profile = UserProfile.fromJson(data['result']);
-        _syncSession(profile, data);
+        _syncSession(profile);
         return profile;
       }
 
-      return null;
+      throw AppException(ErrorParser.parse(data));
     } on DioException catch (e) {
       throw _handleDioError(e);
-    } catch (_) {
-      throw AppException('Không thể lấy thông tin profile');
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw AppException('Không thể lấy thông tin profile: ${e.toString()}');
     }
   }
 
   /// ===================== CHANGE AVATAR =====================
-  Future<String?> changeAvatar(File file) async {
+  Future<String> changeAvatar(File file) async {
     try {
-      final response = await _apiClient.uploadFile(
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      });
+
+      final response = await _apiClient.dio.post(
         "/api/profile/change-avatar",
-        fieldName: "avatar",
-        filePath: file.path,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
       );
 
       final data = response.data;
 
       if (data['isOk'] == true && data['result'] != null) {
-        final newAvatarUrl = data['result'];
-        _session.avatarUrl = newAvatarUrl;
-        return newAvatarUrl;
+        final url = data['result'].toString();
+        _session.avatarUrl = url;
+        return url;
       }
 
-      throw AppException(
-        data['errors']?[0]?['description'] ?? 'Upload avatar thất bại',
-      );
+      throw AppException(ErrorParser.parse(data));
     } on DioException catch (e) {
       throw _handleDioError(e);
-    } catch (_) {
-      throw AppException('Lỗi upload avatar');
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw AppException('Lỗi upload avatar: ${e.toString()}');
     }
   }
+  // Future<String> changeAvatar(File file) async {
+  //   try {
+  //     final response = await _apiClient.uploadFile(
+  //       "/api/profile/change-avatar",
+  //       fieldName: "avatar",
+  //       filePath: file.path,
+  //     );
 
-  /// ===================== UPDATE PROFILE =====================
-  Future<UserProfile> updateProfile({
-    required String email,
-    required String firstName,
-    required String lastName,
-    required String phoneNumber,
-    required String idCard,
-    required DateTime dob,
-    required int gioiTinhId,
-    required String diaChi,
-  }) async {
-    try {
-      final response = await _apiClient.dio.put(
-        "/api/profile",
-        data: {
-          "email": email,
-          "firstName": firstName,
-          "lastName": lastName,
-          "phoneNumber": phoneNumber,
-          "idCard": idCard,
-          "dob": dob.toIso8601String(),
-          "gioiTinhId": gioiTinhId,
-          "diaChi": diaChi,
-        },
-      );
+  //     final data = response.data;
 
-      final data = response.data;
+  //     if (data['isOk'] == true && data['result'] != null) {
+  //       final url = data['result'].toString();
+  //       _session.avatarUrl = url;
+  //       return url;
+  //     }
 
-      if (data['isOk'] == true && data['result'] != null) {
-        final profile = UserProfile.fromJson(data['result']);
-        _syncSession(profile, data);
-        return profile;
-      }
-
-      throw AppException(
-        data['errors']?[0]?['description'] ?? 'Cập nhật hồ sơ thất bại',
-      );
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (_) {
-      throw AppException('Lỗi cập nhật hồ sơ');
-    }
-  }
+  //     throw AppException(ErrorParser.parse(data));
+  //   } on DioException catch (e) {
+  //     throw _handleDioError(e);
+  //   } catch (e) {
+  //     if (e is AppException) rethrow;
+  //     throw AppException('Lỗi upload avatar: ${e.toString()}');
+  //   }
+  // }
 
   /// ===================== CHANGE PASSWORD =====================
   Future<void> changePassword({
@@ -123,7 +98,11 @@ class ProfileService {
   }) async {
     try {
       if (newPassword != confirmPassword) {
-        throw AppException('Mật khẩu mới không khớp');
+        throw AppException('Mật khẩu xác nhận không khớp');
+      }
+
+      if (oldPassword == newPassword) {
+        throw AppException('Mật khẩu mới không được trùng mật khẩu cũ');
       }
 
       final response = await _apiClient.dio.post(
@@ -142,25 +121,23 @@ class ProfileService {
       }
     } on DioException catch (e) {
       throw _handleDioError(e);
-    } catch (_) {
-      throw AppException('Lỗi đổi mật khẩu');
+    } catch (e) {
+      if (e is AppException) rethrow;
+      throw AppException('Lỗi đổi mật khẩu: ${e.toString()}');
     }
   }
 
-  /// ===================== HELPER: SYNC SESSION =====================
-  void _syncSession(UserProfile profile, Map<String, dynamic> data) {
+  /// ===================== SESSION SYNC =====================
+  void _syncSession(UserProfile profile) {
     _session.userId = profile.id;
     _session.username = profile.username;
     _session.email = profile.email;
     _session.fullName = profile.fullName;
-    _session.role = profile.roleName;
+    _session.role = profile.roles.isNotEmpty ? profile.roles.first : null;
     _session.avatarUrl = profile.anhDaiDienUrl;
-
-    if (data['accessToken'] != null) _session.accessToken = data['accessToken'];
-    if (data['refreshToken'] != null) _session.refreshToken = data['refreshToken'];
   }
 
-  /// ===================== HELPER: DIO ERROR =====================
+  /// ===================== ERROR HANDLER =====================
   AppException _handleDioError(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||

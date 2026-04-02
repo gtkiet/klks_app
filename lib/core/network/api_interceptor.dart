@@ -1,97 +1,113 @@
-// File: lib/core/network/api_interceptor.dart
+// lib/core/network/api_interceptor.dart
 
 import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../config/app_config.dart';
-import '../constants/api_constants.dart';
-import '../constants/storage_keys.dart';
 import '../guards/auth_guard.dart';
 import '../storage/user_session.dart';
-import '../controllers/loading_controller.dart';
-import 'auth_api.dart';
 
+/// ===================== REFRESH TOKEN CLIENT =====================
+class RefreshTokenClient {
+  RefreshTokenClient() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: AppConfig.baseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
+  }
+
+  late final Dio _dio;
+  final UserSession _session = UserSession();
+
+  /// Trả về accessToken mới nếu thành công, null nếu thất bại
+  Future<String?> refreshToken({String? refreshToken}) async {
+    try {
+      final token = refreshToken ?? await _session.getRefreshToken();
+      if (token == null || token.isEmpty) return null;
+
+      final response = await _dio.post(
+        '/api/auth/refresh-token',
+        data: {'refreshToken': token},
+      );
+
+      final data = response.data;
+      if (data['isOk'] == true && data['result'] != null) {
+        final result = data['result'];
+        final newAccess = result['accessToken'] as String?;
+        final newRefresh = result['refreshToken'] as String?;
+
+        if (newAccess != null && newRefresh != null) {
+          await _session.saveTokens(
+            accessToken: newAccess,
+            refreshToken: newRefresh,
+          );
+          return newAccess;
+        }
+      }
+
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// ===================== API INTERCEPTOR =====================
 class ApiInterceptor extends Interceptor {
   final Dio dio;
+  final UserSession _session = UserSession();
+  final RefreshTokenClient _refreshClient = RefreshTokenClient();
 
   ApiInterceptor(this.dio);
-
-  final _session = UserSession();
-  final _authApi = AuthApi();
 
   bool _isRefreshing = false;
   final List<_PendingRequest> _queue = [];
 
-  int _requestCount = 0;
-
-  void _showLoading(bool skip) {
-    if (skip) return;
-    _requestCount++;
-    if (_requestCount == 1) {
-      LoadingController.instance.show();
-    }
-  }
-
-  void _hideLoading(bool skip) {
-    if (skip) return;
-
-    if (_requestCount > 0) {
-      _requestCount--;
-    }
-
-    if (_requestCount == 0) {
-      LoadingController.instance.hide();
-    }
-  }
-
   @override
-  Future<void> onRequest(options, handler) async {
-    final skipLoading = options.extra['skipLoading'] == true;
-    _showLoading(skipLoading);
-
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (options.extra['skipAuth'] == true) {
       return handler.next(options);
     }
 
     final token = await _session.getAccessToken();
-
     if (token != null && token.isNotEmpty) {
-      options.headers[ApiConstants.authorization] = '${ApiConstants.bearer} $token';
+      options.headers['Authorization'] = 'Bearer $token';
     }
 
     handler.next(options);
   }
 
   @override
-  void onResponse(response, handler) {
-    final skipLoading = response.requestOptions.extra['skipLoading'] == true;
-    _hideLoading(skipLoading);
-
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
     handler.next(response);
   }
 
   @override
-  Future<void> onError(err, handler) async {
+  void onError(DioError err, ErrorInterceptorHandler handler) async {
     final request = err.requestOptions;
-    final skipLoading = request.extra['skipLoading'] == true;
-
-    _hideLoading(skipLoading);
 
     if (err.response?.statusCode != 401) {
       return handler.next(err);
     }
 
+    // Nếu đã retry hoặc skipAuth → logout
     if (request.extra['skipAuth'] == true || request.extra['isRetry'] == true) {
       await _logout();
       return handler.next(err);
     }
 
-    /// 🔁 queue khi đang refresh
+    // Nếu đang refresh → queue
     if (_isRefreshing) {
       final completer = Completer<Response>();
-
       _queue.add(_PendingRequest(request, completer));
-
       try {
         final res = await completer.future;
         return handler.resolve(res);
@@ -103,16 +119,17 @@ class ApiInterceptor extends Interceptor {
     _isRefreshing = true;
 
     try {
-      final success = await _refreshToken();
-
+      final success = await _handleRefreshToken();
       if (!success) {
         await _failQueue();
         await _logout();
         return handler.next(err);
       }
 
+      // Retry request hiện tại
       final response = await _retry(request);
 
+      // Retry queue
       for (final p in _queue) {
         try {
           final res = await _retry(p.request);
@@ -121,7 +138,6 @@ class ApiInterceptor extends Interceptor {
           p.completer.completeError(e);
         }
       }
-
       _queue.clear();
 
       return handler.resolve(response);
@@ -134,33 +150,12 @@ class ApiInterceptor extends Interceptor {
     }
   }
 
-  Future<bool> _refreshToken() async {
-    try {
-      final refresh = await _session.getRefreshToken();
+  Future<bool> _handleRefreshToken() async {
+    final refresh = await _session.getRefreshToken();
+    if (refresh == null || refresh.isEmpty) return false;
 
-      if (refresh == null || refresh.isEmpty) return false;
-
-      final res = await _authApi
-          .refreshToken(refreshToken: refresh)
-          .timeout(const Duration(seconds: AppConfig.timeout));
-
-      final data = res.data;
-
-      if (data['isOk'] == true && data['result'] != null) {
-        final r = data['result'];
-
-        await _session.saveTokens(
-          accessToken: r[StorageKeys.accessToken],
-          refreshToken: r[StorageKeys.refreshToken],
-        );
-
-        return true;
-      }
-
-      return false;
-    } catch (_) {
-      return false;
-    }
+    final newAccess = await _refreshClient.refreshToken(refreshToken: refresh);
+    return newAccess != null;
   }
 
   Future<Response> _retry(RequestOptions request) async {
@@ -170,7 +165,7 @@ class ApiInterceptor extends Interceptor {
       method: request.method,
       headers: {
         ...request.headers,
-        if (token != null) ApiConstants.authorization: '${ApiConstants.bearer} $token',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
       },
       extra: {...request.extra, 'isRetry': true},
     );
@@ -185,17 +180,18 @@ class ApiInterceptor extends Interceptor {
 
   Future<void> _failQueue() async {
     for (final p in _queue) {
-      p.completer.completeError(Exception('Refresh failed'));
+      p.completer.completeError(Exception('Refresh token failed'));
     }
     _queue.clear();
   }
 
   Future<void> _logout() async {
-    await _session.clearSession();
-    AuthGuard.instance.forceLogout();
+    // await _session.clearSession();
+    AuthGuard.instance.logout();
   }
 }
 
+/// ===================== PENDING REQUEST =====================
 class _PendingRequest {
   final RequestOptions request;
   final Completer<Response> completer;

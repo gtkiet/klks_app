@@ -132,10 +132,10 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
         };
         return ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
-            backgroundColor: color.withOpacity(0.1),
+            backgroundColor: color.withValues(alpha: 0.1),
             foregroundColor: color,
             padding: const EdgeInsets.all(20),
-            side: BorderSide(color: color.withOpacity(0.4)),
+            side: BorderSide(color: color.withValues(alpha: 0.4)),
           ),
           onPressed: () => _onSelectType(type),
           icon: Icon(icon, size: 28),

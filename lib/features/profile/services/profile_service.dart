@@ -20,7 +20,7 @@ class ProfileService {
 
       if (data['isOk'] == true && data['result'] != null) {
         final profile = UserProfile.fromJson(data['result']);
-        _syncSession(profile);
+        // _syncSession(profile);
         return profile;
       }
 
@@ -53,7 +53,8 @@ class ProfileService {
 
       if (data['isOk'] == true && data['result'] != null) {
         final url = data['result'].toString();
-        _session.avatarUrl = url;
+        _session.updateAvatar(url);
+        // _session.anhDaiDienUrl = url;
         return url;
       }
 
@@ -65,30 +66,6 @@ class ProfileService {
       throw AppException('Lỗi upload avatar: ${e.toString()}');
     }
   }
-  // Future<String> changeAvatar(File file) async {
-  //   try {
-  //     final response = await _apiClient.uploadFile(
-  //       "/api/profile/change-avatar",
-  //       fieldName: "avatar",
-  //       filePath: file.path,
-  //     );
-
-  //     final data = response.data;
-
-  //     if (data['isOk'] == true && data['result'] != null) {
-  //       final url = data['result'].toString();
-  //       _session.avatarUrl = url;
-  //       return url;
-  //     }
-
-  //     throw AppException(ErrorParser.parse(data));
-  //   } on DioException catch (e) {
-  //     throw _handleDioError(e);
-  //   } catch (e) {
-  //     if (e is AppException) rethrow;
-  //     throw AppException('Lỗi upload avatar: ${e.toString()}');
-  //   }
-  // }
 
   /// ===================== CHANGE PASSWORD =====================
   Future<void> changePassword({
@@ -128,14 +105,14 @@ class ProfileService {
   }
 
   /// ===================== SESSION SYNC =====================
-  void _syncSession(UserProfile profile) {
-    _session.userId = profile.id;
-    _session.username = profile.username;
-    _session.email = profile.email;
-    _session.fullName = profile.fullName;
-    _session.role = profile.roles.isNotEmpty ? profile.roles.first : null;
-    _session.avatarUrl = profile.anhDaiDienUrl;
-  }
+  // void _syncSession(UserProfile profile) {
+  //   _session.userId = profile.id;
+  //   _session.username = profile.username;
+  //   _session.email = profile.email;
+  //   _session.fullName = profile.fullName;
+  //   _session.role = profile.roles.isNotEmpty ? profile.roles.first : null;
+  //   _session.anhDaiDienUrl = profile.anhDaiDienUrl;
+  // }
 
   /// ===================== ERROR HANDLER =====================
   AppException _handleDioError(DioException e) {

@@ -6,17 +6,15 @@ class _SessionKeys {
   static const accessToken = 'accessToken';
   static const refreshToken = 'refreshToken';
 
-  // Profile keys
   static const userId = 'userId';
+  static const accountId = 'accountId';
   static const username = 'username';
   static const email = 'email';
   static const fullName = 'fullName';
   static const role = 'role';
-  static const avatarUrl = 'avatarUrl';
+  static const anhDaiDienUrl = 'anhDaiDienUrl';
 }
 
-/// UserSession handles both tokens and basic profile info.
-/// Only stores/retrieves from secure storage, no API logic.
 class UserSession {
   UserSession._internal();
   static final UserSession _instance = UserSession._internal();
@@ -24,19 +22,17 @@ class UserSession {
 
   final SecureStorage _storage = SecureStorage();
 
-  // Token
   String? accessToken;
   String? refreshToken;
 
-  // Profile info
   String? userId;
+  String? accountId;
   String? username;
   String? email;
   String? fullName;
   String? role;
-  String? avatarUrl;
+  String? anhDaiDienUrl;
 
-  /// Save tokens
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
@@ -49,39 +45,52 @@ class UserSession {
     ]);
   }
 
-  /// Save profile info
   Future<void> saveProfile({
     required String userId,
+    required String accountId,
     required String username,
     required String email,
     required String fullName,
     required String role,
-    required String avatarUrl,
+    required String anhDaiDienUrl,
   }) async {
     this.userId = userId;
+    this.accountId = accountId;
     this.username = username;
     this.email = email;
     this.fullName = fullName;
     this.role = role;
-    this.avatarUrl = avatarUrl;
+    this.anhDaiDienUrl = anhDaiDienUrl;
 
     await Future.wait([
       _storage.write(key: _SessionKeys.userId, value: userId),
+      _storage.write(key: _SessionKeys.accountId, value: accountId),
       _storage.write(key: _SessionKeys.username, value: username),
       _storage.write(key: _SessionKeys.email, value: email),
       _storage.write(key: _SessionKeys.fullName, value: fullName),
       _storage.write(key: _SessionKeys.role, value: role),
-      _storage.write(key: _SessionKeys.avatarUrl, value: avatarUrl),
+      _storage.write(key: _SessionKeys.anhDaiDienUrl, value: anhDaiDienUrl),
     ]);
   }
 
-  /// Get access token
-  Future<String?> getAccessToken() async => _storage.read(key: _SessionKeys.accessToken);
+  Future<String?> getAccessToken() async =>
+      _storage.read(key: _SessionKeys.accessToken);
 
-  /// Get refresh token
-  Future<String?> getRefreshToken() async => _storage.read(key: _SessionKeys.refreshToken);
+  Future<String?> getRefreshToken() async =>
+      _storage.read(key: _SessionKeys.refreshToken);
 
-  /// Clear all session (tokens + profile)
+  Future<String?> getFullName() async =>
+      fullName ?? await _storage.read(key: _SessionKeys.fullName);
+
+  Future<String?> getanhDaiDienUrl() async =>
+      anhDaiDienUrl ?? await _storage.read(key: _SessionKeys.anhDaiDienUrl);
+
+  Future<void> updateAvatar(String newUrl) async {
+    anhDaiDienUrl = newUrl;
+
+    await _storage.write(key: _SessionKeys.anhDaiDienUrl, value: newUrl);
+  }
+
   Future<void> clearSession() async {
     accessToken = null;
     refreshToken = null;
@@ -90,21 +99,21 @@ class UserSession {
     email = null;
     fullName = null;
     role = null;
-    avatarUrl = null;
+    anhDaiDienUrl = null;
 
     await Future.wait([
       _storage.delete(key: _SessionKeys.accessToken),
       _storage.delete(key: _SessionKeys.refreshToken),
       _storage.delete(key: _SessionKeys.userId),
+      _storage.delete(key: _SessionKeys.accountId),
       _storage.delete(key: _SessionKeys.username),
       _storage.delete(key: _SessionKeys.email),
       _storage.delete(key: _SessionKeys.fullName),
       _storage.delete(key: _SessionKeys.role),
-      _storage.delete(key: _SessionKeys.avatarUrl),
+      _storage.delete(key: _SessionKeys.anhDaiDienUrl),
     ]);
   }
 
-  /// Check if user has session (used on app start)
   Future<bool> hasSession() async {
     final token = await getAccessToken();
     return token != null && token.isNotEmpty;

@@ -1,4 +1,4 @@
-/// core/guards/auth_guard.dart
+// lib/core/guards/auth_guard.dart
 
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';

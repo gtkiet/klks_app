@@ -91,7 +91,7 @@ class ApiInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) async {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     final request = err.requestOptions;
 
     if (err.response?.statusCode != 401) {

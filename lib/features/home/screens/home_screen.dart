@@ -117,10 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           CircleAvatar(
             radius: 40,
-            backgroundImage: _data?.avatarUrl != null
-                ? NetworkImage(_data!.avatarUrl!)
+            backgroundImage: _data?.anhDaiDienUrl != null
+                ? NetworkImage(_data!.anhDaiDienUrl!)
                 : null,
-            child: _data?.avatarUrl == null
+            child: _data?.anhDaiDienUrl == null
                 ? const Icon(Icons.person, size: 40)
                 : null,
           ),
@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _sectionTitle('Features (Push in stack)'),
           _button(
             label: 'Căn hộ của tôi',
-            onPressed: () => _push('/residence'),
+            onPressed: () => _push('/cu-tru'),
           ),
           _button(label: 'Hóa đơn', onPressed: () => _push('/bills')),
           _button(label: 'Dịch vụ', onPressed: () => _push('/services')),

@@ -1,19 +1,4 @@
-/// features/splash/screens/splash_screen.dart
-
-// import 'package:flutter/material.dart';
-
-// import '../../../core/widgets/widgets.dart';
-
-// class SplashScreen extends StatelessWidget {
-//   const SplashScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Scaffold(
-//       body: Center(child: AppLoading()),
-//     );
-//   }
-// }
+// lib/features/splash/screens/splash_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -84,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(index == 1 ? 1 : 0.4),
+                    color: Colors.white.withValues(alpha: index == 1 ? 1 : 0.4),
                     shape: BoxShape.circle,
                   ),
                 );

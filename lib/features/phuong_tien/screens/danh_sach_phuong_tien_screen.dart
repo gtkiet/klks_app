@@ -192,7 +192,7 @@ class _DanhSachPhuongTienScreenState extends State<DanhSachPhuongTienScreen> {
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
-                  value: _selectedLoaiId,
+                  initialValue: _selectedLoaiId,
                   items: [
                     const DropdownMenuItem(value: null, child: Text('Tất cả')),
                     ..._loaiPhuongTiens.map(
@@ -214,7 +214,7 @@ class _DanhSachPhuongTienScreenState extends State<DanhSachPhuongTienScreen> {
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
-                  value: _selectedTrangThaiId,
+                  initialValue: _selectedTrangThaiId,
                   items: [
                     const DropdownMenuItem(value: null, child: Text('Tất cả')),
                     ..._trangThais.map(
@@ -415,9 +415,9 @@ class _TrangThaiChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(ten, style: TextStyle(fontSize: 11, color: color)),
     );

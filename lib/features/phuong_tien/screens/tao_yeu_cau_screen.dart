@@ -335,7 +335,7 @@ class _TaoYeuCauScreenState extends State<TaoYeuCauScreen> {
                       border: OutlineInputBorder(),
                       hintText: 'Chọn căn hộ',
                     ),
-                    value: _selectedCanHo,
+                    initialValue: _selectedCanHo,
                     items: _canHos
                         .map(
                           (c) => DropdownMenuItem(
@@ -356,7 +356,7 @@ class _TaoYeuCauScreenState extends State<TaoYeuCauScreen> {
                         border: OutlineInputBorder(),
                         hintText: 'Loại phương tiện *',
                       ),
-                      value: _selectedLoaiPhuongTienId,
+                      initialValue: _selectedLoaiPhuongTienId,
                       items: _loaiPhuongTiens
                           .map(
                             (e) => DropdownMenuItem(
@@ -612,7 +612,7 @@ class _FileEntryTile extends StatelessWidget {
               child: entry.isImage
                   ? Image.file(entry.file, fit: BoxFit.cover)
                   : Container(
-                      color: _extColor(entry.ext).withOpacity(0.12),
+                      color: _extColor(entry.ext).withValues(alpha: 0.12),
                       child: Center(
                         child: Text(
                           entry.ext,

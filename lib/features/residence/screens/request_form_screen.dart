@@ -408,7 +408,7 @@ class _RequestFormScreenState extends State<RequestFormScreen> {
                     const SizedBox(height: 12),
 
                     DropdownButtonFormField<SelectorItem>(
-                      value: _selectedGioiTinh,
+                      initialValue: _selectedGioiTinh,
                       decoration: const InputDecoration(
                         labelText: 'Giới tính *',
                         border: OutlineInputBorder(),
@@ -426,7 +426,7 @@ class _RequestFormScreenState extends State<RequestFormScreen> {
 
                     if (_isAdd) ...[
                       DropdownButtonFormField<SelectorItem>(
-                        value: _selectedLoaiQuanHe,
+                        initialValue: _selectedLoaiQuanHe,
                         decoration: const InputDecoration(
                           labelText: 'Quan hệ cư trú *',
                           border: OutlineInputBorder(),

@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/feedback/app_shimmer.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -22,11 +24,7 @@ import '../../../constants/constants.dart';
 /// )
 /// ```
 class AppShimmer extends StatefulWidget {
-  const AppShimmer({
-    super.key,
-    required this.child,
-    this.enabled = true,
-  });
+  const AppShimmer({super.key, required this.child, this.enabled = true});
 
   final Widget child;
 
@@ -50,9 +48,10 @@ class _AppShimmerState extends State<AppShimmer>
       duration: const Duration(milliseconds: 1400),
     )..repeat();
 
-    _anim = Tween<double>(begin: -1.5, end: 2.5).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutSine),
-    );
+    _anim = Tween<double>(
+      begin: -1.5,
+      end: 2.5,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutSine));
   }
 
   @override
@@ -117,8 +116,7 @@ class AppShimmerBox extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: AppColors.shimmerBase,
-        borderRadius:
-            BorderRadius.circular(radius ?? AppSpacing.radiusInput),
+        borderRadius: BorderRadius.circular(radius ?? AppSpacing.radiusInput),
       ),
     );
   }
@@ -126,10 +124,7 @@ class AppShimmerBox extends StatelessWidget {
 
 /// A full card-shaped shimmer placeholder matching [AppCard] dimensions.
 class AppShimmerCard extends StatelessWidget {
-  const AppShimmerCard({
-    super.key,
-    this.height = 90,
-  });
+  const AppShimmerCard({super.key, this.height = 90});
 
   final double height;
 
@@ -164,7 +159,10 @@ class AppShimmerListTile extends StatelessWidget {
           children: [
             // Avatar
             AppShimmerBox(
-                width: 44, height: 44, radius: AppSpacing.radiusCircle),
+              width: 44,
+              height: 44,
+              radius: AppSpacing.radiusCircle,
+            ),
             const SizedBox(width: AppSpacing.md),
             // Text lines
             Expanded(
@@ -202,10 +200,6 @@ class _SlideTransform extends GradientTransform {
 
   @override
   Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    return Matrix4.translationValues(
-      bounds.width * slidePercent,
-      0,
-      0,
-    );
+    return Matrix4.translationValues(bounds.width * slidePercent, 0, 0);
   }
 }

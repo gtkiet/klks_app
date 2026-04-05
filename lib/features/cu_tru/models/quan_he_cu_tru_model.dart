@@ -33,29 +33,27 @@ class QuanHeCuTruModel {
     required this.tongCuDan,
   });
 
-  /// Derived: địa chỉ đầy đủ
   String get diaChiDayDu => '$tenToaNha - $tenTang - $tenCanHo';
 
-  factory QuanHeCuTruModel.fromJson(Map<String, dynamic> json) {
-    return QuanHeCuTruModel(
-      quanHeCuTruId: json['quanHeCuTruId'] ?? 0,
-      loaiQuanHeCuTruId: json['loaiQuanHeCuTruId'] ?? 0,
-      loaiQuanHeTen: json['loaiQuanHeTen'] ?? '',
-      ngayBatDau: json['ngayBatDau'] != null
-          ? DateTime.tryParse(json['ngayBatDau'])
-          : null,
-      toaNhaId: json['toaNhaId'] ?? 0,
-      maToaNha: json['maToaNha'] ?? '',
-      tenToaNha: json['tenToaNha'] ?? '',
-      tangId: json['tangId'] ?? 0,
-      maTang: json['maTang'] ?? '',
-      tenTang: json['tenTang'] ?? '',
-      canHoId: json['canHoId'] ?? 0,
-      maCanHo: json['maCanHo'] ?? '',
-      tenCanHo: json['tenCanHo'] ?? '',
-      tongCuDan: json['tongCuDan'] ?? 0,
-    );
-  }
+  factory QuanHeCuTruModel.fromJson(Map<String, dynamic> json) =>
+      QuanHeCuTruModel(
+        quanHeCuTruId: json['quanHeCuTruId'] as int? ?? 0,
+        loaiQuanHeCuTruId: json['loaiQuanHeCuTruId'] as int? ?? 0,
+        loaiQuanHeTen: json['loaiQuanHeTen'] as String? ?? '',
+        ngayBatDau: json['ngayBatDau'] != null
+            ? DateTime.tryParse(json['ngayBatDau'] as String)
+            : null,
+        toaNhaId: json['toaNhaId'] as int? ?? 0,
+        maToaNha: json['maToaNha'] as String? ?? '',
+        tenToaNha: json['tenToaNha'] as String? ?? '',
+        tangId: json['tangId'] as int? ?? 0,
+        maTang: json['maTang'] as String? ?? '',
+        tenTang: json['tenTang'] as String? ?? '',
+        canHoId: json['canHoId'] as int? ?? 0,
+        maCanHo: json['maCanHo'] as String? ?? '',
+        tenCanHo: json['tenCanHo'] as String? ?? '',
+        tongCuDan: json['tongCuDan'] as int? ?? 0,
+      );
 
   Map<String, dynamic> toJson() => {
     'quanHeCuTruId': quanHeCuTruId,

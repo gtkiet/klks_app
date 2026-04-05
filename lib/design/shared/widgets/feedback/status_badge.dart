@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/feedback/status_badge.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -34,30 +36,28 @@ class StatusBadge extends StatelessWidget {
   final Color? backgroundColor;
 
   String get _defaultLabel => switch (status) {
-        BadgeStatus.completed => 'COMPLETED',
-        BadgeStatus.pending => 'PENDING',
-        BadgeStatus.highPriority => 'HIGH PRIORITY',
-        BadgeStatus.info => 'INFO',
-        BadgeStatus.custom => label ?? '',
-      };
+    BadgeStatus.completed => 'COMPLETED',
+    BadgeStatus.pending => 'PENDING',
+    BadgeStatus.highPriority => 'HIGH PRIORITY',
+    BadgeStatus.info => 'INFO',
+    BadgeStatus.custom => label ?? '',
+  };
 
   Color get _textColor => switch (status) {
-        BadgeStatus.completed => AppColors.success,
-        BadgeStatus.pending => AppColors.warning,
-        BadgeStatus.highPriority => AppColors.error,
-        BadgeStatus.info => AppColors.primary,
-        BadgeStatus.custom => color ?? AppColors.textPrimary,
-      };
+    BadgeStatus.completed => AppColors.success,
+    BadgeStatus.pending => AppColors.warning,
+    BadgeStatus.highPriority => AppColors.error,
+    BadgeStatus.info => AppColors.primary,
+    BadgeStatus.custom => color ?? AppColors.textPrimary,
+  };
 
   Color get _bgColor => switch (status) {
-        BadgeStatus.completed => AppColors.successSurface,
-        BadgeStatus.pending => AppColors.warningSurface,
-        BadgeStatus.highPriority => AppColors.errorSurface,
-        BadgeStatus.info =>
-          AppColors.primary.withValues(alpha: 0.10),
-        BadgeStatus.custom =>
-          backgroundColor ?? AppColors.inputFill,
-      };
+    BadgeStatus.completed => AppColors.successSurface,
+    BadgeStatus.pending => AppColors.warningSurface,
+    BadgeStatus.highPriority => AppColors.errorSurface,
+    BadgeStatus.info => AppColors.primary.withValues(alpha: 0.10),
+    BadgeStatus.custom => backgroundColor ?? AppColors.inputFill,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -178,19 +178,23 @@ class AppConfirmDialog extends StatelessWidget {
                         onCancel ?? () => Navigator.of(context).pop(false),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(
-                          color: AppColors.divider, width: 1.5),
+                        color: AppColors.divider,
+                        width: 1.5,
+                      ),
                       foregroundColor: AppColors.textSecondary,
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusCard),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusCard,
+                        ),
                       ),
-                      minimumSize:
-                          const Size(0, AppSpacing.buttonHeight),
+                      minimumSize: const Size(0, AppSpacing.buttonHeight),
                     ),
-                    child: Text(cancelLabel,
-                        style: AppTextStyles.button.copyWith(
-                          color: AppColors.textSecondary,
-                        )),
+                    child: Text(
+                      cancelLabel,
+                      style: AppTextStyles.button.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -206,15 +210,18 @@ class AppConfirmDialog extends StatelessWidget {
                       foregroundColor: AppColors.textOnPrimary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusCard),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusCard,
+                        ),
                       ),
-                      minimumSize:
-                          const Size(0, AppSpacing.buttonHeight),
+                      minimumSize: const Size(0, AppSpacing.buttonHeight),
                     ),
-                    child: Text(confirmLabel,
-                        style: AppTextStyles.button
-                            .copyWith(color: AppColors.textOnPrimary)),
+                    child: Text(
+                      confirmLabel,
+                      style: AppTextStyles.button.copyWith(
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
                   ),
                 ),
               ],

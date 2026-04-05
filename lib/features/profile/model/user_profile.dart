@@ -1,3 +1,5 @@
+// lib/features/profile/models/user_profile.dart
+
 class UserProfile {
   final String id;
   final String username;
@@ -31,8 +33,6 @@ class UserProfile {
     this.gioiTinhName,
     this.anhDaiDienUrl,
   });
-
-  String get fullName => '$lastName $firstName'.trim();
 
   /// ===================== FROM JSON =====================
   factory UserProfile.fromJson(Map<String, dynamic> json) {

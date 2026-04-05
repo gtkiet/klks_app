@@ -8,3 +8,5 @@ export 'theme/theme.dart';
 
 // ── Widgets ───────────────────────────────────────────────────────────────────
 export 'shared/widgets/widgets.dart';
+
+export 'utils/validators.dart';

@@ -1,3 +1,5 @@
+// lib/design/shared/state/app_state_wrapper.dart
+
 import 'package:flutter/material.dart';
 import '../../constants/constants.dart';
 import '../widgets/feedback/app_loading_indicator.dart';

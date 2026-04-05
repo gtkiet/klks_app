@@ -85,6 +85,12 @@ class UserSession {
   Future<String?> getanhDaiDienUrl() async =>
       anhDaiDienUrl ?? await _storage.read(key: _SessionKeys.anhDaiDienUrl);
 
+  Future<String?> getEmail() async =>
+      email ?? await _storage.read(key: _SessionKeys.email);
+  
+  Future<String?> getRole() async =>
+      role ?? await _storage.read(key: _SessionKeys.role);
+
   Future<void> updateAvatar(String newUrl) async {
     anhDaiDienUrl = newUrl;
 

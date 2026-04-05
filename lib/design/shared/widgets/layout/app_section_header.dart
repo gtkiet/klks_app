@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/layout/app_section_header.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -34,9 +36,9 @@ class AppSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ??
-          const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenHorizontal),
+      padding:
+          padding ??
+          const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

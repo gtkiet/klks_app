@@ -1,0 +1,167 @@
+// lib/features/cu_tru/screens/tabs/thanh_vien_list_tab.dart
+//
+// Tab 1 (mode Thành viên):
+//   - Tự động gọi ThanhVienService.getThanhVienCuTru(canHoId) khi mount
+//   - Tap vào item → mở ThanhVienDetailScreen (gọi getThongTinCuDan)
+
+import 'package:flutter/material.dart';
+
+import '../../../../core/errors/errors.dart';
+
+import '../services/thanh_vien_service.dart';
+
+import '../../cu_tru/models/quan_he_cu_tru_model.dart';
+import '../models/thanh_vien_cu_tru_model.dart';
+
+import '../screens/thanh_vien_detail_screen.dart';
+
+class ThanhVienListTab extends StatefulWidget {
+  final QuanHeCuTruModel item;
+
+  const ThanhVienListTab({super.key, required this.item});
+
+  @override
+  State<ThanhVienListTab> createState() => _ThanhVienListTabState();
+}
+
+class _ThanhVienListTabState extends State<ThanhVienListTab>
+    with AutomaticKeepAliveClientMixin {
+  // Giữ state khi swipe qua lại giữa các tab
+  @override
+  bool get wantKeepAlive => true;
+
+  final _service = ThanhVienService.instance;
+
+  // ── State ──────────────────────────────────────────────────────────────
+  bool _isLoading = false;
+  AppException? _error;
+  List<ThanhVienCuTruModel> _list = [];
+
+  // ── Lifecycle ──────────────────────────────────────────────────────────
+  @override
+  void initState() {
+    super.initState();
+    _loadData(); // tự động tải khi tab được tạo
+  }
+
+  // ── Service call ───────────────────────────────────────────────────────
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final result =
+          await _service.getThanhVienCuTru(widget.item.canHoId);
+      setState(() => _list = result);
+    } on AppException catch (e) {
+      setState(() => _error = e);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────────────
+  void _goToDetail(ThanhVienCuTruModel member) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ThanhVienDetailScreen(
+          thanhVien: member,
+          canHoInfo: widget.item,
+        ),
+      ),
+    );
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // bắt buộc với AutomaticKeepAliveClientMixin
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppErrorWidget(error: _error!),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_list.isEmpty) {
+      return const Center(child: Text('Chưa có thành viên nào'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(12),
+        itemCount: _list.length,
+        separatorBuilder: (_, _) => const Divider(height: 1),
+        itemBuilder: (_, i) => _ThanhVienTile(
+          member: _list[i],
+          onTap: () => _goToDetail(_list[i]),
+        ),
+      ),
+    );
+  }
+}
+
+// ── List tile ─────────────────────────────────────────────────────────────
+class _ThanhVienTile extends StatelessWidget {
+  final ThanhVienCuTruModel member;
+  final VoidCallback onTap;
+
+  const _ThanhVienTile({required this.member, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: CircleAvatar(
+        backgroundImage: member.anhDaiDienUrl != null
+            ? NetworkImage(member.anhDaiDienUrl!)
+            : null,
+        child: member.anhDaiDienUrl == null
+            ? Text(
+                member.fullName.isNotEmpty
+                    ? member.fullName[0].toUpperCase()
+                    : '?',
+              )
+            : null,
+      ),
+      title: Text(member.fullName),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(member.loaiQuanHeTen),
+          if (member.ngayBatDau != null)
+            Text(
+              'Từ ngày: ${_fmtDate(member.ngayBatDau!)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+            ),
+        ],
+      ),
+      isThreeLine: member.ngayBatDau != null,
+      trailing: const Icon(Icons.chevron_right),
+    );
+  }
+
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+}

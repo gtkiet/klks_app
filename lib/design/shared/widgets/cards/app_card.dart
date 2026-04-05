@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/cards/app_card.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -64,8 +66,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ??
-        BorderRadius.circular(AppSpacing.radiusCard);
+    final radius = borderRadius ?? BorderRadius.circular(AppSpacing.radiusCard);
 
     return Container(
       decoration: BoxDecoration(
@@ -91,10 +92,9 @@ class AppCard extends StatelessWidget {
   }
 
   Widget _paddedChild() => Padding(
-        padding: padding ??
-            const EdgeInsets.all(AppSpacing.cardPadding),
-        child: child,
-      );
+    padding: padding ?? const EdgeInsets.all(AppSpacing.cardPadding),
+    child: child,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,9 +124,9 @@ class UtilityCard extends StatelessWidget {
     this.trailing,
     this.onTap,
   }) : assert(
-          backgroundImage != null || backgroundColor != null,
-          'Provide either a backgroundImage or a backgroundColor.',
-        );
+         backgroundImage != null || backgroundColor != null,
+         'Provide either a backgroundImage or a backgroundColor.',
+       );
 
   final String title;
   final String? subtitle;
@@ -185,8 +185,9 @@ class UtilityCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: AppTextStyles.headline
-                            .copyWith(color: Colors.white),
+                        style: AppTextStyles.headline.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     ?trailing,
@@ -196,8 +197,9 @@ class UtilityCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle!,
-                    style: AppTextStyles.caption
-                        .copyWith(color: Colors.white70),
+                    style: AppTextStyles.caption.copyWith(
+                      color: Colors.white70,
+                    ),
                   ),
                 ],
                 if (progress != null) ...[
@@ -268,15 +270,12 @@ class ServiceCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconBackgroundColor ??
+              color:
+                  iconBackgroundColor ??
                   AppColors.primary.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(AppSpacing.radiusInput),
             ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: iconColor ?? AppColors.primary,
-            ),
+            child: Icon(icon, size: 20, color: iconColor ?? AppColors.primary),
           ),
 
           const SizedBox(width: AppSpacing.md),

@@ -9,12 +9,12 @@ class AppNavigation {
     _shell = shell;
   }
 
-  /// 👉 Switch tab (fix bottom bar sync)
   static void goTab(int index, {bool reset = false}) {
     _shell?.goBranch(index, initialLocation: reset);
   }
 
   static void goHome() => goTab(0);
-  static void goNotification() => goTab(1);
+  // static void goNotification() => goTab(1);
+  static void goResidence() => goTab(1);
   static void goProfile() => goTab(2);
 }

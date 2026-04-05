@@ -1,3 +1,5 @@
+// lib/design/constants/app_spacing.dart
+
 /// PKK Resident — Spacing system.
 /// Based on an 8pt grid. Always use these constants; never use
 /// raw numeric literals for spacing in the widget tree.

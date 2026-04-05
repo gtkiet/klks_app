@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../services/profile_service.dart';
-import '../model/user_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,66 +15,44 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileService _service = ProfileService();
 
-  UserProfile? _profile;
+  String? _fullName;
+  String? _email;
+  String? _role;
+  String? _anhDaiDienUrl;
   bool _loading = true;
-  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _loadFromSession();
   }
 
-  Future<void> _load() async {
-    try {
-      setState(() {
-        _loading = true;
-        _error = null;
-      });
+  Future<void> _loadFromSession() async {
+    final data = await _service.getSessionProfile();
 
-      final data = await _service.getProfile();
-
-      setState(() => _profile = data);
-    } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      setState(() => _loading = false);
-    }
+    setState(() {
+      _fullName = data['fullName'];
+      _email = data['email'];
+      _role = data['role'];
+      _anhDaiDienUrl = data['anhDaiDienUrl'];
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
-    if (_error != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_error!),
-              const SizedBox(height: 16),
-              ElevatedButton(onPressed: _load, child: const Text('Retry')),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final p = _profile!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Trang cá nhân'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _load,
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Xem chi tiết',
+            onPressed: () => context.push('/profile/detail'),
           ),
         ],
       ),
@@ -84,37 +62,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Center(
             child: CircleAvatar(
               radius: 40,
-              backgroundImage:
-                  p.anhDaiDienUrl != null ? NetworkImage(p.anhDaiDienUrl!) : null,
-              child: p.anhDaiDienUrl == null
-                  ? const Icon(Icons.person)
+              backgroundImage: _anhDaiDienUrl != null
+                  ? NetworkImage(_anhDaiDienUrl!)
+                  : null,
+              child: _anhDaiDienUrl == null
+                  ? const Icon(Icons.person, size: 40)
                   : null,
             ),
           ),
           const SizedBox(height: 16),
 
-          Text('Name: ${p.fullName}'),
-          Text('Username: ${p.username}'),
-          Text('Email: ${p.email}'),
-          Text('Phone: ${p.phoneNumber ?? ''}'),
-          Text('Address: ${p.diaChi ?? ''}'),
-          Text('Gender: ${p.gioiTinhName ?? ''}'),
-          Text('Roles: ${p.roles.join(', ')}'),
+          Text('Họ tên: ${_fullName ?? ''}'),
+          Text('Email: ${_email ?? ''}'),
+          Text('Vai trò: ${_role ?? ''}'),
 
           const SizedBox(height: 24),
 
           ElevatedButton(
-            onPressed: () {
-              context.push('/profile/change-password');
-            },
-            child: const Text('Change Password'),
+            onPressed: () => context.push('/profile/detail'),
+            child: const Text('Xem chi tiết hồ sơ'),
           ),
 
           ElevatedButton(
-            onPressed: () {
-              context.push('/profile/change-avatar');
-            },
-            child: const Text('Change Avatar'),
+            onPressed: () => context.push('/profile/change-password'),
+            child: const Text('Đổi mật khẩu'),
+          ),
+
+          ElevatedButton(
+            onPressed: () => context.push('/profile/change-avatar'),
+            child: const Text('Đổi ảnh đại diện'),
           ),
         ],
       ),

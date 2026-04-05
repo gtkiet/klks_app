@@ -1,3 +1,5 @@
+// lib/features/profile/services/profile_service.dart
+
 import 'dart:io';
 import 'package:dio/dio.dart';
 
@@ -11,25 +13,31 @@ class ProfileService {
   final ApiClient _apiClient = ApiClient.instance;
   final UserSession _session = UserSession();
 
+  /// ===================== GET SESSION PROFILE =====================
+  Future<Map<String, String?>> getSessionProfile() async {
+    return {
+      'fullName': await _session.getFullName(),
+      'email': await _session.getEmail(),
+      'role': await _session.getRole(),
+      'anhDaiDienUrl': await _session.getanhDaiDienUrl(),
+    };
+  }
+
   /// ===================== GET PROFILE =====================
   Future<UserProfile> getProfile() async {
     try {
       final response = await _apiClient.dio.post("/api/profile/get-profile");
 
       final data = response.data;
-
-      if (data['isOk'] == true && data['result'] != null) {
-        final profile = UserProfile.fromJson(data['result']);
-        // _syncSession(profile);
-        return profile;
-      }
-
-      throw AppException(ErrorParser.parse(data));
+      final profile = UserProfile.fromJson(data['result']);
+      return profile;
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      if (e is AppException) rethrow;
-      throw AppException('Không thể lấy thông tin profile: ${e.toString()}');
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
   }
 
@@ -51,19 +59,16 @@ class ProfileService {
 
       final data = response.data;
 
-      if (data['isOk'] == true && data['result'] != null) {
-        final url = data['result'].toString();
-        _session.updateAvatar(url);
-        // _session.anhDaiDienUrl = url;
-        return url;
-      }
-
-      throw AppException(ErrorParser.parse(data));
+      final url = data['result'].toString();
+      _session.updateAvatar(url);
+      return url;
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      if (e is AppException) rethrow;
-      throw AppException('Lỗi upload avatar: ${e.toString()}');
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
   }
 
@@ -82,7 +87,7 @@ class ProfileService {
         throw AppException('Mật khẩu mới không được trùng mật khẩu cũ');
       }
 
-      final response = await _apiClient.dio.post(
+      await _apiClient.dio.post(
         "/api/profile/change-password",
         data: {
           "oldPassword": oldPassword,
@@ -90,51 +95,13 @@ class ProfileService {
           "confirmPassword": confirmPassword,
         },
       );
-
-      final data = response.data;
-
-      if (data['isOk'] != true) {
-        throw AppException(ErrorParser.parse(data));
-      }
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      if (e is AppException) rethrow;
-      throw AppException('Lỗi đổi mật khẩu: ${e.toString()}');
-    }
-  }
-
-  /// ===================== SESSION SYNC =====================
-  // void _syncSession(UserProfile profile) {
-  //   _session.userId = profile.id;
-  //   _session.username = profile.username;
-  //   _session.email = profile.email;
-  //   _session.fullName = profile.fullName;
-  //   _session.role = profile.roles.isNotEmpty ? profile.roles.first : null;
-  //   _session.anhDaiDienUrl = profile.anhDaiDienUrl;
-  // }
-
-  /// ===================== ERROR HANDLER =====================
-  AppException _handleDioError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      return AppException('Kết nối quá chậm, vui lòng thử lại');
-    }
-
-    if (e.response != null) {
-      final statusCode = e.response?.statusCode;
-
-      if (statusCode == 401) {
-        return AppException('Phiên đăng nhập đã hết hạn', code: 401);
-      }
-
-      return AppException(
-        ErrorParser.parse(e.response?.data),
-        code: statusCode,
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
       );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
-
-    return AppException('Không thể kết nối đến server');
   }
 }

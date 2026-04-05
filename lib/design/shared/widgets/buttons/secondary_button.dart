@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/buttons/secondary_button.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -53,10 +55,7 @@ class SecondaryButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
-              icon!,
-              const SizedBox(width: AppSpacing.xs),
-            ],
+            if (icon != null) ...[icon!, const SizedBox(width: AppSpacing.xs)],
             Text(
               label,
               style: AppTextStyles.button.copyWith(
@@ -137,10 +136,7 @@ class AppOutlineButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
-              icon!,
-              const SizedBox(width: AppSpacing.xs),
-            ],
+            if (icon != null) ...[icon!, const SizedBox(width: AppSpacing.xs)],
             Text(
               label,
               style: AppTextStyles.button.copyWith(

@@ -1,0 +1,99 @@
+✅ 1. SERVICE (Dio + parse lỗi)
+Future<void> changePassword({
+  required String oldPassword,
+  required String newPassword,
+}) async {
+  try {
+    final res = await dio.post(
+      '/api/profile/change-password',
+      data: {
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      },
+    );
+
+    final data = res.data;
+
+    // 👇 QUAN TRỌNG: check isOk
+    if (data is Map<String, dynamic> && data['isOk'] == false) {
+      throw ErrorParser.parse(
+        data,
+        statusCode: res.statusCode,
+      );
+    }
+
+  } on DioException catch (e) {
+      // 👇 parse lỗi từ backend
+    throw ErrorParser.parse(
+      e.response?.data,
+      statusCode: e.response?.statusCode,
+    );
+  } catch (_) {
+    throw AppException('Lỗi không xác định');
+  }
+}
+
+✅ 2. SCREEN (hiển thị lỗi bằng AppErrorWidget)
+class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
+
+  @override
+  State<ChangePasswordScreen> createState() =>
+      _ChangePasswordScreenState();
+}
+
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final oldController = TextEditingController();
+  final newController = TextEditingController();
+
+  AppException? error;
+
+  final authService = AuthService(Dio());
+
+  Future<void> submit() async {
+    setState(() => error = null);
+
+    try {
+      await authService.changePassword(
+        oldPassword: oldController.text,
+        newPassword: newController.text,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thành công')),
+      );
+    } on AppException catch (e) {
+      setState(() => error = e); // 👈 quan trọng
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Đổi mật khẩu')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(controller: oldController),
+            const SizedBox(height: 12),
+
+            TextField(controller: newController),
+            const SizedBox(height: 12),
+
+            // 👇 HIỂN THỊ LỖI
+            if (error != null) AppErrorWidget(error: error!),
+
+            const SizedBox(height: 12),
+
+            ElevatedButton(
+              onPressed: submit,
+              child: const Text('Đổi mật khẩu'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

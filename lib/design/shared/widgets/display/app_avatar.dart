@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/display/app_avatar.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 

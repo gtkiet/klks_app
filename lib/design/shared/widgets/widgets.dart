@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/widgets.dart
+
 export 'buttons/primary_button.dart';
 export 'buttons/secondary_button.dart';
 

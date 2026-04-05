@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/inputs/app_text_field.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../constants/constants.dart';
@@ -137,7 +139,11 @@ class _AppTextFieldState extends State<AppTextField> {
     if (_isSearch) {
       return const Padding(
         padding: EdgeInsetsDirectional.only(start: 4, end: 0),
-        child: Icon(Icons.search_rounded, size: 20, color: AppColors.textDisabled),
+        child: Icon(
+          Icons.search_rounded,
+          size: 20,
+          color: AppColors.textDisabled,
+        ),
       );
     }
     return widget.prefixIcon;
@@ -196,8 +202,9 @@ class _AppTextFieldState extends State<AppTextField> {
           onTap: widget.onTap,
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle:
-                AppTextStyles.body.copyWith(color: AppColors.textDisabled),
+            hintStyle: AppTextStyles.body.copyWith(
+              color: AppColors.textDisabled,
+            ),
             prefixIcon: _prefix,
             suffixIcon: _suffix,
             counterText: '',
@@ -207,10 +214,11 @@ class _AppTextFieldState extends State<AppTextField> {
             // Override border to show error state
             enabledBorder: widget.errorText != null
                 ? OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusInput),
-                    borderSide:
-                        const BorderSide(color: AppColors.error, width: 1.5),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusInput),
+                    borderSide: const BorderSide(
+                      color: AppColors.error,
+                      width: 1.5,
+                    ),
                   )
                 : null,
           ),
@@ -220,12 +228,8 @@ class _AppTextFieldState extends State<AppTextField> {
         if (widget.errorText != null) ...[
           const SizedBox(height: AppSpacing.xs),
           Padding(
-            padding:
-                const EdgeInsetsDirectional.only(start: AppSpacing.xs),
-            child: Text(
-              widget.errorText!,
-              style: AppTextStyles.inputHelper,
-            ),
+            padding: const EdgeInsetsDirectional.only(start: AppSpacing.xs),
+            child: Text(widget.errorText!, style: AppTextStyles.inputHelper),
           ),
         ],
       ],

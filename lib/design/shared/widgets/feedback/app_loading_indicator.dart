@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/feedback/app_loading_indicator.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -40,9 +42,7 @@ class AppLoadingIndicator extends StatelessWidget {
       height: size,
       child: CircularProgressIndicator(
         strokeWidth: strokeWidth,
-        valueColor: AlwaysStoppedAnimation<Color>(
-          color ?? AppColors.primary,
-        ),
+        valueColor: AlwaysStoppedAnimation<Color>(color ?? AppColors.primary),
       ),
     );
 
@@ -71,11 +71,7 @@ class AppLoadingIndicator extends StatelessWidget {
 /// )
 /// ```
 class AppFullScreenLoader extends StatelessWidget {
-  const AppFullScreenLoader({
-    super.key,
-    this.message,
-    this.opacity = 0.6,
-  });
+  const AppFullScreenLoader({super.key, this.message, this.opacity = 0.6});
 
   /// Optional message below the spinner.
   final String? message;

@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/layout/gaps.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 
@@ -22,6 +24,7 @@ class VGap extends StatelessWidget {
   const VGap.md({super.key}) : size = AppSpacing.md;
   const VGap.lg({super.key}) : size = AppSpacing.lg;
   const VGap.xl({super.key}) : size = AppSpacing.xl;
+  const VGap.xxl({super.key}) : size = AppSpacing.xxl;
 
   final double size;
 

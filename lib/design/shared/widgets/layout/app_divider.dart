@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/layout/app_divider.dart
+
 import 'package:flutter/material.dart';
 import '../../../constants/constants.dart';
 

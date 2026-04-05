@@ -1,3 +1,5 @@
+// lib/design/shared/widgets/navigation/app_top_bar.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../constants/constants.dart';
@@ -64,8 +66,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-        AppSpacing.appBarHeight + (bottom?.preferredSize.height ?? 0),
-      );
+    AppSpacing.appBarHeight + (bottom?.preferredSize.height ?? 0),
+  );
 
   @override
   Widget build(BuildContext context) {

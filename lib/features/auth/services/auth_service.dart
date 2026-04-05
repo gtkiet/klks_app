@@ -36,26 +36,35 @@ class AuthService {
       );
 
       final data = response.data;
-      if (data['isOk'] == true && data['result'] != null) {
-        final user = UserModel.fromJson(data['result']);
+      final user = UserModel.fromJson(data['result']);
 
-        if (user.accessToken.isEmpty || user.refreshToken.isEmpty) {
-          throw AppException('Token không hợp lệ');
-        }
-
-        await _session.saveTokens(
-          accessToken: user.accessToken,
-          refreshToken: user.refreshToken,
-        );
-
-        return user;
-      } else {
-        throw AppException(ErrorParser.parse(data));
+      if (user.accessToken.isEmpty || user.refreshToken.isEmpty) {
+        throw AppException('Token không hợp lệ');
       }
+
+      await _session.saveTokens(
+        accessToken: user.accessToken,
+        refreshToken: user.refreshToken,
+      );
+
+      await _session.saveProfile(
+        userId: user.userId.toString(),
+        accountId: user.accountId.toString(),
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        anhDaiDienUrl: user.anhDaiDienUrl,
+      );
+
+      return user;
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      throw AppException('Đã có lỗi xảy ra: $e');
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
   }
 
@@ -76,20 +85,19 @@ class AuthService {
       );
 
       final data = response.data;
-      if (data['isOk'] == true && data['result'] != null) {
-        final user = UserModel.fromJson(data['result']);
-        await _session.saveTokens(
-          accessToken: user.accessToken,
-          refreshToken: user.refreshToken,
-        );
-        return user;
-      }
-
-      throw AppException(ErrorParser.parse(data));
+      final user = UserModel.fromJson(data['result']);
+      await _session.saveTokens(
+        accessToken: user.accessToken,
+        refreshToken: user.refreshToken,
+      );
+      return user;
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      throw AppException('Đã có lỗi xảy ra: $e');
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
   }
 
@@ -115,15 +123,15 @@ class AuthService {
       );
 
       final data = response.data;
-      if (data['isOk'] == true) {
-        return data['result'] ?? '';
-      }
 
-      throw AppException(ErrorParser.parse(data));
+      return data['result'] ?? '';
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      throw AppException('Đã có lỗi xảy ra: $e');
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
   }
 
@@ -150,40 +158,15 @@ class AuthService {
       );
 
       final data = response.data;
-      if (data['isOk'] == true) {
-        return data['result'] ?? '';
-      }
-
-      throw AppException(ErrorParser.parse(data));
+      return data['result'] ?? '';
     } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e) {
-      throw AppException('Đã có lỗi xảy ra: $e');
-    }
-  }
-
-  /// ===================== DIO ERROR HANDLER =====================
-  AppException _handleDioError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      return AppException('Kết nối quá chậm, vui lòng thử lại');
-    }
-
-    if (e.response != null) {
-      final statusCode = e.response?.statusCode;
-
-      if (statusCode == 401) {
-        return AppException('Sai tài khoản hoặc mật khẩu', code: 401);
-      }
-
-      return AppException(
-        ErrorParser.parse(e.response?.data),
-        code: statusCode,
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
       );
+    } catch (_) {
+      throw AppException('Lỗi không xác định');
     }
-
-    return AppException('Không thể kết nối đến server');
   }
 
   /// ===================== VALIDATION =====================

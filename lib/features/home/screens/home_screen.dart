@@ -72,15 +72,15 @@ class _HomeScreenState extends State<HomeScreen> {
     AppNavigation.goTab(index);
   }
 
-  // /// 🔥 Cross-tab navigation chuẩn (KHÔNG BUG)
-  // void _goToProfileSubRoute(String subRoute) {
-  //   AppNavigation.goTab(2);
+  // /// 🔥 Cross-tab chuẩn (KHÔNG BUG)
+  void _goCrossTab(String route, int tab) {
+    AppNavigation.goTab(tab);
 
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     if (!mounted) return;
-  //     context.push('/profile/$subRoute');
-  //   });
-  // }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.push(route);
+    });
+  }
 
   // ================= UI HELPERS =================
 
@@ -169,22 +169,22 @@ class _HomeScreenState extends State<HomeScreen> {
           _sectionTitle('Features (Push in stack)'),
           _button(
             label: 'Căn hộ của tôi',
-            onPressed: () => _push('/cu-tru'),
+            onPressed: () => _goCrossTab('/cu-tru', 1),
           ),
           _button(label: 'Hóa đơn', onPressed: () => _push('/bills')),
           _button(label: 'Dịch vụ', onPressed: () => _push('/services')),
-          _button(
-            label: 'Thông báo (push)',
-            onPressed: () => _push('/notification'),
-          ),
-          _button(label: 'Phương tiện', onPressed: () => _push('/phuong-tien')),
+          // _button(
+          //   label: 'Thông báo (push)',
+          //   onPressed: () => _push('/notification'),
+          // ),
+          // _button(label: 'Phương tiện', onPressed: () => _push('/phuong-tien')),
 
           const SizedBox(height: 16),
 
           /// TAB NAVIGATION
           _sectionTitle('Tab Navigation'),
           _button(label: 'Go to Profile Tab', onPressed: () => _goTab(2)),
-          _button(label: 'Go to Notification Tab', onPressed: () => _goTab(1)),
+          // _button(label: 'Go to Notification Tab', onPressed: () => _goTab(1)),
 
           const SizedBox(height: 24),
 

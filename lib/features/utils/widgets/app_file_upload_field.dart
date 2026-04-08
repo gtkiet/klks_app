@@ -3,13 +3,17 @@
 // Widget upload file đa năng:
 //   - Chọn từ thư viện / camera / file manager
 //   - Upload lên server NGAY KHI CHỌN → trả về fileId
-//   - Tap vào file đã upload → xem preview (Dialog cho ảnh, url_launcher cho PDF/file)
+//   - Tap vào file đã upload → xem preview:
+//       • Ảnh  → full-screen PhotoView (pinch zoom, swipe đóng)
+//       • PDF / file khác → url_launcher mở external app
 //   - Xóa = chỉ xóa khỏi list yêu cầu, KHÔNG gọi API xóa server
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors/errors.dart';
@@ -65,7 +69,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
     return (_uploaded.length + _pending.length) < widget.maxFiles!;
   }
 
-  // ── Chọn + upload ──────────────────────────────────────────────────────
+  // ── Chọn + upload ngay ────────────────────────────────────────────────
   Future<void> _pickFiles() async {
     final source = await _showSourcePicker();
     if (source == null || !mounted) return;
@@ -79,7 +83,8 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
         final image = await ImagePicker().pickImage(source: ImageSource.camera);
         if (image != null) files = [File(image.path)];
       case _Source.file:
-        final result = await FilePicker.platform.pickFiles(
+        // final result = await  FilePicker.platform.pickFiles(
+        final result = await  FilePicker.pickFiles(
           allowMultiple: widget.allowMultiple,
           type: FileType.any,
         );
@@ -90,6 +95,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
 
     if (files.isEmpty || !mounted) return;
 
+    // Giới hạn số lượng nếu cần
     if (widget.maxFiles != null) {
       final remaining = widget.maxFiles! - _uploaded.length - _pending.length;
       if (remaining <= 0) return;
@@ -101,6 +107,8 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
 
   Future<void> _uploadFiles(List<File> files) async {
     final fileNames = files.map((f) => f.path.split('/').last).toList();
+
+    // Hiện spinner ngay
     setState(() {
       for (final name in fileNames) {
         _pending[name] = _PendingItem.loading();
@@ -119,7 +127,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
         }
         _uploaded.addAll(results);
       });
-      widget.onChanged(_uploaded);
+      widget.onChanged(List.unmodifiable(_uploaded));
     } on AppException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -154,22 +162,29 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
     }
   }
 
-  // ── Xem file — tap vào thumbnail ──────────────────────────────────────
+  // ── Xem file ──────────────────────────────────────────────────────────
   void _viewFile(UploadedFileModel file) {
     if (file.isImage) {
-      // Ảnh: showDialog full-screen với InteractiveViewer để pinch zoom
-      showDialog<void>(
-        context: context,
-        barrierColor: Colors.black87,
-        builder: (_) => _ImageViewerDialog(file: file),
+      // Lấy danh sách ảnh để swipe gallery
+      final images = _uploaded.where((f) => f.isImage).toList();
+      final initialIndex = images.indexOf(file);
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => _PhotoGalleryScreen(
+            images: images,
+            initialIndex: initialIndex < 0 ? 0 : initialIndex,
+          ),
+        ),
       );
     } else {
-      // PDF / file khác: mở bằng url_launcher
-      _openUrl(file.fileUrl);
+      // PDF / file khác → mở external
+      _launchUrl(file.fileUrl);
     }
   }
 
-  Future<void> _openUrl(String url) async {
+  Future<void> _launchUrl(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return;
     if (await canLaunchUrl(uri)) {
@@ -184,7 +199,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
   // ── Xóa — chỉ xóa khỏi list, KHÔNG gọi API ───────────────────────────
   void _removeFile(UploadedFileModel file) {
     setState(() => _uploaded.remove(file));
-    widget.onChanged(_uploaded);
+    widget.onChanged(List.unmodifiable(_uploaded));
   }
 
   Future<_Source?> _showSourcePicker() => showModalBottomSheet<_Source>(
@@ -230,12 +245,12 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
         ),
         const SizedBox(height: 8),
 
+        // Grid thumbnail
         if (hasContent) ...[
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              // File đã upload thành công — tap = xem, X = xóa khỏi list
               ..._uploaded.map(
                 (f) => _FileChip(
                   file: f,
@@ -243,7 +258,6 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
                   onDelete: widget.enabled ? () => _removeFile(f) : null,
                 ),
               ),
-              // File đang upload / lỗi upload
               ..._pending.entries.map(
                 (e) => _PendingChip(fileName: e.key, item: e.value),
               ),
@@ -252,6 +266,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
           const SizedBox(height: 8),
         ],
 
+        // Nút thêm
         if (_canAddMore)
           _AddFileButton(
             label: hasContent ? 'Thêm file' : 'Chọn file',
@@ -270,73 +285,94 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
   }
 }
 
-// ── Image viewer dialog ───────────────────────────────────────────────────
-class _ImageViewerDialog extends StatelessWidget {
-  final UploadedFileModel file;
-  const _ImageViewerDialog({required this.file});
+// =============================================================================
+// PHOTO GALLERY SCREEN — full-screen PhotoView với swipe gallery
+// =============================================================================
+
+class _PhotoGalleryScreen extends StatefulWidget {
+  final List<UploadedFileModel> images;
+  final int initialIndex;
+
+  const _PhotoGalleryScreen({required this.images, required this.initialIndex});
+
+  @override
+  State<_PhotoGalleryScreen> createState() => _PhotoGalleryScreenState();
+}
+
+class _PhotoGalleryScreenState extends State<_PhotoGalleryScreen> {
+  late int _currentIndex;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog.fullscreen(
+    final current = widget.images[_currentIndex];
+
+    return Scaffold(
       backgroundColor: Colors.black,
-      child: Stack(
-        children: [
-          // Ảnh có thể pinch-zoom
-          Center(
-            child: InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: Image.network(
-                file.fileUrl,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const Center(
-                  child: Icon(
-                    Icons.broken_image,
-                    color: Colors.white54,
-                    size: 64,
-                  ),
-                ),
-                loadingBuilder: (_, child, progress) => progress == null
-                    ? child
-                    : const Center(
-                        child: CircularProgressIndicator(color: Colors.white54),
-                      ),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.black54,
+        foregroundColor: Colors.white,
+        // Tên file + counter
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              current.fileName,
+              style: const TextStyle(fontSize: 14),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (widget.images.length > 1)
+              Text(
+                '${_currentIndex + 1} / ${widget.images.length}',
+                style: const TextStyle(fontSize: 11, color: Colors.white70),
               ),
+          ],
+        ),
+      ),
+      body: PhotoViewGallery.builder(
+        pageController: _pageController,
+        itemCount: widget.images.length,
+        onPageChanged: (i) => setState(() => _currentIndex = i),
+        scrollPhysics: const BouncingScrollPhysics(),
+        backgroundDecoration: const BoxDecoration(color: Colors.black),
+        builder: (_, i) {
+          final img = widget.images[i];
+          return PhotoViewGalleryPageOptions(
+            imageProvider: NetworkImage(img.fileUrl),
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 3,
+            errorBuilder: (_, _, _) => const Center(
+              child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
             ),
-          ),
-          // Tên file ở dưới
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.black54,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              child: Text(
-                file.fileName,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          // Nút đóng
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 12,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ],
+          );
+        },
+        loadingBuilder: (_, _) => const Center(
+          child: CircularProgressIndicator(color: Colors.white54),
+        ),
       ),
     );
   }
 }
 
-// ── File chip (đã upload) ─────────────────────────────────────────────────
+// =============================================================================
+// INTERNAL WIDGETS
+// =============================================================================
+
 class _FileChip extends StatelessWidget {
   final UploadedFileModel file;
   final VoidCallback onTap;
@@ -349,7 +385,7 @@ class _FileChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: onTap, // tap = xem preview
+      onTap: onTap,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 120),
         decoration: BoxDecoration(
@@ -377,7 +413,7 @@ class _FileChip extends StatelessWidget {
                     )
                   : _FileIconBox(file: file),
             ),
-            // Tên file + nút xóa
+            // Tên + nút xóa
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
               child: Row(
@@ -431,7 +467,6 @@ class _FileIconBox extends StatelessWidget {
   }
 }
 
-// ── Pending chip (đang upload / lỗi) ─────────────────────────────────────
 class _PendingChip extends StatelessWidget {
   final String fileName;
   final _PendingItem item;
@@ -483,7 +518,6 @@ class _PendingChip extends StatelessWidget {
   }
 }
 
-// ── Add file button ───────────────────────────────────────────────────────
 class _AddFileButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -520,7 +554,6 @@ class _AddFileButton extends StatelessWidget {
   }
 }
 
-// ── Source picker sheet ───────────────────────────────────────────────────
 class _SourceSheet extends StatelessWidget {
   const _SourceSheet();
 
@@ -582,7 +615,6 @@ class _SourceSheet extends StatelessWidget {
   }
 }
 
-// ── Dotted border ─────────────────────────────────────────────────────────
 class _DottedBorderPainter extends CustomPainter {
   final Color color;
   static const _radius = Radius.circular(8);
@@ -617,7 +649,7 @@ class _DottedBorderPainter extends CustomPainter {
   bool shouldRepaint(_DottedBorderPainter old) => old.color != color;
 }
 
-// ── Internal models ───────────────────────────────────────────────────────
+// Internal models
 class _PendingItem {
   final bool isLoading;
   final AppException? error;

@@ -9,11 +9,14 @@ import '../../../core/errors/error_parser.dart';
 import '../models/yeu_cau_cu_tru_model.dart';
 import '../models/thanh_vien_request.dart';
 
+import 'package:flutter/material.dart';
+import 'dart:convert';
+
 class YeuCauCuTruService {
   YeuCauCuTruService._();
 
   static final YeuCauCuTruService instance = YeuCauCuTruService._();
-  
+
   Dio get _dio => ApiClient.instance.dio;
 
   // ── Danh sách yêu cầu (phân trang) ────────────────────────────────────
@@ -64,13 +67,29 @@ class YeuCauCuTruService {
 
   Future<YeuCauCuTruModel> createYeuCau(TaoYeuCauCuTruRequest request) async {
     try {
+      // ── TEMP DEBUG ──
+      debugPrint('=== createYeuCau payload ===');
+      debugPrint(jsonEncode(request.toJson()));
+      // ────────────────
+
       final response = await _dio.post(
         '/api/quan-he-cu-tru/yeu-cau',
         data: request.toJson(),
       );
+
+      // ── TEMP DEBUG ──
+      debugPrint('=== createYeuCau response ===');
+      debugPrint(jsonEncode(response.data));
+      // ────────────────
+
       final data = response.data as Map<String, dynamic>;
       return YeuCauCuTruModel.fromJson(data['result'] as Map<String, dynamic>);
     } on DioException catch (e) {
+      // ── TEMP DEBUG ──
+      debugPrint('=== createYeuCau DioException ===');
+      debugPrint('status: ${e.response?.statusCode}');
+      debugPrint('data: ${jsonEncode(e.response?.data)}');
+      // ────────────────
       throw ErrorParser.parse(
         e.response?.data,
         statusCode: e.response?.statusCode,
@@ -79,6 +98,24 @@ class YeuCauCuTruService {
       throw const AppException('Lỗi không xác định');
     }
   }
+
+  // Future<YeuCauCuTruModel> createYeuCau(TaoYeuCauCuTruRequest request) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       '/api/quan-he-cu-tru/yeu-cau',
+  //       data: request.toJson(),
+  //     );
+  //     final data = response.data as Map<String, dynamic>;
+  //     return YeuCauCuTruModel.fromJson(data['result'] as Map<String, dynamic>);
+  //   } on DioException catch (e) {
+  //     throw ErrorParser.parse(
+  //       e.response?.data,
+  //       statusCode: e.response?.statusCode,
+  //     );
+  //   } catch (_) {
+  //     throw const AppException('Lỗi không xác định');
+  //   }
+  // }
 
   // ── Cập nhật yêu cầu (submit / withdraw / edit) ───────────────────────
 

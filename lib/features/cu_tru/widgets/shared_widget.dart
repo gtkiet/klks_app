@@ -1,3 +1,5 @@
+// lib/features/cu_tru/widgets/shared_widget.dart
+
 import 'package:flutter/material.dart';
 
 import '../models/quan_he_cu_tru_model.dart';

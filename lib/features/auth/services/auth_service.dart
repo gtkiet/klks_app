@@ -1,25 +1,30 @@
 // lib/features/auth/services/auth_service.dart
 import 'package:dio/dio.dart';
-import '../../../core/config/app_config.dart';
+// import '../../../core/config/app_config.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/storage/user_session.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/error_parser.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  AuthService() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: AppConfig.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        sendTimeout: const Duration(seconds: 30),
-        headers: {'Content-Type': 'application/json'},
-      ),
-    );
-  }
+  AuthService._() ;
+  // {
+  //   _dio = Dio(
+  //     BaseOptions(
+  //       baseUrl: AppConfig.baseUrl,
+  //       connectTimeout: const Duration(seconds: 30),
+  //       receiveTimeout: const Duration(seconds: 30),
+  //       sendTimeout: const Duration(seconds: 30),
+  //       headers: {'Content-Type': 'application/json'},
+  //     ),
+  //   );
+  // }
 
-  late final Dio _dio;
+  static final AuthService instance = AuthService._();
+
+  Dio get _dio => ApiClient.instance.dio;
+  
   final UserSession _session = UserSession();
 
   /// ===================== LOGIN =====================

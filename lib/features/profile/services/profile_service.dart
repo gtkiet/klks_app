@@ -10,8 +10,13 @@ import '../../../core/errors/error_parser.dart';
 import '../model/user_profile.dart';
 
 class ProfileService {
-  final ApiClient _apiClient = ApiClient.instance;
+  ProfileService._();
+
+  static final ProfileService instance = ProfileService._();
+  
   final UserSession _session = UserSession();
+
+  Dio get _dio =>  ApiClient.instance.dio;
 
   /// ===================== GET SESSION PROFILE =====================
   Future<Map<String, String?>> getSessionProfile() async {
@@ -26,7 +31,7 @@ class ProfileService {
   /// ===================== GET PROFILE =====================
   Future<UserProfile> getProfile() async {
     try {
-      final response = await _apiClient.dio.post("/api/profile/get-profile");
+      final response = await _dio.post("/api/profile/get-profile");
 
       final data = response.data;
       final profile = UserProfile.fromJson(data['result']);
@@ -51,7 +56,7 @@ class ProfileService {
         ),
       });
 
-      final response = await _apiClient.dio.post(
+      final response = await _dio.post(
         "/api/profile/change-avatar",
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
@@ -87,7 +92,7 @@ class ProfileService {
         throw AppException('Mật khẩu mới không được trùng mật khẩu cũ');
       }
 
-      await _apiClient.dio.post(
+      await _dio.post(
         "/api/profile/change-password",
         data: {
           "oldPassword": oldPassword,

@@ -79,6 +79,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _authService = AuthService.instance;
   final _emailController = TextEditingController();
   String? _emailError;
   bool _loading = false;
@@ -100,10 +101,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     setState(() => _loading = true);
     try {
-      // String result = await AuthService().forgotPassword(
-      //   username: _emailController.text,
-      // );
-      await AuthService().forgotPassword(
+      await _authService.forgotPassword(
         username: _emailController.text,
       );
       if (mounted) {

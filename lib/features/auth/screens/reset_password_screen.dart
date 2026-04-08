@@ -106,6 +106,7 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final _authService = AuthService.instance;
   // ── OTP ──────────────────────────────────────────────────────────────────
   final _otpController = TextEditingController();
   String? _otpError;
@@ -171,7 +172,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     try {
       _startCountdown();
       _otpController.clear();
-      await AuthService().forgotPassword(username: widget.email);
+      await _authService.forgotPassword(username: widget.email);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -212,7 +213,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     setState(() => _loading = true);
     try {
-      String result = await AuthService().resetPassword(
+      String result = await _authService.resetPassword(
         username: widget.email,
         resetCode: _otpController.text,
         newPassword: _newPasswordController.text,

@@ -3,6 +3,10 @@ import '../../../core/storage/user_session.dart';
 import '../models/home_data.dart';
 
 class HomeService {
+  HomeService._();
+
+  static final HomeService instance = HomeService._();
+
   final UserSession _session = UserSession();
 
   Future<HomeData> getHomeData() async {

@@ -10,6 +10,10 @@ import '../models/yeu_cau_phuong_tien_model.dart';
 import '../models/phuong_tien_request_models.dart';
 
 class PTYeuCauService {
+  PTYeuCauService._();
+
+  static final PTYeuCauService instance = PTYeuCauService._();
+  
   Dio get _dio => ApiClient.instance.dio;
 
   // ── Private helpers ───────────────────────────────────────────────────────

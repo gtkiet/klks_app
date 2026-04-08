@@ -1,4 +1,4 @@
-// lib/features/cu_tru/widgets/tai_lieu_cu_tru_editor.dart
+// lib/features/thanh_vien/widgets/tai_lieu_cu_tru_editor.dart
 //
 // Widget cho phép user thêm/xóa nhiều tài liệu cư trú.
 // Mỗi tài liệu gồm:
@@ -30,7 +30,7 @@ class TaiLieuCuTruEditor extends StatefulWidget {
 }
 
 class _TaiLieuCuTruEditorState extends State<TaiLieuCuTruEditor> {
-  final _utilsService = UtilsService();
+  final _utilsService = UtilsService.instance;
 
   // Cache future — chỉ gọi API 1 lần
   late final Future<List<SelectorItemModel>> _loaiGiayToFuture = _utilsService

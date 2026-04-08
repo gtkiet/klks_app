@@ -1,4 +1,4 @@
-// lib/features/cu_tru/screens/thanh_vien_detail_screen.dart
+// lib/features/thanh_vien/screens/thanh_vien_detail_screen.dart
 //
 // Màn hình chi tiết một thành viên cư trú.
 //   - Nhận [thanhVien] (ThanhVienCuTruModel) từ màn hình danh sách
@@ -11,9 +11,9 @@ import '../../../core/errors/errors.dart';
 
 import '../../cu_tru/models/quan_he_cu_tru_model.dart';
 
-import '../../thanh_vien/models/thanh_vien_cu_tru_model.dart';
-import '../../thanh_vien/models/thong_tin_cu_dan_model.dart';
-import '../../thanh_vien/services/thanh_vien_service.dart';
+import '../models/thanh_vien_cu_tru_model.dart';
+import '../models/thong_tin_cu_dan_model.dart';
+import '../services/thanh_vien_service.dart';
 
 class ThanhVienDetailScreen extends StatefulWidget {
   /// Dữ liệu tóm tắt từ list — dùng để hiển thị ngay trong khi chờ API

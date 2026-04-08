@@ -13,7 +13,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final ProfileService _service = ProfileService();
+  final ProfileService _service = ProfileService.instance;
 
   String? _fullName;
   String? _email;

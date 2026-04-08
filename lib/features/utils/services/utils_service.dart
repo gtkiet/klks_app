@@ -10,7 +10,58 @@ import '../models/selector_item_model.dart';
 import '../models/uploaded_file_model.dart';
 
 class UtilsService {
+  UtilsService._();
+  static final UtilsService instance = UtilsService._();
+  
   Dio get _dio => ApiClient.instance.dio;
+
+  // =========================================================================
+  // UPLOAD MEDIA
+  // =========================================================================
+
+  /// Upload nhiều file (multipart/form-data).
+  ///
+  /// [targetContainer]: bucket đích — ví dụ:
+  ///   `'tai-lieu-cu-tru'` | `'tai-lieu-phuong-tien'`
+  Future<List<UploadedFileModel>> uploadMedia({
+    required List<File> files,
+    required String targetContainer,
+  }) async {
+    try {
+      final formData = FormData()
+        ..fields.add(MapEntry('targetContainer', targetContainer));
+
+      for (final file in files) {
+        formData.files.add(
+          MapEntry(
+            'files',
+            await MultipartFile.fromFile(
+              file.path,
+              filename: file.path.split('/').last,
+            ),
+          ),
+        );
+      }
+
+      final response = await _dio.post(
+        '/api/upload-media',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      final data = response.data as Map<String, dynamic>;
+      final list = data['result'] as List<dynamic>? ?? [];
+      return list
+          .map((e) => UploadedFileModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ErrorParser.parse(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
+    } catch (_) {
+      throw const AppException('Lỗi không xác định');
+    }
+  }
 
   // =========================================================================
   // CATALOG
@@ -295,54 +346,6 @@ class UtilsService {
   //   "errors": [],
   //   "isOk": true
   // }
-
-  // =========================================================================
-  // UPLOAD MEDIA
-  // =========================================================================
-
-  /// Upload nhiều file (multipart/form-data).
-  ///
-  /// [targetContainer]: bucket đích — ví dụ:
-  ///   `'tai-lieu-cu-tru'` | `'tai-lieu-phuong-tien'`
-  Future<List<UploadedFileModel>> uploadMedia({
-    required List<File> files,
-    required String targetContainer,
-  }) async {
-    try {
-      final formData = FormData()
-        ..fields.add(MapEntry('targetContainer', targetContainer));
-
-      for (final file in files) {
-        formData.files.add(
-          MapEntry(
-            'files',
-            await MultipartFile.fromFile(
-              file.path,
-              filename: file.path.split('/').last,
-            ),
-          ),
-        );
-      }
-
-      final response = await _dio.post(
-        '/api/upload-media',
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
-      );
-      final data = response.data as Map<String, dynamic>;
-      final list = data['result'] as List<dynamic>? ?? [];
-      return list
-          .map((e) => UploadedFileModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } catch (_) {
-      throw const AppException('Lỗi không xác định');
-    }
-  }
 
   // =========================================================================
   // PRIVATE

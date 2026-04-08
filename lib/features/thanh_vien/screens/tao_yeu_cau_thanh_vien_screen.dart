@@ -30,7 +30,7 @@ class TaoYeuCauThanhVienScreen extends StatefulWidget {
 
 class _TaoYeuCauThanhVienScreenState extends State<TaoYeuCauThanhVienScreen> {
   final _yeuCauService = YeuCauCuTruService.instance;
-  final _utilsService = UtilsService();
+  final _utilsService = UtilsService.instance;
   final _formKey = GlobalKey<FormState>();
   final _scrollCtrl = ScrollController();
 

@@ -30,7 +30,7 @@ class _LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
   @override
   bool get wantKeepAlive => true;
 
-  final _service = PTYeuCauService();
+  final _service = PTYeuCauService.instance;
   final _scrollController = ScrollController();
 
   // ── State ──────────────────────────────────────────────────────────────

@@ -128,6 +128,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _authService = AuthService.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _emailError;
@@ -156,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _loading = true);
     try {
-      UserModel user = await AuthService().login(
+      UserModel user = await _authService.login(
         username: _emailController.text,
         password: _passwordController.text,
       );

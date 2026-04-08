@@ -93,6 +93,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _authService = AuthService.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -131,7 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _loading = true);
     try {
-      UserModel user = await AuthService().register(
+      UserModel user = await _authService.register(
         email: _emailController.text,
         password: _passwordController.text,
         confirmPassword: _confirmController.text,

@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _service = HomeService();
+  final _service = HomeService.instance;
 
   bool _isLoading = true;
   String? _error;

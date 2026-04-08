@@ -1,4 +1,4 @@
-// lib/features/cu_tru/screens/tabs/thanh_vien_list_tab.dart
+// lib/features/thanh_vien/screens/tabs/thanh_vien_list_tab.dart
 //
 // Tab 1 (mode Thành viên):
 //   - Tự động gọi ThanhVienService.getThanhVienCuTru(canHoId) khi mount

@@ -11,7 +11,7 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final ProfileService _service = ProfileService();
+  final ProfileService _service = ProfileService.instance;
 
   final _oldCtrl = TextEditingController();
   final _newCtrl = TextEditingController();

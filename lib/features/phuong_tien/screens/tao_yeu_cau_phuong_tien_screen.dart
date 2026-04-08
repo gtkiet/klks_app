@@ -37,8 +37,8 @@ class TaoYeuCauPhuongTienScreen extends StatefulWidget {
 }
 
 class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
-  final _ptService = PTYeuCauService();
-  final _utilsService = UtilsService();
+  final _ptService = PTYeuCauService.instance;
+  final _utilsService = UtilsService.instance;
   final _formKey = GlobalKey<FormState>();
 
   // ── Text controllers ───────────────────────────────────────────────────

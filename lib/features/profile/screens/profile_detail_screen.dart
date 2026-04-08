@@ -12,7 +12,7 @@ class ProfileDetailScreen extends StatefulWidget {
 }
 
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
-  final ProfileService _service = ProfileService();
+  final ProfileService _service = ProfileService.instance;
 
   UserProfile? _profile;
   bool _loading = true;

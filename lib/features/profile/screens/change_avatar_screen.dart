@@ -13,7 +13,7 @@ class ChangeAvatarScreen extends StatefulWidget {
 }
 
 class _ChangeAvatarScreenState extends State<ChangeAvatarScreen> {
-  final ProfileService _service = ProfileService();
+  final ProfileService _service = ProfileService.instance;
   File? _file;
   bool _loading = false;
 

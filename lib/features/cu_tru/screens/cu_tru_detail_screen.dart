@@ -94,6 +94,7 @@ class _CuTruDetailScreenState extends State<CuTruDetailScreen>
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

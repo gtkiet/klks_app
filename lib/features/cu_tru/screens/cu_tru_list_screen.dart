@@ -61,6 +61,7 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text('Danh sách cư trú'),
         actions: [
           IconButton(

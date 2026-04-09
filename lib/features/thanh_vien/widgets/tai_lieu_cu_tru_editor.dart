@@ -1,17 +1,14 @@
+
 // lib/features/thanh_vien/widgets/tai_lieu_cu_tru_editor.dart
 //
-// Widget cho phép user thêm/xóa nhiều tài liệu cư trú.
-// Mỗi tài liệu gồm:
-//   - loaiGiayToId  (optional — chọn từ catalog)
-//   - soGiayTo      (bắt buộc theo server validation — gửi '' nếu bỏ trống)
-//   - ngayPhatHanh  (optional)
-//   - files         (nhiều file, upload ngay lên server → nhận fileId)
-//
-// Output: List<TaiLieuCuTruRequest> — truyền thẳng vào TaoYeuCauCuTruRequest
+// Thêm hỗ trợ initialDocuments để pre-fill tài liệu cũ từ server.
+
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import '../models/tai_lieu_cu_tru_request.dart';
+import '../models/thong_tin_cu_dan_model.dart'; // TaiLieuCuTruModel, TaiLieuFileModel
 import '../../utils/models/selector_item_model.dart';
 import '../../utils/models/uploaded_file_model.dart';
 import '../../utils/services/utils_service.dart';
@@ -19,11 +16,25 @@ import '../../utils/widgets/app_file_upload_field.dart';
 import '../../utils/widgets/app_selector_field.dart';
 import '../../cu_tru/widgets/shared_widget.dart';
 
+typedef UploadFn =
+    Future<List<UploadedFileModel>> Function({
+      required List<File> files,
+      required String targetContainer,
+    });
+
 class TaiLieuCuTruEditor extends StatefulWidget {
   /// Callback mỗi khi danh sách tài liệu thay đổi.
   final void Function(List<TaiLieuCuTruRequest> taiLieus) onChanged;
 
-  const TaiLieuCuTruEditor({super.key, required this.onChanged});
+  /// Pre-fill tài liệu cũ từ server (dùng khi chỉnh sửa nháp).
+  /// Null / rỗng = tạo mới từ đầu.
+  final List<TaiLieuCuTruModel>? initialDocuments;
+
+  const TaiLieuCuTruEditor({
+    super.key,
+    required this.onChanged,
+    this.initialDocuments,
+  });
 
   @override
   State<TaiLieuCuTruEditor> createState() => _TaiLieuCuTruEditorState();
@@ -32,41 +43,21 @@ class TaiLieuCuTruEditor extends StatefulWidget {
 class _TaiLieuCuTruEditorState extends State<TaiLieuCuTruEditor> {
   final _utilsService = UtilsService.instance;
 
-  // Cache future — chỉ gọi API 1 lần
   late final Future<List<SelectorItemModel>> _loaiGiayToFuture = _utilsService
       .getLoaiGiayToSelector();
 
-  // Danh sách tài liệu đang edit
   final List<_TaiLieuEntry> _entries = [];
 
-  // ── Thêm tài liệu mới ─────────────────────────────────────────────────
-  void _addEntry() {
-    setState(() => _entries.add(_TaiLieuEntry()));
-    _notify();
-  }
-
-  // ── Xóa tài liệu ─────────────────────────────────────────────────────
-  void _removeEntry(int index) {
-    setState(() => _entries.removeAt(index));
-    _notify();
-  }
-
-  // ── Notify parent ──────────────────────────────────────────────────────
-  void _notify() {
-    // Build List<TaiLieuCuTruRequest> từ entries hiện tại
-    // Chỉ include entry có ít nhất 1 file
-    final result = _entries
-        .where((e) => e.files.isNotEmpty)
-        .map(
-          (e) => TaiLieuCuTruRequest(
-            loaiGiayToId: e.loaiGiayTo?.id,
-            soGiayTo: e.soGiayToCtrl.text.trim(),
-            ngayPhatHanh: e.ngayPhatHanh,
-            fileIds: e.files.map((f) => f.fileId).toList(),
-          ),
-        )
-        .toList();
-    widget.onChanged(result);
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill từ server nếu có
+    final docs = widget.initialDocuments;
+    if (docs != null && docs.isNotEmpty) {
+      for (final doc in docs) {
+        _entries.add(_TaiLieuEntry.fromServer(doc));
+      }
+    }
   }
 
   @override
@@ -77,24 +68,47 @@ class _TaiLieuCuTruEditorState extends State<TaiLieuCuTruEditor> {
     super.dispose();
   }
 
+  void _addEntry() {
+    setState(() => _entries.add(_TaiLieuEntry()));
+    _notify();
+  }
+
+  void _removeEntry(int index) {
+    setState(() => _entries.removeAt(index));
+    _notify();
+  }
+
+  void _notify() {
+    final result = _entries
+        .where((e) => e.activeFileIds.isNotEmpty)
+        .map(
+          (e) => TaiLieuCuTruRequest(
+            taiLieuCuTruId: e.taiLieuCuTruId,
+            loaiGiayToId: e.loaiGiayTo?.id,
+            soGiayTo: e.soGiayToCtrl.text.trim(),
+            ngayPhatHanh: e.ngayPhatHanh,
+            fileIds: e.activeFileIds,
+          ),
+        )
+        .toList();
+    widget.onChanged(result);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Danh sách tài liệu
         ..._entries.asMap().entries.map(
-          (entry) => _TaiLieuCard(
-            index: entry.key,
-            entryData: entry.value,
+          (kv) => _TaiLieuCard(
+            index: kv.key,
+            entryData: kv.value,
             loaiGiayToFuture: _loaiGiayToFuture,
             uploadFn: _utilsService.uploadMedia,
             onChanged: _notify,
-            onRemove: () => _removeEntry(entry.key),
+            onRemove: () => _removeEntry(kv.key),
           ),
         ),
-
-        // Nút thêm tài liệu
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: _addEntry,
@@ -140,7 +154,6 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
   @override
   void initState() {
     super.initState();
-    // Lắng nghe soGiayTo thay đổi → notify parent
     widget.entryData.soGiayToCtrl.addListener(widget.onChanged);
   }
 
@@ -175,7 +188,7 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: số thứ tự + nút xóa
+            // Header
             Row(
               children: [
                 Text(
@@ -200,7 +213,7 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
             ),
             const Divider(height: 16),
 
-            // Loại giấy tờ (optional)
+            // Loại giấy tờ
             AppSelectorField.future(
               label: 'Loại giấy tờ',
               future: widget.loaiGiayToFuture,
@@ -214,7 +227,7 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
             ),
             const SizedBox(height: 10),
 
-            // Số giấy tờ — bắt buộc theo server (gửi '' nếu bỏ trống)
+            // Số giấy tờ
             Field(
               controller: entry.soGiayToCtrl,
               label: 'Số giấy tờ',
@@ -222,7 +235,7 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
             ),
             const SizedBox(height: 10),
 
-            // Ngày phát hành (optional)
+            // Ngày phát hành
             DatePickerField(
               label: 'Ngày phát hành',
               value: entry.ngayPhatHanh,
@@ -230,17 +243,40 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
             ),
             const SizedBox(height: 10),
 
-            // File đính kèm — nhiều file cho 1 tài liệu
+            // Files đã lưu từ server (badge "Đã lưu" + nút xóa)
+            if (entry.existingFiles.isNotEmpty) ...[
+              Text(
+                'File đã lưu',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+              const SizedBox(height: 4),
+              ...entry.existingFiles.map((ef) {
+                if (ef.deleted) return const SizedBox.shrink();
+                return _ExistingFileRow(
+                  file: ef.file,
+                  onDelete: () {
+                    setState(() => ef.deleted = true);
+                    widget.onChanged();
+                  },
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+
+            // File mới upload
             AppFileUploadField(
-              label: 'File đính kèm',
+              label: entry.existingFiles.isEmpty
+                  ? 'File đính kèm'
+                  : 'Thêm file mới',
               targetContainer: 'tai-lieu-cu-tru',
               uploadFn: widget.uploadFn,
-              initialFiles: entry.files,
+              initialFiles: entry.newUploadedFiles,
               allowMultiple: true,
               onChanged: (files) {
-                // Xóa file = xóa khỏi list, KHÔNG gọi API xóa server
                 setState(() {
-                  entry.files
+                  entry.newUploadedFiles
                     ..clear()
                     ..addAll(files);
                 });
@@ -254,15 +290,162 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
   }
 }
 
+// ── File đã lưu từ server ────────────────────────────────────────────────────
+
+class _ExistingFileRow extends StatelessWidget {
+  final TaiLieuFileModel file;
+  final VoidCallback onDelete;
+
+  const _ExistingFileRow({required this.file, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final isImage = file.contentType.startsWith('image/');
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(
+            isImage ? Icons.image_outlined : Icons.picture_as_pdf_outlined,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              file.fileName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'Đã lưu',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.green.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: onDelete,
+            borderRadius: BorderRadius.circular(12),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.close, size: 16, color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // =============================================================================
 // DATA MODEL NỘI BỘ
 // =============================================================================
 
+// class _ExistingFileEntry {
+//   final TaiLieuFileModel file;
+//   bool deleted;
+//   _ExistingFileEntry({required this.file, this.deleted = false});
+// }
+class _ExistingFileEntry {
+  final TaiLieuFileModel file;
+  bool deleted;
+  _ExistingFileEntry({required this.file}) // ← FIXED: bỏ param `deleted`
+    : deleted = false;
+}
+
+// class _TaiLieuEntry {
+//   /// 0 = tạo mới, != 0 = update tài liệu cũ từ server
+//   final int taiLieuCuTruId;
+
+//   SelectorItemModel? loaiGiayTo;
+//   final TextEditingController soGiayToCtrl;
+//   DateTime? ngayPhatHanh;
+
+//   /// File cũ từ server
+//   final List<_ExistingFileEntry> existingFiles;
+
+//   /// File mới người dùng upload trong phiên này
+//   final List<UploadedFileModel> newUploadedFiles;
+
+//   _TaiLieuEntry({
+//     this.taiLieuCuTruId = 0,
+//     SelectorItemModel? loaiGiayTo,
+//     String soGiayTo = '',
+//     DateTime? ngayPhatHanh,
+//     List<_ExistingFileEntry>? existingFiles,
+//     List<UploadedFileModel>? newUploadedFiles,
+//   })  : loaiGiayTo = loaiGiayTo,
+//         soGiayToCtrl = TextEditingController(text: soGiayTo),
+//         ngayPhatHanh = ngayPhatHanh,
+//         existingFiles = existingFiles ?? [],
+//         newUploadedFiles = newUploadedFiles ?? [];
+
+//   /// Constructor từ TaiLieuCuTruModel (server data)
+//   factory _TaiLieuEntry.fromServer(TaiLieuCuTruModel doc) => _TaiLieuEntry(
+//         taiLieuCuTruId: doc.id,
+//         soGiayTo: doc.soGiayTo,
+//         ngayPhatHanh: doc.ngayPhatHanh,
+//         existingFiles:
+//             doc.files.map((f) => _ExistingFileEntry(file: f)).toList(),
+//       );
+//   // loaiGiayTo pre-select sẽ được resolve sau khi catalog load xong
+//   // (AppSelectorField.future tự resolve — chỉ cần truyền selectedItems
+//   //  khi catalog đã sẵn sàng; hiện tại để null, user chọn lại nếu cần)
+
+//   /// fileIds gửi lên server = file cũ còn lại + file mới
+//   List<int> get activeFileIds => [
+//         ...existingFiles.where((f) => !f.deleted).map((f) => f.file.id),
+//         ...newUploadedFiles.map((f) => f.fileId),
+//       ];
+
+//   void dispose() => soGiayToCtrl.dispose();
+// }
 class _TaiLieuEntry {
+  final int taiLieuCuTruId;
+
   SelectorItemModel? loaiGiayTo;
-  final TextEditingController soGiayToCtrl = TextEditingController();
+  final TextEditingController soGiayToCtrl;
   DateTime? ngayPhatHanh;
-  final List<UploadedFileModel> files = [];
+  final List<_ExistingFileEntry> existingFiles;
+  final List<UploadedFileModel> newUploadedFiles;
+
+  _TaiLieuEntry({
+    this.taiLieuCuTruId = 0,
+    String soGiayTo = '',
+    this.ngayPhatHanh,
+    List<_ExistingFileEntry>? existingFiles,
+    List<UploadedFileModel>? newUploadedFiles,
+  }) : loaiGiayTo = null, // ← FIXED: gán null trực tiếp
+       soGiayToCtrl = TextEditingController(text: soGiayTo),
+       existingFiles = existingFiles ?? [],
+       newUploadedFiles = newUploadedFiles ?? [];
+
+  factory _TaiLieuEntry.fromServer(TaiLieuCuTruModel doc) => _TaiLieuEntry(
+    taiLieuCuTruId: doc.id,
+    soGiayTo: doc.soGiayTo,
+    ngayPhatHanh: doc.ngayPhatHanh,
+    existingFiles: doc.files.map((f) => _ExistingFileEntry(file: f)).toList(),
+    // loaiGiayTo vẫn null — user chọn lại hoặc resolve từ catalog
+  );
+
+  List<int> get activeFileIds => [
+    ...existingFiles.where((f) => !f.deleted).map((f) => f.file.id),
+    ...newUploadedFiles.map((f) => f.fileId),
+  ];
 
   void dispose() => soGiayToCtrl.dispose();
 }
+

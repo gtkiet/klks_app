@@ -12,7 +12,7 @@ import '../models/uploaded_file_model.dart';
 class UtilsService {
   UtilsService._();
   static final UtilsService instance = UtilsService._();
-  
+
   Dio get _dio => ApiClient.instance.dio;
 
   // =========================================================================

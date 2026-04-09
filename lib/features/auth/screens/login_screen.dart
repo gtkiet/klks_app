@@ -20,6 +20,7 @@
 // }
 
 // class _LoginScreenState extends State<LoginScreen> {
+//   final _authService = AuthService.instance;
 //   final _usernameController = TextEditingController();
 //   final _passwordController = TextEditingController();
 //   bool _loading = false;
@@ -27,7 +28,7 @@
 //   void _login() async {
 //     setState(() => _loading = true);
 //     try {
-//       UserModel user = await AuthService().login(
+//       UserModel user = await _authService.login(
 //         username: _usernameController.text,
 //         password: _passwordController.text,
 //       );
@@ -111,14 +112,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/guards/auth_guard.dart';
-import '../../../design/pkk_design_system.dart';
-
 import '../services/auth_service.dart';
-
 import '../models/user_model.dart';
-
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+
+import '../../../design/design.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -129,53 +128,29 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService.instance;
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _emailError;
-  String? _passwordError;
   bool _loading = false;
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  bool _validate() {
-    final emailErr = Validators.email(_emailController.text);
-    final passErr = Validators.required(_passwordController.text, field: 'Mật khẩu');
-    setState(() {
-      _emailError = emailErr;
-      _passwordError = passErr;
-    });
-    return emailErr == null && passErr == null;
-  }
-
   void _login() async {
-    if (!_validate()) return;
-
     setState(() => _loading = true);
     try {
       UserModel user = await _authService.login(
-        username: _emailController.text,
+        username: _usernameController.text,
         password: _passwordController.text,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Xin chào, ${user.fullName}!')),
+          SnackBar(content: Text('Login success: ${user.fullName}')),
         );
         AuthGuard.instance.setAuthenticated();
         context.go('/home');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -197,122 +172,123 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppTopBar(title: 'Đăng nhập', centerTitle: true),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenHorizontal,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-              const VGap.lg(),
+    return AppScaffold(
+      showAppBar: false,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xl,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AppSpacing.xxl.verticalSpace,
 
-              // ── Logo ────────────────────────────────────────────────────
-              _buildLogo(),
-
-              const VGap.lg(),
-
-              // ── Login image ──────────────────────────────────────────────
-              Image.asset(
-                'assets/images/login_img.jpg',
-                height: 180,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const SizedBox(height: 180),
-              ),
-
-              const VGap.lg(),
-
-              // ── Email field ─────────────────────────────────────────────
-              _buildFieldLabel('EMAIL'),
-              const VGap.xs(),
-              AppTextField(
-                variant: AppTextFieldVariant.text,
-                hint: 'username@gmail.com',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                errorText: _emailError,
-                prefixIcon: const Padding(
-                  padding: EdgeInsetsDirectional.only(start: 4),
-                  child: Icon(
-                    Icons.email_outlined,
-                    size: 20,
-                    color: AppColors.textDisabled,
-                  ),
+              // ── Logo ────────────────────────────────────────────────────────
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  shape: BoxShape.circle,
+                  boxShadow: AppElevation.level1,
                 ),
-                onChanged: (_) {
-                  if (_emailError != null) setState(() => _emailError = null);
-                },
-              ),
-
-              const VGap.md(),
-
-              // ── Password field ──────────────────────────────────────────
-              _buildFieldLabel('MẬT KHẨU'),
-              const VGap.xs(),
-              AppTextField(
-                variant: AppTextFieldVariant.password,
-                hint: '••••••••',
-                controller: _passwordController,
-                textInputAction: TextInputAction.done,
-                errorText: _passwordError,
-                prefixIcon: const Padding(
-                  padding: EdgeInsetsDirectional.only(start: 4),
-                  child: Icon(
-                    Icons.lock_outline_rounded,
-                    size: 20,
-                    color: AppColors.textDisabled,
-                  ),
-                ),
-                onSubmitted: (_) => _login(),
-                onChanged: (_) {
-                  if (_passwordError != null) {
-                    setState(() => _passwordError = null);
-                  }
-                },
-              ),
-
-              const VGap.sm(),
-
-              // ── Forgot password ─────────────────────────────────────────
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: _goToForgotPassword,
-                  child: Text(
-                    'Quên mật khẩu?',
-                    style: AppTextStyles.caption.copyWith(
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.apartment_rounded,
+                      size: 48,
                       color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
 
-              const VGap.xl(),
+              AppSpacing.lg.verticalSpace,
 
-              // ── Login button ────────────────────────────────────────────
-              PrimaryButton(
-                label: _loading ? 'Đang xử lý...' : 'Đăng nhập',
-                onPressed: _loading ? null : _login,
-                isLoading: _loading,
+              // ── Welcome text ────────────────────────────────────────────────
+              Text(
+                'Chào mừng bạn quay trở lại với PKK',
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
               ),
 
-              const VGap.lg(),
+              AppSpacing.xl.verticalSpace,
 
-              // ── Register link ───────────────────────────────────────────
+              // ── Email field ─────────────────────────────────────────────────
+              AppTextField(
+                label: 'EMAIL',
+                hint: 'username@gmail.com',
+                controller: _usernameController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                prefixIcon: const Icon(
+                  Icons.email_outlined,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ),
+
+              AppSpacing.md.verticalSpace,
+
+              // ── Password field ──────────────────────────────────────────────
+              AppTextField.password(
+                label: 'MẬT KHẨU',
+                controller: _passwordController,
+              ),
+
+              AppSpacing.sm.verticalSpace,
+
+              // ── Forgot password ─────────────────────────────────────────────
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _goToForgotPassword,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Quên mật khẩu?',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+
+              AppSpacing.lg.verticalSpace,
+
+              // ── Login button ────────────────────────────────────────────────
+              AppButton(
+                label: _loading ? 'Đang xử lý...' : 'Đăng nhập',
+                isLoading: _loading,
+                onPressed: _loading ? null : _login,
+              ),
+
+              AppSpacing.lg.verticalSpace,
+
+              // ── Register link ────────────────────────────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Chưa có tài khoản? ',
-                    style: AppTextStyles.body.copyWith(
+                    style: AppTypography.body.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -320,79 +296,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: _goToRegister,
                     child: Text(
                       'Đăng ký ngay',
-                      style: AppTextStyles.body.copyWith(
+                      style: AppTypography.bodyMedium.copyWith(
                         color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
 
-                    const VGap.lg(),
-                  ],
-                ),
-              ),
-            ),
+              AppSpacing.xxl.verticalSpace,
 
-            // ── Footer pinned at bottom ──────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: Text(
-                '© 2026 PKK RESIDENT SYSTEM',
-                style: AppTextStyles.caption.copyWith(
+              // ── Footer ───────────────────────────────────────────────────────
+              Text(
+                '© 2024 PKK RESIDENT SYSTEM',
+                style: AppTypography.captionSmall.copyWith(
                   color: AppColors.textDisabled,
-                  fontSize: 10,
                   letterSpacing: 0.8,
                 ),
               ),
-            ),
-          ],
-        ),
-    );
-  }
-
-  // ── Logo widget ────────────────────────────────────────────────────────────
-  Widget _buildLogo() {
-    return Container(
-      width: 104,
-      height: 104,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.surface,
-        boxShadow: AppShadows.low,
-      ),
-      child: ClipOval(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          // Replace with your actual logo widget:
-          // child: Image.asset('assets/images/app_icon.png')
-          // or: child: const AppIconWidget()
-          child: Image.asset(
-            'assets/icons/app_icon.png',
-            fit: BoxFit.contain,
-            errorBuilder: (_, _, _) => const Icon(
-              Icons.apartment_rounded,
-              size: 48,
-              color: AppColors.primary,
-            ),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // ── Field label ────────────────────────────────────────────────────────────
-  Widget _buildFieldLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: AppTextStyles.caption.copyWith(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-          letterSpacing: 0.8,
-          color: AppColors.textSecondary,
         ),
       ),
     );

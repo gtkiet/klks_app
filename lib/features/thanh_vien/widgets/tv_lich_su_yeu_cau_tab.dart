@@ -7,6 +7,8 @@ import '../services/tv_yeu_cau_service.dart';
 import '../../cu_tru/models/quan_he_cu_tru_model.dart';
 import '../models/thanh_vien_request.dart';
 import '../models/yeu_cau_cu_tru_model.dart';
+import '../screens/yeu_cau_detail_screen.dart';
+import '../screens/yeu_cau_edit_screen.dart';
 
 // ── Trạng thái constants ───────────────────────────────────────────────────
 const int _kTrangThaiNhap = 4; // "Đã lưu" — chưa submit
@@ -167,20 +169,37 @@ class _LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
   }
 
   void _openDetail(YeuCauCuTruModel yeuCau) {
-    // TODO: Navigator.push → YeuCauDetailScreen(id: yeuCau.id)
-    // dùng getYeuCauById để load chi tiết
-    ScaffoldMessenger.of(
+    Navigator.push(
       context,
-    ).showSnackBar(SnackBar(content: Text('Chi tiết yêu cầu #${yeuCau.id}')));
+      MaterialPageRoute(
+        builder: (_) => YeuCauDetailScreen(yeuCauId: yeuCau.id),
+      ),
+    );
   }
 
-  void _openEdit(YeuCauCuTruModel yeuCau) {
-    // TODO: Navigator.push → YeuCauEditScreen(yeuCau: yeuCau)
-    // dùng updateYeuCau để lưu / submit
-    ScaffoldMessenger.of(
+  void _openEdit(YeuCauCuTruModel yeuCau) async {
+    final shouldReload = await Navigator.push<bool>(
       context,
-    ).showSnackBar(SnackBar(content: Text('Chỉnh sửa nháp #${yeuCau.id}')));
+      MaterialPageRoute(builder: (_) => YeuCauEditScreen(yeuCauId: yeuCau.id)),
+    );
+    if (shouldReload == true) _loadData();
   }
+
+  // void _openDetail(YeuCauCuTruModel yeuCau) {
+  //   // TODO: Navigator.push → YeuCauDetailScreen(id: yeuCau.id)
+  //   // dùng getYeuCauById để load chi tiết
+  //   ScaffoldMessenger.of(
+  //     context,
+  //   ).showSnackBar(SnackBar(content: Text('Chi tiết yêu cầu #${yeuCau.id}')));
+  // }
+
+  // void _openEdit(YeuCauCuTruModel yeuCau) {
+  //   // TODO: Navigator.push → YeuCauEditScreen(yeuCau: yeuCau)
+  //   // dùng updateYeuCau để lưu / submit
+  //   ScaffoldMessenger.of(
+  //     context,
+  //   ).showSnackBar(SnackBar(content: Text('Chỉnh sửa nháp #${yeuCau.id}')));
+  // }
 
   @override
   Widget build(BuildContext context) {

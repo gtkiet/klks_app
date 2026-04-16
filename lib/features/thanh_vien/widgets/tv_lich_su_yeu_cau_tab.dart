@@ -184,23 +184,7 @@ class _LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
     );
     if (shouldReload == true) _loadData();
   }
-
-  // void _openDetail(YeuCauCuTruModel yeuCau) {
-  //   // TODO: Navigator.push → YeuCauDetailScreen(id: yeuCau.id)
-  //   // dùng getYeuCauById để load chi tiết
-  //   ScaffoldMessenger.of(
-  //     context,
-  //   ).showSnackBar(SnackBar(content: Text('Chi tiết yêu cầu #${yeuCau.id}')));
-  // }
-
-  // void _openEdit(YeuCauCuTruModel yeuCau) {
-  //   // TODO: Navigator.push → YeuCauEditScreen(yeuCau: yeuCau)
-  //   // dùng updateYeuCau để lưu / submit
-  //   ScaffoldMessenger.of(
-  //     context,
-  //   ).showSnackBar(SnackBar(content: Text('Chỉnh sửa nháp #${yeuCau.id}')));
-  // }
-
+  
   @override
   Widget build(BuildContext context) {
     super.build(context);

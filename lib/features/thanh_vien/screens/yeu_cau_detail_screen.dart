@@ -80,7 +80,10 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Trạng thái + loại ─────────────────────────────────────────
-          _StatusBanner(trangThaiId: d.trangThaiId, tenTrangThai: d.tenTrangThai),
+          _StatusBanner(
+            trangThaiId: d.trangThaiId,
+            tenTrangThai: d.tenTrangThai,
+          ),
           const SizedBox(height: 16),
 
           // ── Thông tin yêu cầu ─────────────────────────────────────────
@@ -111,8 +114,9 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
                   _InfoTile(label: 'Họ tên', value: d.hoTenDayDu!),
                 if (d.yeuCauNgaySinh != null)
                   _InfoTile(
-                      label: 'Ngày sinh',
-                      value: _fmtDate(d.yeuCauNgaySinh!)),
+                    label: 'Ngày sinh',
+                    value: _fmtDate(d.yeuCauNgaySinh!),
+                  ),
                 if (d.yeuCauGioiTinhTen != null)
                   _InfoTile(label: 'Giới tính', value: d.yeuCauGioiTinhTen!),
                 if (d.yeuCauCCCD != null && d.yeuCauCCCD!.isNotEmpty)
@@ -124,8 +128,9 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
                   _InfoTile(label: 'Địa chỉ', value: d.yeuCauDiaChi!),
                 if (d.yeuCauLoaiQuanHeTen != null)
                   _InfoTile(
-                      label: 'Quan hệ cư trú',
-                      value: d.yeuCauLoaiQuanHeTen!),
+                    label: 'Quan hệ cư trú',
+                    value: d.yeuCauLoaiQuanHeTen!,
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -136,8 +141,7 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
             _SectionCard(
               title: 'Nội dung',
               children: [
-                Text(d.noiDung!,
-                    style: Theme.of(context).textTheme.bodyMedium),
+                Text(d.noiDung!, style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
             const SizedBox(height: 12),
@@ -181,8 +185,7 @@ class _StatusBanner extends StatelessWidget {
   final int trangThaiId;
   final String tenTrangThai;
 
-  const _StatusBanner(
-      {required this.trangThaiId, required this.tenTrangThai});
+  const _StatusBanner({required this.trangThaiId, required this.tenTrangThai});
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +204,10 @@ class _StatusBanner extends StatelessWidget {
           Text(
             tenTrangThai,
             style: TextStyle(
-                color: fg, fontWeight: FontWeight.w600, fontSize: 15),
+              color: fg,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
           ),
         ],
       ),
@@ -209,17 +215,28 @@ class _StatusBanner extends StatelessWidget {
   }
 
   (Color bg, Color fg, IconData icon) _resolve(int id) => switch (id) {
-        4 => (Colors.grey.shade100, Colors.grey.shade700,
-            Icons.save_outlined),       // Đã lưu / nháp
-        1 => (Colors.orange.shade50, Colors.orange.shade800,
-            Icons.hourglass_top),       // Chờ duyệt
-        2 => (Colors.green.shade50, Colors.green.shade800,
-            Icons.check_circle_outline), // Đã duyệt
-        3 => (Colors.red.shade50, Colors.red.shade800,
-            Icons.cancel_outlined),     // Từ chối
-        _ => (Colors.blue.shade50, Colors.blue.shade800,
-            Icons.info_outline),
-      };
+    4 => (
+      Colors.grey.shade100,
+      Colors.grey.shade700,
+      Icons.save_outlined,
+    ), // Đã lưu / nháp
+    1 => (
+      Colors.orange.shade50,
+      Colors.orange.shade800,
+      Icons.hourglass_top,
+    ), // Chờ duyệt
+    2 => (
+      Colors.green.shade50,
+      Colors.green.shade800,
+      Icons.check_circle_outline,
+    ), // Đã duyệt
+    3 => (
+      Colors.red.shade50,
+      Colors.red.shade800,
+      Icons.cancel_outlined,
+    ), // Từ chối
+    _ => (Colors.blue.shade50, Colors.blue.shade800, Icons.info_outline),
+  };
 }
 
 // ── Section card ──────────────────────────────────────────────────────────────
@@ -239,11 +256,12 @@ class _SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const Divider(height: 16),
             ...children,
           ],
@@ -260,8 +278,11 @@ class _InfoTile extends StatelessWidget {
   final String value;
   final bool highlight;
 
-  const _InfoTile(
-      {required this.label, required this.value, this.highlight = false});
+  const _InfoTile({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -272,19 +293,20 @@ class _InfoTile extends StatelessWidget {
         children: [
           SizedBox(
             width: 130,
-            child: Text(label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    )),
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
           ),
           Expanded(
             child: Text(
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: highlight ? Colors.red.shade700 : null,
-                    fontWeight:
-                        highlight ? FontWeight.w600 : null,
-                  ),
+                color: highlight ? Colors.red.shade700 : null,
+                fontWeight: highlight ? FontWeight.w600 : null,
+              ),
             ),
           ),
         ],
@@ -310,11 +332,10 @@ class _DocumentItem extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                doc.tenLoaiGiayTo.isNotEmpty
-                    ? doc.tenLoaiGiayTo
-                    : 'Tài liệu',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600),
+                doc.tenLoaiGiayTo.isNotEmpty ? doc.tenLoaiGiayTo : 'Tài liệu',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -322,8 +343,10 @@ class _DocumentItem extends StatelessWidget {
         if (doc.soGiayTo.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(left: 22, top: 2),
-            child: Text('Số: ${doc.soGiayTo}',
-                style: Theme.of(context).textTheme.bodySmall),
+            child: Text(
+              'Số: ${doc.soGiayTo}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
         if (doc.ngayPhatHanh != null)
           Padding(
@@ -381,4 +404,3 @@ class _FileChip extends StatelessWidget {
     );
   }
 }
-

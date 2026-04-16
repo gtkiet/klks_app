@@ -9,7 +9,7 @@ class AppNavigation {
     _shell = shell;
   }
 
-  static void goTab(int index, {bool reset = false}) {
+  static void goTab(int index, {bool reset = true}) {
     _shell?.goBranch(index, initialLocation: reset);
   }
 

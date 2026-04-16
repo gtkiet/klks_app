@@ -347,6 +347,130 @@ class UtilsService {
   //   "isOk": true
   // }
 
+  Future<List<SelectorItemModel>> getLoaiDichVuSelector() =>
+      _fetchSelector('/api/catalog/loai-dich-vu-for-selector');
+  // {
+  //   "result": [
+  //     {
+  //       "id": 1,
+  //       "name": "Điện"
+  //     },
+  //     {
+  //       "id": 2,
+  //       "name": "Nước"
+  //     },
+  //     {
+  //       "id": 3,
+  //       "name": "Vận hành"
+  //     },
+  //     {
+  //       "id": 4,
+  //       "name": "Phương tiện"
+  //     },
+  //     {
+  //       "id": 5,
+  //       "name": "Tiện ích"
+  //     },
+  //     {
+  //       "id": 6,
+  //       "name": "Khác"
+  //     }
+  //   ],
+  //   "warningMessages": [],
+  //   "errors": [],
+  //   "isOk": true
+  // }
+
+  Future<List<SelectorItemModel>> getTrangThaiDichVuSelector() =>
+      _fetchSelector('/api/catalog/trang-thai-dich-vu-for-selector');
+  // {
+  //   "result": [
+  //     {
+  //       "id": 1,
+  //       "name": "Hoạt động"
+  //     },
+  //     {
+  //       "id": 2,
+  //       "name": "Cảnh báo (Hợp đồng hết hạn)"
+  //     },
+  //     {
+  //       "id": 3,
+  //       "name": "Ngưng cung cấp"
+  //     },
+  //     {
+  //       "id": 4,
+  //       "name": "Tạo mới"
+  //     }
+  //   ],
+  //   "warningMessages": [],
+  //   "errors": [],
+  //   "isOk": true
+  // }
+
+  Future<List<SelectorItemModel>> getLoaiDinhGiaSelector() =>
+      _fetchSelector('/api/catalog/loai-dinh-gia-for-selector');
+  // {
+  //   "result": [
+  //     {
+  //       "id": 1,
+  //       "name": "Cố định"
+  //     },
+  //     {
+  //       "id": 2,
+  //       "name": "Lũy tiến"
+  //     },
+  //     {
+  //       "id": 6,
+  //       "name": "Theo diện tích"
+  //     },
+  //     {
+  //       "id": 7,
+  //       "name": "Theo khung giờ"
+  //     }
+  //   ],
+  //   "warningMessages": [],
+  //   "errors": [],
+  //   "isOk": true
+  // }
+
+  Future<List<SelectorItemModel>> getNgayTrongTuanSelector() =>
+      _fetchSelector('/api/catalog/ngay-trong-tuan-for-selector');
+  // {
+  //   "result": [
+  //     {
+  //       "id": 0,
+  //       "name": "Chủ Nhật"
+  //     },
+  //     {
+  //       "id": 1,
+  //       "name": "Thứ Hai"
+  //     },
+  //     {
+  //       "id": 2,
+  //       "name": "Thứ Ba"
+  //     },
+  //     {
+  //       "id": 3,
+  //       "name": "Thứ Tư"
+  //     },
+  //     {
+  //       "id": 4,
+  //       "name": "Thứ Năm"
+  //     },
+  //     {
+  //       "id": 5,
+  //       "name": "Thứ Sáu"
+  //     },
+  //     {
+  //       "id": 6,
+  //       "name": "Thứ Bảy"
+  //     }
+  //   ],
+  //   "warningMessages": [],
+  //   "errors": [],
+  //   "isOk": true
+  // }
+
   // =========================================================================
   // PRIVATE
   // =========================================================================

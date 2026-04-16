@@ -1,25 +1,17 @@
 // lib/features/thanh_vien/screens/thanh_vien_detail_screen.dart
-//
-// Màn hình chi tiết một thành viên cư trú.
-//   - Nhận [thanhVien] (ThanhVienCuTruModel) từ màn hình danh sách
-//   - Tự động gọi ThanhVienService.getThongTinCuDan(quanHeCuTruId)
-//   - Hiển thị: avatar, thông tin cá nhân, tài liệu cư trú
 
 import 'package:flutter/material.dart';
 
 import '../../../core/errors/errors.dart';
-
 import '../../cu_tru/models/quan_he_cu_tru_model.dart';
-
 import '../models/thanh_vien_cu_tru_model.dart';
 import '../models/thong_tin_cu_dan_model.dart';
+import '../screens/sua_yeu_cau_thanh_vien_screen.dart';
+import '../screens/xoa_yeu_cau_thanh_vien_screen.dart';
 import '../services/thanh_vien_service.dart';
 
 class ThanhVienDetailScreen extends StatefulWidget {
-  /// Dữ liệu tóm tắt từ list — dùng để hiển thị ngay trong khi chờ API
   final ThanhVienCuTruModel thanhVien;
-
-  /// Thông tin căn hộ — hiển thị ở AppBar
   final QuanHeCuTruModel canHoInfo;
 
   const ThanhVienDetailScreen({
@@ -35,27 +27,22 @@ class ThanhVienDetailScreen extends StatefulWidget {
 class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
   final _service = ThanhVienService.instance;
 
-  // ── State ──────────────────────────────────────────────────────────────
   bool _isLoading = false;
   AppException? _error;
   ThongTinCuDanModel? _data;
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    _loadData(); // tự động tải khi mở màn hình
+    _loadData();
   }
 
-  // ── Service call ───────────────────────────────────────────────────────
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-
     try {
-      // Dùng quanHeCuTruId từ thanhVien để lấy chi tiết
       final result = await _service.getThongTinCuDan(
         widget.thanhVien.quanHeCuTruId,
       );
@@ -67,7 +54,35 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
     }
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────
+  void _goToSua() async {
+    if (_data == null) return;
+    final reload = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SuaYeuCauThanhVienScreen(
+          thanhVien: widget.thanhVien,
+          canHoInfo: widget.canHoInfo,
+          // Truyền thongTinCuDan để pre-fill form
+          thongTinCuDan: _data,
+        ),
+      ),
+    );
+    if (reload == true && mounted) _loadData();
+  }
+
+  void _goToXoa() async {
+    final reload = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => XoaYeuCauThanhVienScreen(
+          thanhVien: widget.thanhVien,
+          canHoInfo: widget.canHoInfo,
+        ),
+      ),
+    );
+    if (reload == true && mounted) Navigator.pop(context, true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +101,21 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
           ],
         ),
         actions: [
+          // Nút Sửa
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Tạo yêu cầu sửa',
+            onPressed: (_isLoading || _data == null) ? null : _goToSua,
+          ),
+          // Nút Xóa
+          IconButton(
+            icon: Icon(
+              Icons.person_remove_outlined,
+              color: Colors.red.shade400,
+            ),
+            tooltip: 'Tạo yêu cầu xóa',
+            onPressed: _isLoading ? null : _goToXoa,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _isLoading ? null : _loadData,
@@ -97,9 +127,7 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
 
     if (_error != null) {
       return Center(
@@ -119,7 +147,6 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
     }
 
     if (_data == null) return const SizedBox.shrink();
-
     final d = _data!;
 
     return SingleChildScrollView(
@@ -127,12 +154,8 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Avatar + tên + trạng thái ──────────────────────────────
           _buildAvatarHeader(d),
-
           const SizedBox(height: 20),
-
-          // ── Thông tin cá nhân ──────────────────────────────────────
           _SectionCard(
             title: 'Thông tin cá nhân',
             children: [
@@ -148,10 +171,7 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
                 _InfoRow(label: 'Địa chỉ', value: d.diaChi!),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // ── Thông tin cư trú ───────────────────────────────────────
           _SectionCard(
             title: 'Thông tin cư trú',
             children: [
@@ -166,18 +186,41 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
                 ),
             ],
           ),
-
-          // ── Tài liệu cư trú ───────────────────────────────────────
           if (d.taiLieuCuTrus.isNotEmpty) ...[
             const SizedBox(height: 12),
             _buildTaiLieuSection(d.taiLieuCuTrus),
           ],
+          const SizedBox(height: 24),
+          // ── Action buttons ────────────────────────────────────────────
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _goToSua,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Tạo yêu cầu sửa'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _goToXoa,
+                  icon: const Icon(Icons.person_remove_outlined),
+                  label: const Text('Tạo yêu cầu xóa'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  // ── Avatar header ──────────────────────────────────────────────────────
   Widget _buildAvatarHeader(ThongTinCuDanModel d) {
     return Row(
       children: [
@@ -217,7 +260,6 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
     );
   }
 
-  // ── Danh sách tài liệu ────────────────────────────────────────────────
   Widget _buildTaiLieuSection(List<TaiLieuCuTruModel> taiLieus) {
     return _SectionCard(
       title: 'Tài liệu cư trú',
@@ -239,7 +281,6 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
                 'Ngày phát hành: ${_fmtDate(tl.ngayPhatHanh!)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-            // Danh sách file đính kèm
             ...tl.files.map(
               (f) => Padding(
                 padding: const EdgeInsets.only(top: 4, left: 8),
@@ -270,14 +311,16 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
   }
 
   String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}';
 }
 
-// ── Section card ──────────────────────────────────────────────────────────
+// ── Shared widgets ────────────────────────────────────────────────────────────
+
 class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
-
   const _SectionCard({required this.title, required this.children});
 
   @override
@@ -303,11 +346,9 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-// ── Info row ──────────────────────────────────────────────────────────────
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
-
   const _InfoRow({required this.label, required this.value});
 
   @override

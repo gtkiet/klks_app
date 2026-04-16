@@ -3,7 +3,6 @@
 // Tab 2 (mode Phương tiện): lịch sử yêu cầu liên quan PHƯƠNG TIỆN.
 //   - Tự động gọi PTYeuCauService.getListYeuCau(canHoId) khi mount
 //   - Hỗ trợ load more (phân trang) + pull-to-refresh
-//   - Chi tiết yêu cầu: TODO
 
 import 'package:flutter/material.dart';
 

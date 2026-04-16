@@ -172,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => _goCrossTab('/cu-tru', 1),
           ),
           _button(label: 'Hóa đơn', onPressed: () => _push('/bills')),
-          _button(label: 'Dịch vụ', onPressed: () => _push('/services')),
+          _button(label: 'Dịch vụ', onPressed: () => _push('/dich-vu')),
           // _button(
           //   label: 'Thông báo (push)',
           //   onPressed: () => _push('/notification'),

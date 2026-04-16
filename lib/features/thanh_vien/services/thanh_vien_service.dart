@@ -13,7 +13,7 @@ class ThanhVienService {
   static final ThanhVienService instance = ThanhVienService._();
 
   Dio get _dio => ApiClient.instance.dio;
-  
+
   // ── Thành viên đang cư trú trong một căn hộ ───────────────────────────
 
   Future<List<ThanhVienCuTruModel>> getThanhVienCuTru(int canHoId) async {

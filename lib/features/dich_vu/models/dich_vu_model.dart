@@ -53,19 +53,19 @@ class DichVuItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'maDichVu': maDichVu,
-        'tenDichVu': tenDichVu,
-        'loaiDichVuId': loaiDichVuId,
-        'loaiDichVuTen': loaiDichVuTen,
-        'donViTinh': donViTinh,
-        'moTa': moTa,
-        'isBatBuoc': isBatBuoc,
-        'soLuongToiDa': soLuongToiDa,
-        'trangThaiDichVuId': trangThaiDichVuId,
-        'trangThaiDichVuTen': trangThaiDichVuTen,
-        'iconUrl': iconUrl,
-      };
+    'id': id,
+    'maDichVu': maDichVu,
+    'tenDichVu': tenDichVu,
+    'loaiDichVuId': loaiDichVuId,
+    'loaiDichVuTen': loaiDichVuTen,
+    'donViTinh': donViTinh,
+    'moTa': moTa,
+    'isBatBuoc': isBatBuoc,
+    'soLuongToiDa': soLuongToiDa,
+    'trangThaiDichVuId': trangThaiDichVuId,
+    'trangThaiDichVuTen': trangThaiDichVuTen,
+    'iconUrl': iconUrl,
+  };
 
   DichVuItem copyWith({
     int? id,
@@ -137,7 +137,8 @@ class DichVuDetail extends DichVuItem {
       trangThaiDichVuId: json['trangThaiDichVuId'] as int? ?? 0,
       trangThaiDichVuTen: json['trangThaiDichVuTen'] as String? ?? '',
       iconUrl: json['iconUrl'] as String?,
-      khungGioDichVu: (json['khungGioDichVu'] as List<dynamic>?)
+      khungGioDichVu:
+          (json['khungGioDichVu'] as List<dynamic>?)
               ?.map((e) => KhungGioItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -196,15 +197,18 @@ class BangGia {
       loaiDinhGiaTen: json['loaiDinhGiaTen'] as String? ?? '',
       donGia: (json['donGia'] as num?)?.toDouble() ?? 0,
       isActive: json['isActive'] as bool? ?? false,
-      giaLuyTiens: (json['giaLuyTiens'] as List<dynamic>?)
+      giaLuyTiens:
+          (json['giaLuyTiens'] as List<dynamic>?)
               ?.map((e) => GiaLuyTien.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      giaKhungGios: (json['giaKhungGios'] as List<dynamic>?)
+      giaKhungGios:
+          (json['giaKhungGios'] as List<dynamic>?)
               ?.map((e) => GiaKhungGio.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      giaLoaiCanHos: (json['giaLoaiCanHos'] as List<dynamic>?)
+      giaLoaiCanHos:
+          (json['giaLoaiCanHos'] as List<dynamic>?)
               ?.map((e) => GiaLoaiCanHo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -228,12 +232,12 @@ class GiaLuyTien {
   });
 
   factory GiaLuyTien.fromJson(Map<String, dynamic> json) => GiaLuyTien(
-        id: json['id'] as int,
-        bangGiaId: json['bangGiaId'] as int,
-        tuMuc: (json['tuMuc'] as num).toDouble(),
-        denMuc: (json['denMuc'] as num?)?.toDouble(),
-        donGia: (json['donGia'] as num).toDouble(),
-      );
+    id: json['id'] as int,
+    bangGiaId: json['bangGiaId'] as int,
+    tuMuc: (json['tuMuc'] as num).toDouble(),
+    denMuc: (json['denMuc'] as num?)?.toDouble(),
+    donGia: (json['donGia'] as num).toDouble(),
+  );
 }
 
 class GiaKhungGio {
@@ -252,12 +256,12 @@ class GiaKhungGio {
   });
 
   factory GiaKhungGio.fromJson(Map<String, dynamic> json) => GiaKhungGio(
-        id: json['id'] as int,
-        bangGiaId: json['bangGiaId'] as int,
-        khungGioId: json['khungGioId'] as int,
-        tenKhungGio: json['tenKhungGio'] as String? ?? '',
-        donGia: (json['donGia'] as num).toDouble(),
-      );
+    id: json['id'] as int,
+    bangGiaId: json['bangGiaId'] as int,
+    khungGioId: json['khungGioId'] as int,
+    tenKhungGio: json['tenKhungGio'] as String? ?? '',
+    donGia: (json['donGia'] as num).toDouble(),
+  );
 }
 
 class GiaLoaiCanHo {
@@ -276,12 +280,12 @@ class GiaLoaiCanHo {
   });
 
   factory GiaLoaiCanHo.fromJson(Map<String, dynamic> json) => GiaLoaiCanHo(
-        id: json['id'] as int,
-        bangGiaId: json['bangGiaId'] as int,
-        loaiCanHoId: json['loaiCanHoId'] as int,
-        loaiCanHoTen: json['loaiCanHoTen'] as String? ?? '',
-        donGia: (json['donGia'] as num).toDouble(),
-      );
+    id: json['id'] as int,
+    bangGiaId: json['bangGiaId'] as int,
+    loaiCanHoId: json['loaiCanHoId'] as int,
+    loaiCanHoTen: json['loaiCanHoTen'] as String? ?? '',
+    donGia: (json['donGia'] as num).toDouble(),
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -300,10 +304,10 @@ class PagingInfo {
   });
 
   factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-        pageSize: json['pageSize'] as int? ?? 10,
-        pageNumber: json['pageNumber'] as int? ?? 1,
-        totalItems: json['totalItems'] as int? ?? 0,
-      );
+    pageSize: json['pageSize'] as int? ?? 10,
+    pageNumber: json['pageNumber'] as int? ?? 1,
+    totalItems: json['totalItems'] as int? ?? 0,
+  );
 
   bool get hasNextPage => pageNumber * pageSize < totalItems;
 }

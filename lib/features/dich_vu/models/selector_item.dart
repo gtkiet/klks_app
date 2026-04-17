@@ -7,10 +7,7 @@ class SelectorItem {
   const SelectorItem({required this.id, required this.name});
 
   factory SelectorItem.fromJson(Map<String, dynamic> json) {
-    return SelectorItem(
-      id: json['id'] as int,
-      name: json['name'] as String,
-    );
+    return SelectorItem(id: json['id'] as int, name: json['name'] as String);
   }
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name};

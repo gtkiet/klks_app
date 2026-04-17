@@ -6,4 +6,7 @@ class AppConfig {
   /// ── API ─────────────────────────────────────
   static const String baseUrl =
       "https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net";
+
+  static const String hubUrl =
+      'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net/notifications';
 }

@@ -3,8 +3,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/error_parser.dart';
+import '../../../core/errors/errors.dart';
 
 import '../models/quan_he_cu_tru_model.dart';
 

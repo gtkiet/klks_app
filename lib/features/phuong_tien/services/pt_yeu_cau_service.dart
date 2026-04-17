@@ -13,7 +13,7 @@ class PTYeuCauService {
   PTYeuCauService._();
 
   static final PTYeuCauService instance = PTYeuCauService._();
-  
+
   Dio get _dio => ApiClient.instance.dio;
 
   // ── Private helpers ───────────────────────────────────────────────────────

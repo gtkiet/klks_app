@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/errors/errors.dart';
 
+import '../screens/yeu_cau_phuong_tien_detail_screen.dart';
 import '../services/pt_yeu_cau_service.dart';
 
 import '../../cu_tru/models/quan_he_cu_tru_model.dart';
@@ -195,7 +196,14 @@ class _YeuCauCard extends StatelessWidget {
 
     return Card(
       child: ListTile(
-        // TODO: onTap → navigate to YeuCauPhuongTienDetailScreen(yeuCau.id)
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => YeuCauPhuongTienDetailScreen(
+              yeuCauId: yeuCau.id,
+              initialData: yeuCau, // hiển thị ngay, không chờ API
+            ),
+          ),
+        ),
         leading: CircleAvatar(
           radius: 20,
           // Dùng ảnh đầu tiên nếu có, fallback icon loại yêu cầu

@@ -16,14 +16,11 @@ class ApiClient {
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       sendTimeout: const Duration(seconds: 30),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
     );
 
     final dio = Dio(options);
     dio.interceptors.add(ApiInterceptor(dio));
     return dio;
   }
-
 }

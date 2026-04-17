@@ -3,8 +3,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors/errors.dart';
+
 import '../services/tv_yeu_cau_service.dart';
 import '../models/yeu_cau_cu_tru_model.dart';
 
@@ -384,6 +386,38 @@ class _FileChip extends StatelessWidget {
 
   const _FileChip({required this.file});
 
+  Future<void> _openFile(BuildContext context) async {
+    final rawUrl = file.fileUrl as String;
+    if (rawUrl.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Không có đường dẫn tệp')));
+      return;
+    }
+
+    final uri = Uri.tryParse(rawUrl);
+    if (uri == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đường dẫn không hợp lệ')));
+      return;
+    }
+
+    // Ưu tiên mở trong browser ngoài (externalApplication)
+    // → phù hợp với link website hiển thị file từ server
+    final canOpen = await canLaunchUrl(uri);
+    if (!canOpen) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể mở tệp trên thiết bị này')),
+        );
+      }
+      return;
+    }
+
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isImage = (file.contentType as String).startsWith('image/');
@@ -398,9 +432,7 @@ class _FileChip extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontSize: 12),
       ),
-      onPressed: () {
-        // TODO: mở file.fileUrl trong WebView hoặc url_launcher
-      },
+      onPressed: () => _openFile(context),
     );
   }
 }

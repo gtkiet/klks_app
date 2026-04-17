@@ -24,6 +24,8 @@ dependencies:
   flutter_pdfview: ^1.4.4
   url_launcher: ^6.3.2
   photo_view: ^0.15.0
+  signalr_netcore: ^1.4.4
+  flutter_local_notifications: ^21.0.0
 
 dev_dependencies:
   flutter_test:

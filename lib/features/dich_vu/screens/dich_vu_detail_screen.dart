@@ -16,7 +16,7 @@ class DichVuDetailScreen extends StatefulWidget {
 }
 
 class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
-  final _service = DichVuService();
+  final _service = DichVuService.instance;
   DichVuDetail? _detail;
   bool _isLoading = true;
   String? _error;

@@ -15,7 +15,7 @@ class DichVuListScreen extends StatefulWidget {
 }
 
 class _DichVuListScreenState extends State<DichVuListScreen> {
-  final _service = DichVuService();
+  final _service = DichVuService.instance;
   final _searchCtrl = TextEditingController();
 
   List<DichVuItem> _items = [];

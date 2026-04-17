@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import '../../features/thong_bao/services/thong_bao_hub_service.dart';
 import '../storage/user_session.dart';
 import '../config/app_config.dart';
 
@@ -104,6 +105,7 @@ class AuthGuard extends ChangeNotifier {
     } finally {
       await _session.clearSession();
       _setStatus(AuthStatus.unauthenticated);
+      await ThongBaoHubService.instance.disconnect();
     }
   }
 

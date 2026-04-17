@@ -247,7 +247,7 @@ class _TaoYeuCauThanhVienScreenState extends State<TaoYeuCauThanhVienScreen> {
 
                   Field(
                     controller: _noiDungCtrl,
-                    label: 'Ghi chú',
+                    label: 'Nội dung',
                     maxLines: 3,
                   ),
                   const SizedBox(height: 20),

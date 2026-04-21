@@ -2,11 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../models/dich_vu_model.dart';
-
 import '../services/dich_vu_service.dart';
-import '../widgets/common_widgets.dart';
 import 'dang_ky_dich_vu_screen.dart';
 
 class DichVuDetailScreen extends StatefulWidget {
@@ -37,6 +34,7 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
       _isLoading = true;
       _error = null;
     });
+
     try {
       final detail = await _service.getDichVuById(widget.dichVuId);
       setState(() => _detail = detail);
@@ -75,9 +73,27 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     if (_error != null) {
-      return ErrorStateWidget(message: _error!, onRetry: _loadDetail);
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(_error!, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _loadDetail,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
     }
 
     final d = _detail!;
@@ -87,7 +103,7 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ──────────────────────────────────────────────────────
+          // ── Header card ─────────────────────────────────────────────────
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -161,6 +177,7 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
                           'dd/MM/yyyy',
                         ).format(d.bangGia!.ngayKetThuc!),
                       ),
+                    // Giá lũy tiến
                     if (d.bangGia!.giaLuyTiens.isNotEmpty) ...[
                       const Divider(),
                       const Text(
@@ -176,6 +193,7 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
                         ),
                       ),
                     ],
+                    // Giá theo khung giờ
                     if (d.bangGia!.giaKhungGios.isNotEmpty) ...[
                       const Divider(),
                       const Text(
@@ -228,7 +246,7 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
   }
 }
 
-// ── Private widgets ───────────────────────────────────────────────────────────
+// ── Helper Widgets ────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   final String label;

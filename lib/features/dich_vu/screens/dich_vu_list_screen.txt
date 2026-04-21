@@ -1,13 +1,9 @@
 // lib/features/dich_vu/screens/dich_vu_list_screen.dart
 
 import 'package:flutter/material.dart';
-
-import '../models/paging.dart';
-import '../models/selector_item.dart';
 import '../models/dich_vu_model.dart';
-
+import '../models/selector_item.dart';
 import '../services/dich_vu_service.dart';
-import '../widgets/common_widgets.dart';
 import 'dich_vu_detail_screen.dart';
 import 'dang_ky_dich_vu_screen.dart';
 
@@ -30,6 +26,7 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
   bool _isLoading = false;
   String? _error;
 
+  // Filter state
   int? _selectedLoaiDichVuId;
   int? _selectedTrangThaiId;
   int _page = 1;
@@ -47,6 +44,8 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
     super.dispose();
   }
 
+  // ── Load catalog cho dropdown ─────────────────────────────────────────────
+
   Future<void> _loadCatalogs() async {
     try {
       final results = await Future.wait([
@@ -59,9 +58,11 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
         _trangThaiList = results[1];
       });
     } catch (_) {
-      // Catalog lỗi không block UI chính
+      // Catalog load lỗi thì bỏ qua, không block UI chính
     }
   }
+
+  // ── Load danh sách dịch vụ ────────────────────────────────────────────────
 
   Future<void> _loadData({bool reset = false}) async {
     if (reset) {
@@ -81,8 +82,13 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
         keyword: _searchCtrl.text.trim(),
         pageNumber: _page,
       );
+
       setState(() {
-        _items = reset ? result.items : [..._items, ...result.items];
+        if (reset) {
+          _items = result.items;
+        } else {
+          _items = [..._items, ...result.items];
+        }
         _paging = result.pagingInfo;
       });
     } catch (e) {
@@ -92,12 +98,16 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
     }
   }
 
+  void _onSearch() => _loadData(reset: true);
+
   void _onLoadMore() {
     if (_paging != null && _paging!.hasNextPage && !_isLoading) {
       _page++;
       _loadData();
     }
   }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +136,7 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
       padding: const EdgeInsets.all(12),
       child: Column(
         children: [
+          // Search
           TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(
@@ -136,7 +147,7 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         _searchCtrl.clear();
-                        _loadData(reset: true);
+                        _onSearch();
                       },
                     )
                   : null,
@@ -146,10 +157,11 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
               filled: true,
               fillColor: Colors.white,
             ),
-            onSubmitted: (_) => _loadData(reset: true),
+            onSubmitted: (_) => _onSearch(),
             textInputAction: TextInputAction.search,
           ),
           const SizedBox(height: 8),
+          // Dropdowns
           Row(
             children: [
               Expanded(
@@ -218,14 +230,31 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
     if (_isLoading && _items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
+
     if (_error != null && _items.isEmpty) {
-      return ErrorStateWidget(
-        message: _error!,
-        onRetry: () => _loadData(reset: true),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 12),
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => _loadData(reset: true),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
+        ),
       );
     }
+
     if (_items.isEmpty) {
-      return const EmptyStateWidget(message: 'Không có dịch vụ nào.');
+      return const Center(child: Text('Không có dịch vụ nào.'));
     }
 
     return NotificationListener<ScrollNotification>(
@@ -241,46 +270,21 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
         itemCount: _items.length + (_paging?.hasNextPage == true ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
-          if (index == _items.length) return const LoadMoreIndicator();
-          return _DichVuCard(
-            item: _items[index],
-            onDetail: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DichVuDetailScreen(dichVuId: _items[index].id),
+          if (index == _items.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
               ),
-            ),
-            onDangKy: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DangKyDichVuScreen(
-                  dichVuId: _items[index].id,
-                  tenDichVu: _items[index].tenDichVu,
-                ),
-              ),
-            ),
-          );
+            );
+          }
+          return _buildDichVuCard(_items[index]);
         },
       ),
     );
   }
-}
 
-// ── Card ──────────────────────────────────────────────────────────────────────
-
-class _DichVuCard extends StatelessWidget {
-  final DichVuItem item;
-  final VoidCallback onDetail;
-  final VoidCallback onDangKy;
-
-  const _DichVuCard({
-    required this.item,
-    required this.onDetail,
-    required this.onDangKy,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildDichVuCard(DichVuItem item) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -335,13 +339,26 @@ class _DichVuCard extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.info_outline),
               tooltip: 'Chi tiết',
-              onPressed: onDetail,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DichVuDetailScreen(dichVuId: item.id),
+                ),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.app_registration),
               tooltip: 'Đăng ký',
               color: Colors.blue,
-              onPressed: onDangKy,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DangKyDichVuScreen(
+                    dichVuId: item.id,
+                    tenDichVu: item.tenDichVu,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

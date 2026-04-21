@@ -8,11 +8,9 @@ import '../../../core/errors/errors.dart';
 import '../../cu_tru/models/quan_he_cu_tru_model.dart';
 import '../../cu_tru/services/cu_tru_service.dart';
 
-import '../models/paging.dart';
 import '../models/selector_item.dart';
 import '../models/dich_vu_model.dart';
 import '../models/khung_gio_model.dart';
-import '../models/dang_ky_model.dart';
 
 class DichVuService {
   DichVuService._();
@@ -58,10 +56,11 @@ class DichVuService {
   // ── CƯ TRÚ (delegate) ─────────────────────────────────────────────────────
 
   /// Lấy danh sách quan hệ cư trú → dùng để chọn căn hộ khi đăng ký.
+  /// Delegate sang CuTruService để không duplicate logic.
   Future<List<QuanHeCuTruModel>> getCanHoList() =>
       CuTruService.instance.getQuanHeCuTruList();
 
-  // ── CATALOG ───────────────────────────────────────────────────────────────
+  // ── CATALOG APIs ──────────────────────────────────────────────────────────
 
   Future<List<SelectorItem>> getLoaiDichVu() async {
     final json = await _post('/api/catalog/loai-dich-vu-for-selector');
@@ -84,13 +83,6 @@ class DichVuService {
         .toList();
   }
 
-  Future<List<SelectorItem>> getTrangThaiDangKy() async {
-    final json = await _post('/api/catalog/trang-thai-dang-ky-for-selector');
-    return (json['result'] as List<dynamic>)
-        .map((e) => SelectorItem.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
   Future<List<SelectorItem>> getNgayTrongTuan() async {
     final json = await _post('/api/catalog/ngay-trong-tuan-for-selector');
     return (json['result'] as List<dynamic>)
@@ -98,7 +90,7 @@ class DichVuService {
         .toList();
   }
 
-  // ── DỊCH VỤ ───────────────────────────────────────────────────────────────
+  // ── DICH VU APIs ──────────────────────────────────────────────────────────
 
   Future<PagedResult<DichVuItem>> getDichVuList({
     int? loaiDichVuId,
@@ -120,10 +112,11 @@ class DichVuService {
       },
     );
     final result = json['result'] as Map<String, dynamic>;
+    final items = (result['items'] as List<dynamic>)
+        .map((e) => DichVuItem.fromJson(e as Map<String, dynamic>))
+        .toList();
     return PagedResult(
-      items: (result['items'] as List<dynamic>)
-          .map((e) => DichVuItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      items: items,
       pagingInfo: PagingInfo.fromJson(
         result['pagingInfo'] as Map<String, dynamic>,
       ),
@@ -135,7 +128,7 @@ class DichVuService {
     return DichVuDetail.fromJson(json['result'] as Map<String, dynamic>);
   }
 
-  // ── KHUNG GIỜ ─────────────────────────────────────────────────────────────
+  // ── KHUNG GIO APIs ────────────────────────────────────────────────────────
 
   Future<PagedResult<KhungGioItem>> getKhungGioList({
     int? dichVuId,
@@ -155,35 +148,18 @@ class DichVuService {
       },
     );
     final result = json['result'] as Map<String, dynamic>;
+    final items = (result['items'] as List<dynamic>)
+        .map((e) => KhungGioItem.fromJson(e as Map<String, dynamic>))
+        .toList();
     return PagedResult(
-      items: (result['items'] as List<dynamic>)
-          .map((e) => KhungGioItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      items: items,
       pagingInfo: PagingInfo.fromJson(
         result['pagingInfo'] as Map<String, dynamic>,
       ),
     );
   }
 
-  // ── ĐĂNG KÝ ───────────────────────────────────────────────────────────────
-
-  Future<PagedResult<DichVuDangKyItem>> getDanhSachDangKy(
-    DichVuDangKyRequest request,
-  ) async {
-    final json = await _post(
-      '/api/dich-vu/dang-ky/get-list',
-      body: request.toJson(),
-    );
-    final result = json['result'] as Map<String, dynamic>;
-    return PagedResult(
-      items: (result['items'] as List<dynamic>)
-          .map((e) => DichVuDangKyItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      pagingInfo: PagingInfo.fromJson(
-        result['pagingInfo'] as Map<String, dynamic>,
-      ),
-    );
-  }
+  // ── DANG KY ───────────────────────────────────────────────────────────────
 
   Future<int> dangKyDichVu({
     required int canHoId,

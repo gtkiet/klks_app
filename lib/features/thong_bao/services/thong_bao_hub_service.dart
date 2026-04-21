@@ -95,7 +95,7 @@ class ThongBaoHubService {
 
     await _initLocalNotif();
 
-    // TODO: AppConfig.hubUrl — thêm vào app_config.dart nếu chưa có
+    // _TODO: AppConfig.hubUrl — thêm vào app_config.dart nếu chưa có
     // Ví dụ: static const hubUrl = 'https://your-api.com/notifications';
     const hubUrl = AppConfig.hubUrl; // hoặc hardcode tạm để test
 
@@ -113,7 +113,7 @@ class ThongBaoHubService {
         .build();
 
     // ── Lắng nghe event từ server ──────────────────────────────────
-    // TODO: Hỏi backend đặt tên method Hub là gì
+    // _TODO: Hỏi backend đặt tên method Hub là gì
     // Server C# thường: Clients.User(id).SendAsync("ReceiveNotification", payload)
     _connection!.on('ReceiveNotification', (arguments) {
       if (arguments == null || arguments.isEmpty) return;
@@ -137,11 +137,11 @@ class ThongBaoHubService {
     });
 
     _connection!.onreconnecting(({error}) {
-      // TODO: emit trạng thái "Đang kết nối lại..." nếu muốn show banner
+      // _TODO: emit trạng thái "Đang kết nối lại..." nếu muốn show banner
     });
 
     _connection!.onreconnected(({connectionId}) {
-      // TODO: emit trạng thái "Đã kết nối" để ẩn banner
+      // _TODO: emit trạng thái "Đã kết nối" để ẩn banner
     });
 
     _connection!.onclose(({error}) {

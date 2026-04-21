@@ -19,28 +19,27 @@ class KhungGioItem {
     required this.isActive,
   });
 
-  // Getter: hiển thị giờ đẹp hơn
   String get thoiGian => '$gioBatDau - $gioKetThuc';
 
   factory KhungGioItem.fromJson(Map<String, dynamic> json) => KhungGioItem(
-        id: json['id'] as int,
-        dichVuId: json['dichVuId'] as int,
-        gioBatDau: json['gioBatDau'] as String? ?? '',
-        gioKetThuc: json['gioKetThuc'] as String? ?? '',
-        tenKhungGio: json['tenKhungGio'] as String? ?? '',
-        ngayTrongTuan: json['ngayTrongTuan'] as int? ?? 0,
-        isActive: json['isActive'] as bool? ?? false,
-      );
+    id: json['id'] as int,
+    dichVuId: json['dichVuId'] as int,
+    gioBatDau: json['gioBatDau'] as String? ?? '',
+    gioKetThuc: json['gioKetThuc'] as String? ?? '',
+    tenKhungGio: json['tenKhungGio'] as String? ?? '',
+    ngayTrongTuan: json['ngayTrongTuan'] as int? ?? 0,
+    isActive: json['isActive'] as bool? ?? false,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'dichVuId': dichVuId,
-        'gioBatDau': gioBatDau,
-        'gioKetThuc': gioKetThuc,
-        'tenKhungGio': tenKhungGio,
-        'ngayTrongTuan': ngayTrongTuan,
-        'isActive': isActive,
-      };
+    'id': id,
+    'dichVuId': dichVuId,
+    'gioBatDau': gioBatDau,
+    'gioKetThuc': gioKetThuc,
+    'tenKhungGio': tenKhungGio,
+    'ngayTrongTuan': ngayTrongTuan,
+    'isActive': isActive,
+  };
 
   KhungGioItem copyWith({
     int? id,
@@ -50,15 +49,13 @@ class KhungGioItem {
     String? tenKhungGio,
     int? ngayTrongTuan,
     bool? isActive,
-  }) {
-    return KhungGioItem(
-      id: id ?? this.id,
-      dichVuId: dichVuId ?? this.dichVuId,
-      gioBatDau: gioBatDau ?? this.gioBatDau,
-      gioKetThuc: gioKetThuc ?? this.gioKetThuc,
-      tenKhungGio: tenKhungGio ?? this.tenKhungGio,
-      ngayTrongTuan: ngayTrongTuan ?? this.ngayTrongTuan,
-      isActive: isActive ?? this.isActive,
-    );
-  }
+  }) => KhungGioItem(
+    id: id ?? this.id,
+    dichVuId: dichVuId ?? this.dichVuId,
+    gioBatDau: gioBatDau ?? this.gioBatDau,
+    gioKetThuc: gioKetThuc ?? this.gioKetThuc,
+    tenKhungGio: tenKhungGio ?? this.tenKhungGio,
+    ngayTrongTuan: ngayTrongTuan ?? this.ngayTrongTuan,
+    isActive: isActive ?? this.isActive,
+  );
 }

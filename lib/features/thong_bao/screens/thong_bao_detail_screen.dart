@@ -132,7 +132,7 @@ class _ThongBaoDetailScreenState extends State<ThongBaoDetailScreen> {
               style: const TextStyle(fontSize: 15, height: 1.7),
             ),
 
-            // TODO: parse metadata JSON để điều hướng đến màn hình liên quan
+            // _TODO: parse metadata JSON để điều hướng đến màn hình liên quan
             // Ví dụ: nếu loaiThongBaoId == 1 → navigate đến màn hình hóa đơn
             // context.push('/hoa-don/${_item.referenceId}')
           ],

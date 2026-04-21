@@ -6,15 +6,13 @@ class SelectorItem {
 
   const SelectorItem({required this.id, required this.name});
 
-  factory SelectorItem.fromJson(Map<String, dynamic> json) {
-    return SelectorItem(id: json['id'] as int, name: json['name'] as String);
-  }
+  factory SelectorItem.fromJson(Map<String, dynamic> json) =>
+      SelectorItem(id: json['id'] as int, name: json['name'] as String);
 
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
 
-  SelectorItem copyWith({int? id, String? name}) {
-    return SelectorItem(id: id ?? this.id, name: name ?? this.name);
-  }
+  SelectorItem copyWith({int? id, String? name}) =>
+      SelectorItem(id: id ?? this.id, name: name ?? this.name);
 
   @override
   String toString() => name;

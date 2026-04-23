@@ -1,3 +1,5 @@
+/*
+
 // lib/features/thong_bao/services/thong_bao_service.dart
 
 import 'package:dio/dio.dart';
@@ -110,3 +112,5 @@ class ThongBaoService {
     return e.message ?? 'Lỗi kết nối mạng';
   }
 }
+
+*/

@@ -16,6 +16,7 @@ import '../../features/profile/screens/profile_detail_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/profile/screens/change_avatar_screen.dart';
 
+import '../../features/yeu_cau_sua_chua/screens/yeu_cau_list_screen.dart';
 import '../guards/auth_guard.dart';
 import 'main_screen.dart';
 
@@ -69,6 +70,7 @@ class AppRouter {
               /// HOME
               GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
               GoRoute(path: '/dich-vu', builder: (_, _) => const DichVuListScreen(),),
+              GoRoute(path: '/sua-chua', builder: (_, _) => const YeuCauListScreen(),),
             ],
           ),
 

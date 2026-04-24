@@ -1,0 +1,421 @@
+// lib/features/yeu_cau_thi_cong/screens/yeu_cau_thi_cong_list_screen.dart
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../models/yeu_cau_thi_cong_list_item_model.dart';
+import '../models/trang_thai_thi_cong_model.dart';
+import '../services/yeu_cau_thi_cong_service.dart';
+import '../../../core/errors/errors.dart';
+import 'yeu_cau_thi_cong_detail_screen.dart';
+import 'yeu_cau_thi_cong_form_screen.dart';
+
+class YeuCauThiCongListScreen extends StatefulWidget {
+  // TODO: truyền canHoId từ context đăng nhập của cư dân
+  final int? canHoId;
+
+  const YeuCauThiCongListScreen({super.key, this.canHoId});
+
+  @override
+  State<YeuCauThiCongListScreen> createState() =>
+      _YeuCauThiCongListScreenState();
+}
+
+class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
+  final _service = YeuCauThiCongService.instance;
+  final _searchCtrl = TextEditingController();
+
+  List<YeuCauThiCongListItemModel> _items = [];
+  List<TrangThaiThiCongModel> _trangThaiList = [];
+  TrangThaiThiCongModel? _selectedTrangThai;
+
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  int _pageNumber = 1;
+  static const int _pageSize = 10;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
+
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl.addListener(_onScroll);
+    _loadTrangThaiAndData();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+            _scrollCtrl.position.maxScrollExtent - 200 &&
+        !_isLoadingMore &&
+        _hasMore) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadTrangThaiAndData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final trangThaiList = await _service.getTrangThaiThiCongList();
+      setState(() => _trangThaiList = trangThaiList);
+      await _loadData(reset: true);
+    } on AppException catch (e) {
+      setState(() => _errorMessage = e.message);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadData({bool reset = false}) async {
+    if (reset) {
+      _pageNumber = 1;
+      _hasMore = true;
+    }
+
+    try {
+      final result = await _service.getList(
+        canHoId: widget.canHoId,
+        trangThaiThiCongId: _selectedTrangThai?.id,
+        keyword: _searchCtrl.text.trim().isEmpty
+            ? null
+            : _searchCtrl.text.trim(),
+        pageNumber: _pageNumber,
+        pageSize: _pageSize,
+      );
+
+      setState(() {
+        if (reset) {
+          _items = result.items;
+        } else {
+          _items.addAll(result.items);
+        }
+        _hasMore = result.pagingInfo.hasMore;
+      });
+    } on AppException catch (e) {
+      _showError(e.message);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || !_hasMore) return;
+    setState(() => _isLoadingMore = true);
+    _pageNumber++;
+    await _loadData();
+    if (mounted) setState(() => _isLoadingMore = false);
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _onSearch() {
+    _loadData(reset: true);
+  }
+
+  Future<void> _onRefresh() async {
+    await _loadData(reset: true);
+  }
+
+  void _goToDetail(int id) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => YeuCauThiCongDetailScreen(id: id)),
+    );
+    if (result == true) _loadData(reset: true);
+  }
+
+  void _goToCreate() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => YeuCauThiCongFormScreen(canHoId: widget.canHoId ?? 0),
+      ),
+    );
+    if (result == true) _loadData(reset: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Yêu cầu Thi công'),
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _onRefresh),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _goToCreate,
+        icon: const Icon(Icons.add),
+        label: const Text('Tạo yêu cầu'),
+      ),
+      body: Column(
+        children: [
+          _buildFilterBar(),
+          Expanded(child: _buildBody()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Column(
+        children: [
+          // Search
+          TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(
+              hintText: 'Tìm theo hạng mục, đơn vị...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchCtrl.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        _onSearch();
+                      },
+                    )
+                  : null,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              isDense: true,
+            ),
+            onSubmitted: (_) => _onSearch(),
+            textInputAction: TextInputAction.search,
+          ),
+          const SizedBox(height: 8),
+          // Filter trạng thái thi công
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _TrangThaiChip(
+                  label: 'Tất cả',
+                  selected: _selectedTrangThai == null,
+                  onTap: () {
+                    setState(() => _selectedTrangThai = null);
+                    _loadData(reset: true);
+                  },
+                ),
+                ..._trangThaiList.map(
+                  (t) => _TrangThaiChip(
+                    label: t.name,
+                    selected: _selectedTrangThai?.id == t.id,
+                    onTap: () {
+                      setState(() => _selectedTrangThai = t);
+                      _loadData(reset: true);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadTrangThaiAndData,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_items.isEmpty) {
+      return const Center(child: Text('Chưa có yêu cầu thi công nào.'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: ListView.separated(
+        controller: _scrollCtrl,
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 80),
+        itemCount: _items.length + (_isLoadingMore ? 1 : 0),
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          if (index == _items.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          return _YeuCauCard(
+            item: _items[index],
+            onTap: () => _goToDetail(_items[index].id),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Chip filter ──────────────────────────────────────────────────────────────
+
+class _TrangThaiChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TrangThaiChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: FilterChip(
+        label: Text(label, style: const TextStyle(fontSize: 12)),
+        selected: selected,
+        onSelected: (_) => onTap(),
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+}
+
+// ── Card item ────────────────────────────────────────────────────────────────
+
+class _YeuCauCard extends StatelessWidget {
+  final YeuCauThiCongListItemModel item;
+  final VoidCallback onTap;
+
+  const _YeuCauCard({required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final df = DateFormat('dd/MM/yyyy');
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.hangMucThiCong,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _StatusBadge(label: item.trangThaiYeuCauTen),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Căn hộ: ${item.tenCanHo}',
+                style: TextStyle(color: Colors.grey[700], fontSize: 13),
+              ),
+              if (item.tenDonViThiCong.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Đơn vị: ${item.tenDonViThiCong}',
+                  style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                ),
+              ],
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 13,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    item.duKienBatDau != null
+                        ? '${df.format(item.duKienBatDau!)} → ${item.duKienKetThuc != null ? df.format(item.duKienKetThuc!) : '?'}'
+                        : 'Chưa có ngày',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const Spacer(),
+                  _StatusBadge(
+                    label: item.trangThaiThiCongTen,
+                    color: Colors.teal,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color? color;
+
+  const _StatusBadge({required this.label, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    if (label.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: (color ?? Colors.blue).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: (color ?? Colors.blue).withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          color: color ?? Colors.blue,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}

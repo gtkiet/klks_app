@@ -15,7 +15,7 @@ class GetListPhuongTienRequest {
   final String? mauXe;
   final int? trangThaiPhuongTienId;
   final String? sortCol;
-  final bool? isAsc;
+  final bool isAsc;
 
   const GetListPhuongTienRequest({
     required this.pageNumber,
@@ -28,12 +28,13 @@ class GetListPhuongTienRequest {
     this.mauXe,
     this.trangThaiPhuongTienId,
     this.sortCol,
-    this.isAsc,
+    this.isAsc = false,
   });
 
   Map<String, dynamic> toJson() => {
     'pageNumber': pageNumber,
     'pageSize': pageSize,
+    'isAsc': isAsc,
     if (toaNhaId != null) 'toaNhaId': toaNhaId,
     if (tangId != null) 'tangId': tangId,
     if (canHoId != null) 'canHoId': canHoId,
@@ -43,7 +44,6 @@ class GetListPhuongTienRequest {
     if (trangThaiPhuongTienId != null)
       'trangThaiPhuongTienId': trangThaiPhuongTienId,
     if (sortCol != null) 'sortCol': sortCol,
-    if (isAsc != null) 'isAsc': isAsc,
   };
 }
 
@@ -55,6 +55,9 @@ class GetListYeuCauPhuongTienRequest {
   final int? canHoId;
   final int? loaiYeuCauId;
   final int? trangThaiId;
+  final String? keyword;
+  final String? sortCol;
+  final bool isAsc;
 
   const GetListYeuCauPhuongTienRequest({
     required this.pageNumber,
@@ -64,16 +67,22 @@ class GetListYeuCauPhuongTienRequest {
     this.canHoId,
     this.loaiYeuCauId,
     this.trangThaiId,
+    this.keyword,
+    this.sortCol = 'createdAt',
+    this.isAsc = false,
   });
 
   Map<String, dynamic> toJson() => {
     'pageNumber': pageNumber,
     'pageSize': pageSize,
+    'isAsc': isAsc,
+    'sortCol': sortCol,
     if (toaNhaId != null) 'toaNhaId': toaNhaId,
     if (tangId != null) 'tangId': tangId,
     if (canHoId != null) 'canHoId': canHoId,
     if (loaiYeuCauId != null) 'loaiYeuCauId': loaiYeuCauId,
     if (trangThaiId != null) 'trangThaiId': trangThaiId,
+    if (keyword != null) 'keyword': keyword,
   };
 }
 

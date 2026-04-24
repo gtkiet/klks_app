@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/navigation/app_navigation.dart';
+
 import '../services/home_service.dart';
 import '../models/home_data.dart';
 
@@ -55,19 +56,30 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
     ).showSnackBar(const SnackBar(content: Text('Logged out')));
 
+    /// global route OK
     context.go('/login');
   }
 
   // ================= NAVIGATION =================
 
-  /// Push 1 screen vào stack của tab Home (có nút back)
-  void _pushInHomeTab(String route, {Object? extra}) {
+  /// Push trong cùng tab
+  void _push(String route, {Object? extra}) {
     context.push(route, extra: extra);
   }
 
-  /// Switch sang tab khác (không push, không có nút back)
-  void _switchTab(int tabIndex) {
-    AppNavigation.goTab(tabIndex);
+  /// Switch tab
+  void _goTab(int index) {
+    AppNavigation.goTab(index);
+  }
+
+  // /// 🔥 Cross-tab chuẩn (KHÔNG BUG)
+  void _goCrossTab(String route, int tab) {
+    AppNavigation.goTab(tab);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.push(route);
+    });
   }
 
   // ================= UI HELPERS =================
@@ -148,38 +160,32 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          /// USER INFO
+          /// USER
           _buildUserInfo(),
 
           const SizedBox(height: 24),
 
-          /// PUSH VÀO STACK CỦA TAB HOME (có nút back)
-          _sectionTitle('Màn hình trong tab Home (có nút back)'),
+          /// FEATURES
+          _sectionTitle('Features (Push in stack)'),
           _button(
-            label: 'Dịch vụ',
-            onPressed: () => _pushInHomeTab('/dich-vu'),
+            label: 'Căn hộ của tôi',
+            onPressed: () => _goCrossTab('/cu-tru', 1),
           ),
-          _button(
-            label: 'Yêu cầu sửa chữa',
-            onPressed: () => _pushInHomeTab('/sua-chua'),
-          ),
-          _button(
-            label: 'Yêu cầu thi công',
-            onPressed: () => _pushInHomeTab('/thi-cong'),
-          ),
+          _button(label: 'Hóa đơn', onPressed: () => _push('/bills')),
+          _button(label: 'Dịch vụ', onPressed: () => _push('/dich-vu')),
+          _button(label: 'Yêu cầu sửa chữa', onPressed: () => _push('/sua-chua')),
+          // _button(
+          //   label: 'Thông báo (push)',
+          //   onPressed: () => _push('/notification'),
+          // ),
+          // _button(label: 'Phương tiện', onPressed: () => _push('/phuong-tien')),
 
           const SizedBox(height: 16),
 
-          /// SWITCH SANG TAB KHÁC (không có nút back)
-          _sectionTitle('Chuyển sang tab khác (không có nút back)'),
-          _button(
-            label: 'Căn hộ của tôi → Tab Cư trú',
-            onPressed: () => _switchTab(1),
-          ),
-          _button(
-            label: 'Trang cá nhân → Tab Profile',
-            onPressed: () => _switchTab(2),
-          ),
+          /// TAB NAVIGATION
+          _sectionTitle('Tab Navigation'),
+          _button(label: 'Go to Profile Tab', onPressed: () => _goTab(2)),
+          // _button(label: 'Go to Notification Tab', onPressed: () => _goTab(1)),
 
           const SizedBox(height: 24),
 

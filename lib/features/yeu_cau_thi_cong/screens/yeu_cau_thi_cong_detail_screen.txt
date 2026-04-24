@@ -1,0 +1,509 @@
+// lib/features/yeu_cau_thi_cong/screens/yeu_cau_thi_cong_detail_screen.dart
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../models/yeu_cau_thi_cong_detail_model.dart';
+import '../models/nhan_su_thi_cong_model.dart';
+import '../models/tep_dinh_kem_model.dart';
+import '../services/yeu_cau_thi_cong_service.dart';
+import '../../../core/errors/errors.dart';
+import 'yeu_cau_thi_cong_form_screen.dart';
+
+class YeuCauThiCongDetailScreen extends StatefulWidget {
+  final int id;
+
+  const YeuCauThiCongDetailScreen({super.key, required this.id});
+
+  @override
+  State<YeuCauThiCongDetailScreen> createState() =>
+      _YeuCauThiCongDetailScreenState();
+}
+
+class _YeuCauThiCongDetailScreenState extends State<YeuCauThiCongDetailScreen> {
+  final _service = YeuCauThiCongService.instance;
+
+  YeuCauThiCongDetailModel? _detail;
+  bool _isLoading = false;
+  String? _errorMessage;
+  bool _isWithdrawing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDetail();
+  }
+
+  Future<void> _loadDetail() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final detail = await _service.getById(widget.id);
+      setState(() => _detail = detail);
+    } on AppException catch (e) {
+      setState(() => _errorMessage = e.message);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  Future<void> _goToEdit() async {
+    if (_detail == null) return;
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => YeuCauThiCongFormScreen(
+          canHoId: _detail!.canHoId,
+          existingDetail: _detail,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (result == true) {
+      _loadDetail();
+      Navigator.pop(context, true); // báo list reload
+    }
+  }
+
+  Future<void> _confirmWithdraw() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Thu hồi yêu cầu'),
+        content: const Text('Bạn có chắc muốn thu hồi yêu cầu này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Thu hồi'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || _detail == null) return;
+
+    setState(() => _isWithdrawing = true);
+    try {
+      await _service.withdraw(_detail!);
+      _showSuccess('Đã thu hồi yêu cầu thành công');
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } on AppException catch (e) {
+      _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _isWithdrawing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Chi tiết Yêu cầu'),
+        actions: [
+          if (_detail?.coTheChinhSua == true)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Chỉnh sửa',
+              onPressed: _goToEdit,
+            ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loadDetail,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_detail == null) return const SizedBox.shrink();
+
+    final d = _detail!;
+    final df = DateFormat('dd/MM/yyyy');
+    final dtf = DateFormat('dd/MM/yyyy HH:mm');
+
+    return RefreshIndicator(
+      onRefresh: _loadDetail,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ── Trạng thái banner ──────────────────────────────────────────
+          if (d.isReturned)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                border: Border.all(color: Colors.orange.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber,
+                        color: Colors.orange.shade700,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Yêu cầu bổ sung từ BQL',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (d.lyDo.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      d.lyDo,
+                      style: TextStyle(color: Colors.orange.shade900),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+          // ── Thông tin chính ────────────────────────────────────────────
+          _SectionCard(
+            title: 'Thông tin yêu cầu',
+            children: [
+              _InfoRow(label: 'Căn hộ', value: d.tenCanHo),
+              _InfoRow(label: 'Hạng mục', value: d.hangMucThiCong),
+              _InfoRow(
+                label: 'Dự kiến bắt đầu',
+                value: d.duKienBatDau != null
+                    ? df.format(d.duKienBatDau!)
+                    : '-',
+              ),
+              _InfoRow(
+                label: 'Dự kiến kết thúc',
+                value: d.duKienKetThuc != null
+                    ? df.format(d.duKienKetThuc!)
+                    : '-',
+              ),
+              _InfoRow(label: 'Đơn vị thi công', value: d.tenDonViThiCong),
+              _InfoRow(label: 'Người đại diện', value: d.nguoiDaiDien),
+              _InfoRow(label: 'Điện thoại ĐD', value: d.soDienThoaiDaiDien),
+              if (d.noiDung.isNotEmpty)
+                _InfoRow(label: 'Nội dung', value: d.noiDung),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // ── Trạng thái ────────────────────────────────────────────────
+          _SectionCard(
+            title: 'Trạng thái',
+            children: [
+              _InfoRow(label: 'Hành chính', value: d.trangThaiYeuCauTen),
+              _InfoRow(label: 'Thi công', value: d.trangThaiThiCongTen),
+              _InfoRow(
+                label: 'Ngày tạo',
+                value: d.createdAt != null ? dtf.format(d.createdAt!) : '-',
+              ),
+              _InfoRow(label: 'Người gửi', value: d.tenNguoiGui),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // ── Tiền cọc ──────────────────────────────────────────────────
+          if (d.tienDatCoc > 0)
+            _SectionCard(
+              title: 'Thông tin tiền cọc',
+              children: [
+                _InfoRow(label: 'Tiền đặt cọc', value: d.tienDatCocFormatted),
+                _InfoRow(
+                  label: 'Đã thu cọc',
+                  value: d.isDaThuCoc ? 'Đã thu' : 'Chưa thu',
+                ),
+                if (d.ghiChuThuCoc.isNotEmpty)
+                  _InfoRow(label: 'Ghi chú', value: d.ghiChuThuCoc),
+                if (d.tienKhauTru > 0) ...[
+                  _InfoRow(
+                    label: 'Tiền khấu trừ',
+                    value: '${d.tienKhauTru.toStringAsFixed(0)} đ',
+                  ),
+                  if (d.lyDoKhauTru.isNotEmpty)
+                    _InfoRow(label: 'Lý do khấu trừ', value: d.lyDoKhauTru),
+                ],
+                _InfoRow(
+                  label: 'Đã hoàn cọc',
+                  value: d.isDaHoanCoc ? 'Đã hoàn' : 'Chưa hoàn',
+                ),
+              ],
+            ),
+          if (d.tienDatCoc > 0) const SizedBox(height: 12),
+
+          // ── Nhân sự ───────────────────────────────────────────────────
+          _SectionCard(
+            title: 'Danh sách nhân sự (${d.nhanSuThiCongs.length})',
+            children: d.nhanSuThiCongs.isEmpty
+                ? [
+                    const Text(
+                      'Chưa có nhân sự',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ]
+                : d.nhanSuThiCongs
+                      .map((ns) => _NhanSuTile(nhanSu: ns))
+                      .toList(),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Tệp đính kèm ──────────────────────────────────────────────
+          _SectionCard(
+            title: 'Hồ sơ đính kèm (${d.danhSachTep.length})',
+            children: d.danhSachTep.isEmpty
+                ? [
+                    const Text(
+                      'Chưa có tệp',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ]
+                : d.danhSachTep.map((tep) => _TepTile(tep: tep)).toList(),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Actions ───────────────────────────────────────────────────
+          if (d.coTheChinhSua)
+            Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _goToEdit,
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Chỉnh sửa & Gửi lại'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (d.coTheThuHoi)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _isWithdrawing ? null : _confirmWithdraw,
+                      icon: _isWithdrawing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.undo),
+                      label: Text(
+                        _isWithdrawing ? 'Đang thu hồi...' : 'Thu hồi yêu cầu',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shared UI components ─────────────────────────────────────────────────────
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _SectionCard({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const Divider(),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            ),
+          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
+    );
+  }
+}
+
+class _NhanSuTile extends StatelessWidget {
+  final NhanSuThiCongModel nhanSu;
+
+  const _NhanSuTile({required this.nhanSu});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  nhanSu.hoTen,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              if (nhanSu.vaiTro.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    nhanSu.vaiTro,
+                    style: TextStyle(fontSize: 11, color: Colors.blue.shade700),
+                  ),
+                ),
+            ],
+          ),
+          if (nhanSu.soCCCD.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              'CCCD: ${nhanSu.soCCCD}',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+          if (nhanSu.soDienThoai.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              'SĐT: ${nhanSu.soDienThoai}',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+          if (nhanSu.ghiChu.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              'Ghi chú: ${nhanSu.ghiChu}',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TepTile extends StatelessWidget {
+  final TepDinhKemModel tep;
+
+  const _TepTile({required this.tep});
+
+  @override
+  Widget build(BuildContext context) {
+    final isImage = tep.contentType.startsWith('image/');
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(
+        isImage ? Icons.image : Icons.insert_drive_file,
+        color: Colors.blue,
+      ),
+      title: Text(
+        tep.fileName.isNotEmpty ? tep.fileName : 'Tệp #${tep.id}',
+        style: const TextStyle(fontSize: 13),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: tep.contentType.isNotEmpty
+          ? Text(tep.contentType, style: const TextStyle(fontSize: 11))
+          : null,
+      // TODO: mở file bằng url_launcher hoặc file preview
+    );
+  }
+}

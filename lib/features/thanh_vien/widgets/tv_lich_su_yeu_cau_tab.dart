@@ -76,8 +76,6 @@ class _LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
           pageNumber: 1,
           pageSize: _pageSize,
           canHoId: widget.item.canHoId,
-          sortCol: 'createdAt',
-          isAsc: false,
         ),
       );
       setState(() {

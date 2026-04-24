@@ -1,38 +1,41 @@
-// lib/features/yeu_cau_sua_chua/screens/yeu_cau_list_screen.dart
+// lib/features/yeu_cau_thi_cong/screens/yeu_cau_thi_cong_list_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../cu_tru/models/quan_he_cu_tru_model.dart';
 import '../../cu_tru/services/cu_tru_service.dart';
-import '../models/yeu_cau_sua_chua_model.dart';
-import '../models/yeu_cau_sua_chua_request.dart';
-import '../services/yeu_cau_sua_chua_service.dart';
-import 'yeu_cau_create_screen.dart';
-import 'yeu_cau_detail_screen.dart';
+import '../models/trang_thai_yeu_cau.dart';
+import '../models/yeu_cau_thi_cong_list_item_model.dart';
+import '../models/trang_thai_thi_cong_model.dart';
+import '../services/yeu_cau_thi_cong_service.dart';
+import 'yeu_cau_thi_cong_detail_screen.dart';
+import 'yeu_cau_thi_cong_form_screen.dart';
 
-class YeuCauListScreen extends StatefulWidget {
-  const YeuCauListScreen({super.key});
+class YeuCauThiCongListScreen extends StatefulWidget {
+  const YeuCauThiCongListScreen({super.key});
 
   @override
-  State<YeuCauListScreen> createState() => _YeuCauListScreenState();
+  State<YeuCauThiCongListScreen> createState() =>
+      _YeuCauThiCongListScreenState();
 }
 
-class _YeuCauListScreenState extends State<YeuCauListScreen> {
-  final _service = YeuCauSuaChuaService.instance;
+class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
+  final _service = YeuCauThiCongService.instance;
   final _cuTruService = CuTruService.instance;
 
   // Data
-  List<YeuCauSuaChua> _items = [];
-  List<CatalogItem> _dsTrangThai = [];
+  List<YeuCauThiCongListItemModel> _items = [];
+  List<TrangThaiThiCongModel> _dsTrangThai = [];
   List<QuanHeCuTruModel> _dsCanHo = [];
 
   // Selection state
-  QuanHeCuTruModel? _selectedCanHo; // null = chưa chọn (không xảy ra sau load)
+  QuanHeCuTruModel? _selectedCanHo;
   int? _filterTrangThaiId;
 
   // Loading state
-  bool _isInitLoading = true; // lần đầu load căn hộ + catalog
-  bool _isListLoading = false; // load/reload danh sách yêu cầu
+  bool _isInitLoading = true;
+  bool _isListLoading = false;
   String? _initError;
   String? _listError;
 
@@ -53,21 +56,19 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
     try {
       final results = await Future.wait([
         _cuTruService.getQuanHeCuTruList(),
-        _service.getTrangThaiYeuCau(),
+        _service.getTrangThaiThiCongList(),
       ]);
 
       final dsCanHo = results[0] as List<QuanHeCuTruModel>;
-      final dsTrangThai = results[1] as List<CatalogItem>;
+      final dsTrangThai = results[1] as List<TrangThaiThiCongModel>;
 
       setState(() {
         _dsCanHo = dsCanHo;
         _dsTrangThai = dsTrangThai;
-        // Mặc định chọn căn hộ đầu tiên
         _selectedCanHo = dsCanHo.isNotEmpty ? dsCanHo.first : null;
         _isInitLoading = false;
       });
 
-      // Sau khi có căn hộ, load danh sách yêu cầu
       if (_selectedCanHo != null) await _loadList();
     } on Exception catch (e) {
       setState(() {
@@ -77,7 +78,7 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
     }
   }
 
-  // ── Load / reload danh sách yêu cầu theo căn hộ đang chọn ───────────────
+  // ── Load / reload danh sách theo căn hộ đang chọn ───────────────────────
 
   Future<void> _loadList() async {
     if (_selectedCanHo == null) return;
@@ -89,11 +90,8 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
 
     try {
       final result = await _service.getList(
-        GetListYeuCauRequest(
-          // Lọc theo canHoId của căn hộ đang chọn → cư dân chỉ thấy của mình
-          canHoId: _selectedCanHo!.canHoId,
-          trangThaiYeuCauId: _filterTrangThaiId,
-        ),
+        canHoId: _selectedCanHo!.canHoId,
+        trangThaiThiCongId: _filterTrangThaiId,
       );
       setState(() => _items = result.items);
     } on Exception catch (e) {
@@ -109,7 +107,7 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
     if (_selectedCanHo?.canHoId == canHo.canHoId) return;
     setState(() {
       _selectedCanHo = canHo;
-      _filterTrangThaiId = null; // reset filter khi đổi căn hộ
+      _filterTrangThaiId = null;
       _items = [];
     });
     _loadList();
@@ -120,24 +118,31 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
   void _navigateToCreate() async {
     final created = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => YeuCauCreateScreen(dsCanHo: _dsCanHo)),
+      MaterialPageRoute(
+        builder: (_) =>
+            YeuCauThiCongFormScreen(dsCanHo: _dsCanHo),
+      ),
     );
     if (created == true) _loadList();
   }
 
-  void _navigateToDetail(YeuCauSuaChua item) async {
+  void _navigateToDetail(YeuCauThiCongListItemModel item) async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => YeuCauDetailScreen(yeuCauId: item.id)),
+      MaterialPageRoute(
+        builder: (_) => YeuCauThiCongDetailScreen(id: item.id),
+      ),
     );
     if (changed == true) _loadList();
   }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yêu cầu sửa chữa'),
+        title: const Text('Yêu cầu thi công'),
         actions: [
           // Filter trạng thái
           PopupMenuButton<int?>(
@@ -204,17 +209,14 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
   }
 
   Widget _buildBody() {
-    // Init error
     if (_initError != null) {
       return _ErrorRetry(message: _initError!, onRetry: _initData);
     }
 
-    // Init loading
     if (_isInitLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Không có căn hộ nào
     if (_dsCanHo.isEmpty) {
       return const Center(
         child: Padding(
@@ -247,7 +249,7 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
         // ── Filter chip active ────────────────────────────────────────────
         if (_filterTrangThaiId != null) _buildActiveFilterBar(),
 
-        // ── Danh sách yêu cầu ─────────────────────────────────────────────
+        // ── Danh sách ─────────────────────────────────────────────────────
         Expanded(child: _buildList()),
       ],
     );
@@ -298,7 +300,7 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.handyman_outlined,
+              Icons.construction_outlined,
               size: 64,
               color: Colors.grey.shade300,
             ),
@@ -306,7 +308,7 @@ class _YeuCauListScreenState extends State<YeuCauListScreen> {
             Text(
               _filterTrangThaiId != null
                   ? 'Không có yêu cầu nào với bộ lọc này.'
-                  : 'Căn hộ này chưa có yêu cầu sửa chữa nào.',
+                  : 'Căn hộ này chưa có yêu cầu thi công nào.',
               style: TextStyle(color: Colors.grey.shade500),
               textAlign: TextAlign.center,
             ),
@@ -347,12 +349,9 @@ class _CanHoSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Chỉ 1 căn hộ → hiển thị tĩnh, không cần chọn
     if (dsCanHo.length == 1) {
       return _SingleCanHoBanner(canHo: dsCanHo.first);
     }
-
-    // Nhiều căn hộ → dropdown
     return _CanHoDropdown(
       dsCanHo: dsCanHo,
       selected: selected,
@@ -361,7 +360,6 @@ class _CanHoSelector extends StatelessWidget {
   }
 }
 
-// Banner tĩnh khi chỉ có 1 căn hộ (giữ nguyên)
 class _SingleCanHoBanner extends StatelessWidget {
   final QuanHeCuTruModel canHo;
   const _SingleCanHoBanner({required this.canHo});
@@ -413,7 +411,6 @@ class _SingleCanHoBanner extends StatelessWidget {
   }
 }
 
-// Dropdown khi có nhiều căn hộ
 class _CanHoDropdown extends StatelessWidget {
   final List<QuanHeCuTruModel> dsCanHo;
   final QuanHeCuTruModel? selected;
@@ -471,7 +468,8 @@ class _CanHoDropdown extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.blue.shade600, width: 1.5),
+                borderSide:
+                    BorderSide(color: Colors.blue.shade600, width: 1.5),
               ),
               filled: true,
               fillColor: Colors.grey.shade50,
@@ -525,35 +523,38 @@ class _CanHoDropdown extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Card yêu cầu (giữ nguyên từ version trước)
+// Card yêu cầu
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _YeuCauCard extends StatelessWidget {
-  final YeuCauSuaChua item;
+  final YeuCauThiCongListItemModel item;
   final VoidCallback onTap;
 
   const _YeuCauCard({required this.item, required this.onTap});
 
   Color get _statusColor {
     switch (item.trangThaiYeuCauId) {
-      case TrangThaiYeuCau.saved:
+      case TrangThaiYeuCauConst.daLuu:
         return Colors.grey;
-      case TrangThaiYeuCau.pending:
+      case TrangThaiYeuCauConst.dangChoDuyet:
         return Colors.orange;
-      case TrangThaiYeuCau.approved:
+      case TrangThaiYeuCauConst.daDuyet:
         return Colors.blue;
-      case TrangThaiYeuCau.returned:
+      case TrangThaiYeuCauConst.yeuCauBoSung:
         return Colors.amber.shade700;
-      case TrangThaiYeuCau.completed:
+      case TrangThaiYeuCauConst.hoanTat:
         return Colors.green;
-      default:
+      case TrangThaiYeuCauConst.tuChoi:
+      case TrangThaiYeuCauConst.daHuy:
         return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor;
+    final df = DateFormat('dd/MM/yyyy');
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -567,46 +568,40 @@ class _YeuCauCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      item.loaiSuCoTen ?? 'Sự cố #${item.loaiSuCoId}',
+                      item.hangMucThiCong,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  _StatusChip(label: item.trangThaiLabel, color: color),
+                  const SizedBox(width: 8),
+                  _StatusChip(label: item.trangThaiYeuCauTen, color: _statusColor),
                 ],
               ),
               const SizedBox(height: 6),
-              Text(
-                item.noiDung,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              _IconText(Icons.apartment, item.diaChiDayDu),
-              if (item.trangThaiSuaChuaTen != null) ...[
+              _IconText(Icons.apartment, 'Căn hộ: ${item.tenCanHo}'),
+              if (item.tenDonViThiCong.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                _IconText(Icons.business, 'Đơn vị: ${item.tenDonViThiCong}'),
+              ],
+              if (item.trangThaiThiCongTen.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 _IconText(
                   Icons.engineering,
-                  item.trangThaiSuaChuaTen!,
-                  color: Colors.blue,
-                ),
-              ],
-              if (item.henTu != null) ...[
-                const SizedBox(height: 4),
-                _IconText(
-                  Icons.calendar_today,
-                  'Hẹn: ${_fmt(item.henTu!)}',
+                  item.trangThaiThiCongTen,
                   color: Colors.teal,
                 ),
               ],
-              if (item.createdAt != null) ...[
+              if (item.duKienBatDau != null) ...[
                 const SizedBox(height: 4),
                 _IconText(
-                  Icons.access_time,
-                  'Gửi lúc: ${_fmt(item.createdAt!)}',
+                  Icons.calendar_today,
+                  'Dự kiến: ${df.format(item.duKienBatDau!)}'
+                  '${item.duKienKetThuc != null ? ' → ${df.format(item.duKienKetThuc!)}' : ''}',
+                  color: Colors.teal,
                 ),
               ],
             ],
@@ -614,12 +609,6 @@ class _YeuCauCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _fmt(DateTime dt) {
-    final l = dt.toLocal();
-    return '${l.day}/${l.month}/${l.year} '
-        '${l.hour.toString().padLeft(2, '0')}:${l.minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -630,10 +619,15 @@ class _YeuCauCard extends StatelessWidget {
 class _StatusChip extends StatelessWidget {
   final String label;
   final Color color;
-  const _StatusChip({required this.label, required this.color});
+
+  const _StatusChip({
+    required this.label,
+    this.color = Colors.blue,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (label.isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

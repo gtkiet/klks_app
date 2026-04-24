@@ -3,13 +3,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/screens/login_screen.dart';
+import '../guards/auth_guard.dart';
+import 'main_screen.dart';
 
-import '../../features/cu_tru/screens/cu_tru_list_screen.dart';
-import '../../features/dich_vu/screens/dich_vu_list_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
 
+import '../../features/auth/screens/login_screen.dart';
+
 import '../../features/home/screens/home_screen.dart';
+
+import '../../features/cu_tru/screens/cu_tru_list_screen.dart';
+
+import '../../features/dich_vu/screens/dich_vu_list_screen.dart';
 
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/profile_detail_screen.dart';
@@ -17,8 +22,8 @@ import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/profile/screens/change_avatar_screen.dart';
 
 import '../../features/yeu_cau_sua_chua/screens/yeu_cau_list_screen.dart';
-import '../guards/auth_guard.dart';
-import 'main_screen.dart';
+
+import '../../features/yeu_cau_thi_cong/screens/yeu_cau_thi_cong_list_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -71,6 +76,7 @@ class AppRouter {
               GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
               GoRoute(path: '/dich-vu', builder: (_, _) => const DichVuListScreen(),),
               GoRoute(path: '/sua-chua', builder: (_, _) => const YeuCauListScreen(),),
+              GoRoute(path: '/thi-cong', builder: (_, _) => const YeuCauThiCongListScreen(),),
             ],
           ),
 

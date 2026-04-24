@@ -14,6 +14,7 @@ class GetListYeuCauCuTruRequest {
   final int? canHoId;
   final int? loaiYeuCauId;
   final int? trangThaiId;
+  final String? keyword;
   final String? sortCol;
   final bool isAsc;
 
@@ -25,20 +26,22 @@ class GetListYeuCauCuTruRequest {
     this.canHoId,
     this.loaiYeuCauId,
     this.trangThaiId,
-    this.sortCol,
-    this.isAsc = true,
+    this.keyword,
+    this.sortCol = 'createdAt',
+    this.isAsc = false,
   });
 
   Map<String, dynamic> toJson() => {
     'pageNumber': pageNumber,
     'pageSize': pageSize,
     'isAsc': isAsc,
+    'sortCol': sortCol,
     if (toaNhaId != null) 'toaNhaId': toaNhaId,
     if (tangId != null) 'tangId': tangId,
     if (canHoId != null) 'canHoId': canHoId,
     if (loaiYeuCauId != null) 'loaiYeuCauId': loaiYeuCauId,
     if (trangThaiId != null) 'trangThaiId': trangThaiId,
-    if (sortCol != null) 'sortCol': sortCol,
+    if (keyword != null) 'keyword': keyword,
   };
 }
 

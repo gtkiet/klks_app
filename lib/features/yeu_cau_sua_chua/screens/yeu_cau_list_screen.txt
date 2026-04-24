@@ -1,0 +1,375 @@
+// lib/features/yeu_cau_sua_chua/screens/yeu_cau_list_screen.dart
+
+import 'package:flutter/material.dart';
+
+import '../../cu_tru/models/quan_he_cu_tru_model.dart';
+import '../../cu_tru/services/cu_tru_service.dart';
+import '../models/yeu_cau_sua_chua_model.dart';
+import '../models/yeu_cau_sua_chua_request.dart';
+import '../services/yeu_cau_sua_chua_service.dart';
+import 'yeu_cau_create_screen.dart';
+import 'yeu_cau_detail_screen.dart';
+
+class YeuCauListScreen extends StatefulWidget {
+  const YeuCauListScreen({super.key});
+
+  @override
+  State<YeuCauListScreen> createState() => _YeuCauListScreenState();
+}
+
+class _YeuCauListScreenState extends State<YeuCauListScreen> {
+  final _service = YeuCauSuaChuaService.instance;
+  final _cuTruService = CuTruService.instance;
+
+  List<YeuCauSuaChua> _items = [];
+  List<CatalogItem> _dsTrangThai = [];
+  List<QuanHeCuTruModel> _dsCanHo = [];
+
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  // Filter
+  int? _filterTrangThaiId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAll();
+  }
+
+  Future<void> _loadAll() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Load song song catalog + căn hộ + danh sách yêu cầu
+      final results = await Future.wait([
+        _service.getTrangThaiYeuCau(),
+        _cuTruService.getQuanHeCuTruList(),
+        _service.getList(
+          GetListYeuCauRequest(trangThaiYeuCauId: _filterTrangThaiId),
+        ),
+      ]);
+
+      setState(() {
+        _dsTrangThai = results[0] as List<CatalogItem>;
+        _dsCanHo = results[1] as List<QuanHeCuTruModel>;
+        _items = (results[2] as PagedResult<YeuCauSuaChua>).items;
+      });
+    } on Exception catch (e) {
+      setState(() => _errorMessage = e.toString());
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _reloadList() async {
+    try {
+      final result = await _service.getList(
+        GetListYeuCauRequest(trangThaiYeuCauId: _filterTrangThaiId),
+      );
+      setState(() => _items = result.items);
+    } on Exception catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  void _navigateToCreate() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => YeuCauCreateScreen(dsCanHo: _dsCanHo)),
+    );
+    if (created == true) _reloadList();
+  }
+
+  void _navigateToDetail(YeuCauSuaChua item) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => YeuCauDetailScreen(yeuCauId: item.id)),
+    );
+    if (changed == true) _reloadList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Yêu cầu sửa chữa'),
+        actions: [
+          // Filter trạng thái từ catalog API thực
+          PopupMenuButton<int?>(
+            icon: Stack(
+              children: [
+                const Icon(Icons.filter_list),
+                if (_filterTrangThaiId != null)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            tooltip: 'Lọc trạng thái',
+            onSelected: (val) {
+              setState(() => _filterTrangThaiId = val);
+              _reloadList();
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem<int?>(value: null, child: Text('Tất cả')),
+              ..._dsTrangThai.map(
+                (t) => PopupMenuItem<int?>(value: t.id, child: Text(t.name)),
+              ),
+            ],
+          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAll),
+        ],
+      ),
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _dsCanHo.isEmpty ? null : _navigateToCreate,
+        icon: const Icon(Icons.add),
+        label: const Text('Tạo yêu cầu'),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return _ErrorRetry(message: _errorMessage!, onRetry: _loadAll);
+    }
+
+    if (_items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.handyman_outlined,
+              size: 64,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _filterTrangThaiId != null
+                  ? 'Không có yêu cầu nào với bộ lọc này.'
+                  : 'Chưa có yêu cầu sửa chữa nào.',
+              style: TextStyle(color: Colors.grey.shade500),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _reloadList,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        itemCount: _items.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        itemBuilder: (_, i) => _YeuCauCard(
+          item: _items[i],
+          onTap: () => _navigateToDetail(_items[i]),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+class _YeuCauCard extends StatelessWidget {
+  final YeuCauSuaChua item;
+  final VoidCallback onTap;
+
+  const _YeuCauCard({required this.item, required this.onTap});
+
+  Color get _statusColor {
+    switch (item.trangThaiYeuCauId) {
+      case TrangThaiYeuCau.saved:
+        return Colors.grey;
+      case TrangThaiYeuCau.pending:
+        return Colors.orange;
+      case TrangThaiYeuCau.approved:
+        return Colors.blue;
+      case TrangThaiYeuCau.returned:
+        return Colors.amber.shade700;
+      case TrangThaiYeuCau.completed:
+        return Colors.green;
+      default:
+        return Colors.red;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _statusColor;
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.loaiSuCoTen ?? 'Sự cố #${item.loaiSuCoId}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  _StatusChip(label: item.trangThaiLabel, color: color),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                item.noiDung,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              // Địa chỉ căn hộ
+              _IconText(Icons.apartment, item.diaChiDayDu),
+              // Sub-status
+              if (item.trangThaiSuaChuaTen != null) ...[
+                const SizedBox(height: 4),
+                _IconText(
+                  Icons.engineering,
+                  item.trangThaiSuaChuaTen!,
+                  color: Colors.blue,
+                ),
+              ],
+              // Lịch hẹn
+              if (item.henTu != null) ...[
+                const SizedBox(height: 4),
+                _IconText(
+                  Icons.calendar_today,
+                  'Hẹn: ${_fmt(item.henTu!)}',
+                  color: Colors.teal,
+                ),
+              ],
+              // Ngày tạo
+              if (item.createdAt != null) ...[
+                const SizedBox(height: 4),
+                _IconText(
+                  Icons.access_time,
+                  'Gửi lúc: ${_fmt(item.createdAt!)}',
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _fmt(DateTime dt) {
+    final l = dt.toLocal();
+    return '${l.day}/${l.month}/${l.year} '
+        '${l.hour.toString().padLeft(2, '0')}:${l.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+// ─── Shared small widgets ─────────────────────────────────────────────────────
+
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _StatusChip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _IconText extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color? color;
+  const _IconText(this.icon, this.text, {this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? Colors.grey.shade600;
+    return Row(
+      children: [
+        Icon(icon, size: 13, color: c),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(text, style: TextStyle(fontSize: 12, color: c)),
+        ),
+      ],
+    );
+  }
+}
+
+class _ErrorRetry extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+  const _ErrorRetry({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

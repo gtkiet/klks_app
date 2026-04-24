@@ -15,7 +15,7 @@ class GetListYeuCauRequest {
   const GetListYeuCauRequest({
     this.pageNumber = 1,
     this.pageSize = 10,
-    this.sortCol = 'Created',
+    this.sortCol = 'CreatedAt',
     this.isAsc = false,
     this.canHoId,
     this.trangThaiYeuCauId,

@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/errors/errors.dart';
 
-import '../models/paged_result.dart';
 import '../models/phuong_tien_model.dart';
 import '../models/phuong_tien_request_models.dart';
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/navigation/app_navigation.dart';
+import '../../../features/thong_bao/services/thong_bao_hub_service.dart';
 import '../services/home_service.dart';
 import '../models/home_data.dart';
 
@@ -50,24 +51,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _logout() async {
     await _service.logout();
     if (!mounted) return;
-
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Logged out')));
-
     context.go('/login');
   }
 
   // ================= NAVIGATION =================
 
-  /// Push 1 screen vào stack của tab Home (có nút back)
   void _pushInHomeTab(String route, {Object? extra}) {
     context.push(route, extra: extra);
-  }
-
-  /// Switch sang tab khác (không push, không có nút back)
-  void _switchTab(int tabIndex) {
-    AppNavigation.goTab(tabIndex);
   }
 
   // ================= UI HELPERS =================
@@ -122,77 +115,111 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildNotificationButton() {
+    return StreamBuilder<int>(
+      stream: ThongBaoHubService.instance.onUnreadCountChanged,
+      initialData: 0,
+      builder: (context, snapshot) {
+        final unread = snapshot.data ?? 0;
+        return IconButton(
+          tooltip: 'Thông báo',
+          onPressed: () => AppNavigation.goNotification(),
+          icon: Badge(
+            isLabelVisible: unread > 0,
+            label: Text(
+              unread > 99 ? '99+' : '$unread',
+              style: const TextStyle(fontSize: 10),
+            ),
+            child: const Icon(Icons.notifications_outlined),
+          ),
+        );
+      },
+    );
+  }
+
   // ================= BUILD =================
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_error!),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _fetch, child: const Text('Retry')),
-          ],
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!),
+              const SizedBox(height: 16),
+              ElevatedButton(onPressed: _fetch, child: const Text('Retry')),
+            ],
+          ),
         ),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _fetch,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          /// USER INFO
-          _buildUserInfo(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_data?.fullName ?? 'Trang chủ'),
+        actions: [_buildNotificationButton()],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _fetch,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            /// USER INFO
+            _buildUserInfo(),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          /// PUSH VÀO STACK CỦA TAB HOME (có nút back)
-          _sectionTitle('Màn hình trong tab Home (có nút back)'),
-          _button(
-            label: 'Dịch vụ',
-            onPressed: () => _pushInHomeTab('/dich-vu'),
-          ),
-          _button(
-            label: 'Yêu cầu sửa chữa',
-            onPressed: () => _pushInHomeTab('/sua-chua'),
-          ),
-          _button(
-            label: 'Yêu cầu thi công',
-            onPressed: () => _pushInHomeTab('/thi-cong'),
-          ),
+            /// PUSH VÀO STACK CỦA TAB HOME (có nút back)
+            _sectionTitle('Màn hình trong tab Home (có nút back)'),
+            _button(
+              label: 'Dịch vụ',
+              onPressed: () => _pushInHomeTab('/dich-vu'),
+            ),
+            _button(
+              label: 'Yêu cầu sửa chữa',
+              onPressed: () => _pushInHomeTab('/sua-chua'),
+            ),
+            _button(
+              label: 'Yêu cầu thi công',
+              onPressed: () => _pushInHomeTab('/thi-cong'),
+            ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          /// SWITCH SANG TAB KHÁC (không có nút back)
-          _sectionTitle('Chuyển sang tab khác (không có nút back)'),
-          _button(
-            label: 'Căn hộ của tôi → Tab Cư trú',
-            onPressed: () => _switchTab(1),
-          ),
-          _button(
-            label: 'Trang cá nhân → Tab Profile',
-            onPressed: () => _switchTab(2),
-          ),
+            /// SWITCH SANG TAB KHÁC (không có nút back)
+            _sectionTitle('Chuyển sang tab khác (không có nút back)'),
+            _button(
+              label: 'Căn hộ của tôi → Tab Cư trú',
+              onPressed: () => AppNavigation.goResidence(),
+            ),
+            _button(
+              label: 'Thông báo → Tab Thông báo',
+              onPressed: () => AppNavigation.goNotification(),
+            ),
+            _button(
+              label: 'Trang cá nhân → Tab Profile',
+              onPressed: () => AppNavigation.goProfile(),
+            ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          /// DEBUG
-          _sectionTitle('Raw Data'),
-          Text(_data.toString()),
+            /// DEBUG
+            _sectionTitle('Raw Data'),
+            Text(_data.toString()),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          /// ACTIONS
-          _button(label: 'Reload API', onPressed: _fetch),
-          _button(label: 'Logout', onPressed: _logout, color: Colors.red),
-        ],
+            /// ACTIONS
+            _button(label: 'Reload API', onPressed: _fetch),
+            _button(label: 'Logout', onPressed: _logout, color: Colors.red),
+          ],
+        ),
       ),
     );
   }

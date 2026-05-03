@@ -12,6 +12,8 @@ import '../../features/auth/screens/login_screen.dart';
 
 import '../../features/home/screens/home_screen.dart';
 
+import '../../features/thong_bao/screens/thong_bao_list_screen.dart';
+
 import '../../features/cu_tru/screens/cu_tru_list_screen.dart';
 
 import '../../features/dich_vu/screens/dich_vu_list_screen.dart';
@@ -74,9 +76,18 @@ class AppRouter {
             routes: [
               /// HOME
               GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
-              GoRoute(path: '/dich-vu', builder: (_, _) => const DichVuListScreen(),),
-              GoRoute(path: '/sua-chua', builder: (_, _) => const YeuCauListScreen(),),
-              GoRoute(path: '/thi-cong', builder: (_, _) => const YeuCauThiCongListScreen(),),
+              GoRoute(
+                path: '/dich-vu',
+                builder: (_, _) => const DichVuListScreen(),
+              ),
+              GoRoute(
+                path: '/sua-chua',
+                builder: (_, _) => const YeuCauListScreen(),
+              ),
+              GoRoute(
+                path: '/thi-cong',
+                builder: (_, _) => const YeuCauThiCongListScreen(),
+              ),
             ],
           ),
 
@@ -86,6 +97,16 @@ class AppRouter {
               GoRoute(
                 path: '/cu-tru',
                 builder: (_, _) => const QuanHeCuTruListScreen(),
+              ),
+            ],
+          ),
+
+          /// ================= THÔNG BÁO TAB =================
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/thong-bao',
+                builder: (_, _) => const ThongBaoListScreen(),
               ),
             ],
           ),

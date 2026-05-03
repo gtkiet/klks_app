@@ -1,5 +1,3 @@
-/*
-
 // lib/features/thong_bao/screens/thong_bao_detail_screen.dart
 
 import 'package:flutter/material.dart';
@@ -143,5 +141,3 @@ class _ThongBaoDetailScreenState extends State<ThongBaoDetailScreen> {
     );
   }
 }
-
-*/

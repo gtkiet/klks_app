@@ -1,6 +1,4 @@
-/*
-
-/ lib/features/thong_bao/models/thong_bao_model.dart
+// lib/features/thong_bao/models/thong_bao_model.dart
 
 class ThongBaoItem {
   final int id;
@@ -142,5 +140,3 @@ class ThongBaoListResult {
     );
   }
 }
-
-*/

@@ -14,18 +14,18 @@ import '../../features/home/screens/home_screen.dart';
 
 import '../../features/thong_bao/screens/thong_bao_list_screen.dart';
 
-import '../../features/cu_tru/screens/cu_tru_list_screen.dart';
+import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
 
-import '../../features/dich_vu/screens/dich_vu_list_screen.dart';
+import '../../features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart';
 
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/profile_detail_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/profile/screens/change_avatar_screen.dart';
 
-import '../../features/yeu_cau_sua_chua/screens/yeu_cau_list_screen.dart';
+import '../../features/tien_ich/sua_chua/screens/yeu_cau_list_screen.dart';
 
-import '../../features/yeu_cau_thi_cong/screens/yeu_cau_thi_cong_list_screen.dart';
+import '../../features/tien_ich/thi_cong/screens/yeu_cau_thi_cong_list_screen.dart';
 
 class AppRouter {
   AppRouter._();

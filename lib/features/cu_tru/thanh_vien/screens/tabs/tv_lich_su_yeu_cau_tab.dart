@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/errors/errors.dart';
 
-import '../../../models/quan_he_cu_tru_model.dart';
+import '../../../quan_he/models/quan_he_cu_tru_model.dart';
 
 import '../../models/thanh_vien_request.dart';
 import '../../models/yeu_cau_cu_tru_model.dart';

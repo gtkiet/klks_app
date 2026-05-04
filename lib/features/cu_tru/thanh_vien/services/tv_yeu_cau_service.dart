@@ -9,8 +9,8 @@ import '../../../../../core/errors/errors.dart';
 
 import '../models/yeu_cau_cu_tru_model.dart';
 import '../models/thanh_vien_request.dart';
-import '../../models/uploaded_file_model.dart';
-import '../../models/selector_item_model.dart';
+import '../../quan_he/models/uploaded_file_model.dart';
+import '../../quan_he/models/selector_item_model.dart';
 
 class YeuCauCuTruService {
   YeuCauCuTruService._();

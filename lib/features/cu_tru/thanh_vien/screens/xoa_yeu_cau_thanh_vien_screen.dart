@@ -6,8 +6,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/errors/errors.dart';
-import '../../models/quan_he_cu_tru_model.dart';
-import '../../widgets/shared_widget.dart';
+import '../../quan_he/models/quan_he_cu_tru_model.dart';
+import '../../quan_he/widgets/shared_widget.dart';
 import '../models/thanh_vien_cu_tru_model.dart';
 import '../models/thanh_vien_request.dart';
 import '../services/tv_yeu_cau_service.dart';

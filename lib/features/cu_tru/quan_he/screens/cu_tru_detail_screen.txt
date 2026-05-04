@@ -4,30 +4,23 @@
 // Nhận [initialMode] từ màn hình danh sách để biết mở tab nào trước.
 // AppBar có nút toggle để chuyển qua lại giữa Thành viên ↔ Phương tiện.
 // FAB (+) phân biệt hành động thêm theo mode hiện tại.
-//
-// Reload chain:
-//   FAB → YeuCauCuTruFormScreen.pop(true) → _lichSuKey.currentState?.reload()
 
 import 'package:flutter/material.dart';
 
 import '../models/quan_he_cu_tru_model.dart';
 
-// ── Thanh viên (nằm trong cu_tru/thanh_vien/) ────────────────────────────
-import '../thanh_vien/screens/tabs/thanh_vien_list_tab.dart';
-import '../thanh_vien/screens/tabs/tv_lich_su_yeu_cau_tab.dart';
-import '../thanh_vien/screens/yeu_cau_cu_tru_form_screen.dart';
+import '../../thanh_vien/screens/tabs/thanh_vien_list_tab.dart';
+import '../../thanh_vien/screens/tabs/tv_lich_su_yeu_cau_tab.dart';
+import '../../../thanh_vien/screens/tao_yeu_cau_thanh_vien_screen.dart';
 
-// ── Phương tiện ───────────────────────────────────────────────────────────
-import '../phuong_tien/widgets/phuong_tien_list_tab.dart';
-import '../phuong_tien/widgets/pt_lich_su_yeu_cau_tab.dart';
-import '../phuong_tien/screens/tao_yeu_cau_phuong_tien_screen.dart';
+import '../../phuong_tien/widgets/phuong_tien_list_tab.dart';
+import '../../phuong_tien/widgets/pt_lich_su_yeu_cau_tab.dart';
+import '../../phuong_tien/screens/tao_yeu_cau_phuong_tien_screen.dart';
 
 // ── Enum mode ─────────────────────────────────────────────────────────────
-
 enum CuTruDetailMode { thanhVien, phuongTien }
 
 // ── Screen ────────────────────────────────────────────────────────────────
-
 class CuTruDetailScreen extends StatefulWidget {
   final QuanHeCuTruModel item;
   final CuTruDetailMode initialMode;
@@ -47,16 +40,12 @@ class _CuTruDetailScreenState extends State<CuTruDetailScreen>
   late CuTruDetailMode _mode;
   late TabController _tabController;
 
-  // GlobalKey để gọi reload trên tab lịch sử sau khi FAB tạo thành công.
-  final _tvLichSuKey = GlobalKey<LichSuYeuCauThanhVienTabState>();
-  final _ptLichSuKey = GlobalKey<LichSuYeuCauPhuongTienTabState>();
-
   // ── Lifecycle ──────────────────────────────────────────────────────────
-
   @override
   void initState() {
     super.initState();
     _mode = widget.initialMode;
+    // Mỗi mode đều có 2 tab
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -67,54 +56,45 @@ class _CuTruDetailScreenState extends State<CuTruDetailScreen>
   }
 
   // ── Toggle mode ────────────────────────────────────────────────────────
-
+  // Khi toggle: giữ lại tab index (0 = list, 1 = lịch sử), chỉ đổi mode
   void _toggleMode() {
     setState(() {
       _mode = _mode == CuTruDetailMode.thanhVien
           ? CuTruDetailMode.phuongTien
           : CuTruDetailMode.thanhVien;
+      // reset về tab đầu khi chuyển mode
       _tabController.animateTo(0);
     });
   }
 
   // ── FAB action ─────────────────────────────────────────────────────────
-
+  // Trả về result = true nếu tạo thành công → tab lịch sử có thể refresh
   Future<void> _onFabPressed() async {
     if (_mode == CuTruDetailMode.thanhVien) {
-      final created = await Navigator.push<bool>(
+      await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => YeuCauCuTruFormScreen(
-            mode: YeuCauFormCreate(canHoInfo: widget.item),
-          ),
+          builder: (_) => TaoYeuCauThanhVienScreen(canHoInfo: widget.item),
         ),
       );
-      // Tạo thành công → reload tab lịch sử thành viên
-      if (created == true && mounted) {
-        _tvLichSuKey.currentState?.reload();
-      }
     } else {
-      final created = await Navigator.push<bool>(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => TaoYeuCauPhuongTienScreen(canHoInfo: widget.item),
         ),
       );
-      // Tạo thành công → reload tab lịch sử phương tiện
-      if (created == true && mounted) {
-        _ptLichSuKey.currentState?.reload();
-      }
     }
   }
 
   // ── Build ──────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final isThanhVien = _mode == CuTruDetailMode.thanhVien;
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -126,6 +106,7 @@ class _CuTruDetailScreenState extends State<CuTruDetailScreen>
           ],
         ),
         actions: [
+          // Nút toggle giữa thành viên và phương tiện
           Tooltip(
             message: isThanhVien
                 ? 'Chuyển sang Phương tiện'
@@ -152,21 +133,25 @@ class _CuTruDetailScreenState extends State<CuTruDetailScreen>
         ),
       ),
 
-      // ── Tab content ──────────────────────────────────────────────────
+      // ── Tab content ─────────────────────────────────────────────────
       body: TabBarView(
         controller: _tabController,
         children: isThanhVien
             ? [
+                // Tab 1: danh sách thành viên
                 ThanhVienListTab(item: widget.item),
-                LichSuYeuCauThanhVienTab(key: _tvLichSuKey, item: widget.item),
+                // Tab 2: lịch sử yêu cầu liên quan thành viên
+                LichSuYeuCauThanhVienTab(item: widget.item),
               ]
             : [
+                // Tab 1: danh sách phương tiện
                 PhuongTienListTab(item: widget.item),
-                LichSuYeuCauPhuongTienTab(key: _ptLichSuKey, item: widget.item),
+                // Tab 2: lịch sử yêu cầu liên quan phương tiện
+                LichSuYeuCauPhuongTienTab(item: widget.item),
               ],
       ),
 
-      // ── FAB ──────────────────────────────────────────────────────────
+      // ── FAB ─────────────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton(
         onPressed: _onFabPressed,
         tooltip: isThanhVien ? 'Thêm thành viên' : 'Thêm phương tiện',

@@ -13,10 +13,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/errors/errors.dart';
 
-import '../../models/quan_he_cu_tru_model.dart';
-import '../../models/selector_item_model.dart';
-import '../../widgets/selector_field.dart';
-import '../../widgets/shared_widget.dart';
+import '../../quan_he/models/quan_he_cu_tru_model.dart';
+import '../../quan_he/models/selector_item_model.dart';
+import '../../quan_he/widgets/selector_field.dart';
+import '../../quan_he/widgets/shared_widget.dart';
 
 import '../models/tai_lieu_cu_tru_request.dart';
 import '../models/thanh_vien_cu_tru_model.dart';

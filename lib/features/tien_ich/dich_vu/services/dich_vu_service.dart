@@ -2,11 +2,11 @@
 
 import 'package:dio/dio.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../core/errors/errors.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/errors/errors.dart';
 
-import '../../cu_tru/models/quan_he_cu_tru_model.dart';
-import '../../cu_tru/services/cu_tru_service.dart';
+import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
+import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 
 import '../models/paging.dart';
 import '../models/selector_item.dart';

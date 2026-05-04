@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../core/errors/errors.dart';
+import '../../../../core/errors/errors.dart';
 import '../models/selector_item_model.dart';
 
 class AppSelectorField extends StatefulWidget {

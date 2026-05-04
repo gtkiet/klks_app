@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../cu_tru/services/cu_tru_service.dart';
+import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 import '../models/trang_thai_yeu_cau.dart';
 import '../models/yeu_cau_thi_cong_detail_model.dart';
 import '../models/nhan_su_thi_cong_model.dart';

@@ -16,7 +16,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/errors/errors.dart';
+import '../../../../core/errors/errors.dart';
 
 import '../models/uploaded_file_model.dart';
 

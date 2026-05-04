@@ -177,8 +177,8 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
             ),
           ),
           // SignalR connection indicator
-          StreamBuilder(
-            stream: ThongBaoHubService.instance.onConnectionStateChanged,
+          StreamBuilder<int>(
+            stream: ThongBaoHubService.instance.onUnreadCountChanged,
             builder: (context, _) {
               return Padding(
                 padding: const EdgeInsets.only(right: 12, left: 4),
@@ -267,7 +267,7 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
             onTap: () async {
               await _markAsRead(index);
               // if (!mounted) return;
-              if (!context.mounted) return;
+               if (!context.mounted) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -313,9 +313,7 @@ class _ThongBaoTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: ColoredBox(
-        color: item.isRead
-            ? Colors.transparent
-            : Colors.blue.withValues(alpha: 0.05),
+        color: item.isRead ? Colors.transparent : Colors.blue.withValues(alpha: 0.05),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(

@@ -12,13 +12,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/errors/errors.dart';
 
-import '../../models/quan_he_cu_tru_model.dart';
-import '../../models/selector_item_model.dart';
-import '../../models/uploaded_file_model.dart';
+import '../../quan_he/models/quan_he_cu_tru_model.dart';
+import '../../quan_he/models/selector_item_model.dart';
+import '../../quan_he/models/uploaded_file_model.dart';
 
-import '../../widgets/shared_widget.dart';
-import '../../widgets/selector_field.dart';
-import '../../widgets/file_upload_field.dart';
+import '../../quan_he/widgets/shared_widget.dart';
+import '../../quan_he/widgets/selector_field.dart';
+import '../../quan_he/widgets/file_upload_field.dart';
 
 import '../models/phuong_tien_request_models.dart';
 

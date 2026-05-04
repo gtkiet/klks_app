@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../core/errors/errors.dart';
+import '../../../../core/errors/errors.dart';
 import '../models/quan_he_cu_tru_model.dart';
 import '../services/cu_tru_service.dart';
 import 'cu_tru_detail_screen.dart';

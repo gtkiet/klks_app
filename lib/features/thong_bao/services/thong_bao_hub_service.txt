@@ -27,13 +27,6 @@ class ThongBaoHubService {
 
   HubConnection? _connection;
 
-  final _connectionStateController =
-      StreamController<HubConnectionState>.broadcast();
-  Stream<HubConnectionState> get onConnectionStateChanged =>
-      _connectionStateController.stream;
-  HubConnectionState get connectionState =>
-      _connection?.state ?? HubConnectionState.Disconnected;
-
   final _controller = StreamController<ThongBaoEvent>.broadcast();
   Stream<ThongBaoEvent> get onThongBaoMoi => _controller.stream;
 
@@ -42,10 +35,6 @@ class ThongBaoHubService {
   int _unreadCount = 0;
 
   bool get isConnected => _connection?.state == HubConnectionState.Connected;
-
-  void _emitConnectionState() {
-    _connectionStateController.add(connectionState);
-  }
 
   // ─── Local Notifications ──────────────────────────────────────────
   final _localNotif = FlutterLocalNotificationsPlugin();
@@ -164,13 +153,10 @@ class ThongBaoHubService {
     const hubUrl = AppConfig.hubUrl;
     debugPrint('>>> [ThongBao] Connecting to $hubUrl');
 
-    _connectionStateController.add(HubConnectionState.Connecting);
-
     _connection = HubConnectionBuilder()
         .withUrl(
           hubUrl,
           options: HttpConnectionOptions(
-            transport: HttpTransportType.LongPolling,
             accessTokenFactory: () async {
               final t = await UserSession().getAccessToken() ?? '';
               debugPrint(
@@ -191,15 +177,9 @@ class ThongBaoHubService {
 
       final data = arguments[0] as Map<String, dynamic>? ?? {};
       final event = ThongBaoEvent(
-        tieuDe:
-            (data['tieuDe'] as String?) ??
-            (data['TieuDe'] as String?) ??
-            'Thông báo mới',
-        noiDung:
-            (data['noiDung'] as String?) ?? (data['NoiDung'] as String?) ?? '',
-        phanBoThongBaoId:
-            (data['phanBoThongBaoId'] as int?) ??
-            (data['PhanBoThongBaoId'] as int?),
+        tieuDe: data['tieuDe'] as String? ?? 'Thông báo mới',
+        noiDung: data['noiDung'] as String? ?? '',
+        phanBoThongBaoId: data['phanBoThongBaoId'] as int?,
       );
 
       _controller.add(event);
@@ -208,48 +188,32 @@ class ThongBaoHubService {
       _showLocalNotif(event);
     });
 
-    _connection!.onreconnecting(({error}) {
-      _connectionStateController.add(HubConnectionState.Reconnecting);
-      debugPrint('>>> [ThongBao] Reconnecting... error=$error');
-    });
+    _connection!.onreconnecting(
+      ({error}) => debugPrint('>>> [ThongBao] Reconnecting... error=$error'),
+    );
 
-    _connection!.onreconnected(({connectionId}) {
-      _emitConnectionState();
-      debugPrint('>>> [ThongBao] Reconnected id=$connectionId');
-    });
+    _connection!.onreconnected(
+      ({connectionId}) =>
+          debugPrint('>>> [ThongBao] Reconnected id=$connectionId'),
+    );
 
-    _connection!.onclose(({error}) {
-      _emitConnectionState();
-      debugPrint('>>> [ThongBao] Connection closed error=$error');
-    });
+    _connection!.onclose(
+      ({error}) => debugPrint('>>> [ThongBao] Connection closed error=$error'),
+    );
 
     try {
       debugPrint('>>> [ThongBao] Calling _connection.start()...');
-      final startFuture = _connection!.start();
-      if (startFuture == null) {
-        throw StateError('SignalR start() returned null');
-      }
-
-      await startFuture.timeout(const Duration(seconds: 30));
-      _emitConnectionState();
-
-      if (_connection!.state != HubConnectionState.Connected) {
-        throw StateError(
-          'SignalR start() completed but state=${_connection!.state}',
-        );
-      }
-
+      await _connection!.start()?.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint('>>> [ThongBao] TIMEOUT sau 30 giây');
+          debugPrint('>>> [ThongBao] State khi timeout=${_connection?.state}');
+        },
+      );
       debugPrint('>>> [ThongBao] Connected! State=${_connection!.state}');
     } catch (e, stack) {
       debugPrint('>>> [ThongBao] connect() FAILED: $e');
       debugPrint('>>> [ThongBao] stack: $stack');
-
-      try {
-        await _connection?.stop();
-      } catch (_) {
-        // ignore
-      }
-      _emitConnectionState();
     }
   }
 
@@ -262,7 +226,6 @@ class ThongBaoHubService {
     await _connection?.stop();
     _connection = null;
     _unreadCount = 0;
-    _emitConnectionState();
     debugPrint('>>> [ThongBao] Disconnected');
   }
 }

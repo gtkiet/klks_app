@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import '../models/tai_lieu_cu_tru_request.dart';
 import '../models/thong_tin_cu_dan_model.dart';
 
-import '../../models/selector_item_model.dart';
-import '../../models/uploaded_file_model.dart';
+import '../../quan_he/models/selector_item_model.dart';
+import '../../quan_he/models/uploaded_file_model.dart';
 
 import '../services/tv_yeu_cau_service.dart';
 
-import '../../widgets/shared_widget.dart';
+import '../../quan_he/widgets/shared_widget.dart';
 
-import '../../widgets/file_upload_field.dart';
-import '../../widgets/selector_field.dart';
+import '../../quan_he/widgets/file_upload_field.dart';
+import '../../quan_he/widgets/selector_field.dart';
 
 typedef UploadFn =
     Future<List<UploadedFileModel>> Function({

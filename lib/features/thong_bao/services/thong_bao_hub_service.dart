@@ -1,9 +1,8 @@
 // lib/features/thong_bao/services/thong_bao_hub_service.dart
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:logging/logging.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import '../../../core/storage/user_session.dart';
@@ -34,8 +33,8 @@ class ThongBaoHubService {
   HubConnectionState get connectionState =>
       _connection?.state ?? HubConnectionState.Disconnected;
 
-  final _controller = StreamController<ThongBaoEvent>.broadcast();
-  Stream<ThongBaoEvent> get onThongBaoMoi => _controller.stream;
+  final _eventController = StreamController<ThongBaoEvent>.broadcast();
+  Stream<ThongBaoEvent> get onThongBaoMoi => _eventController.stream;
 
   final _unreadCountController = StreamController<int>.broadcast();
   Stream<int> get onUnreadCountChanged => _unreadCountController.stream;
@@ -43,26 +42,16 @@ class ThongBaoHubService {
 
   bool get isConnected => _connection?.state == HubConnectionState.Connected;
 
-  void _emitConnectionState() {
-    _connectionStateController.add(connectionState);
-  }
+  // ─── Local Notifications ─────────────────────────────────────────
 
-  // ─── Local Notifications ──────────────────────────────────────────
   final _localNotif = FlutterLocalNotificationsPlugin();
   bool _notifInitialized = false;
 
   Future<void> _initLocalNotif() async {
     if (_notifInitialized) return;
 
-    final status = await Permission.notification.status;
-    if (status.isDenied) {
-      final result = await Permission.notification.request();
-      debugPrint('>>> [ThongBao] Notification permission: $result');
-      if (!result.isGranted) {
-        debugPrint(
-          '>>> [ThongBao] Permission bị từ chối — sẽ không show notification',
-        );
-      }
+    if ((await Permission.notification.status).isDenied) {
+      await Permission.notification.request();
     }
 
     await _localNotif.initialize(
@@ -76,43 +65,25 @@ class ThongBaoHubService {
       ),
     );
 
-    const channel = AndroidNotificationChannel(
-      'thong_bao_channel',
-      'Thông báo',
-      description: 'Thông báo từ hệ thống chung cư',
-      importance: Importance.high,
-      playSound: true,
-    );
     final androidImpl = _localNotif
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    await androidImpl?.createNotificationChannel(channel);
+    await androidImpl?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'thong_bao_channel',
+        'Thông báo',
+        description: 'Thông báo từ hệ thống chung cư',
+        importance: Importance.high,
+        playSound: true,
+      ),
+    );
 
     _notifInitialized = true;
-    debugPrint('>>> [ThongBao] Local notification initialized');
   }
 
   Future<void> _showLocalNotif(ThongBaoEvent event) async {
-    final status = await Permission.notification.status;
-    if (!status.isGranted) {
-      debugPrint('>>> [ThongBao] Skip notification — permission not granted');
-      return;
-    }
-
-    const androidDetails = AndroidNotificationDetails(
-      'thong_bao_channel',
-      'Thông báo',
-      channelDescription: 'Thông báo từ hệ thống chung cư',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-    );
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+    if (!(await Permission.notification.status).isGranted) return;
 
     final notifId =
         event.phanBoThongBaoId ??
@@ -123,134 +94,118 @@ class ThongBaoHubService {
       title: event.tieuDe,
       body: event.noiDung,
       notificationDetails: const NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
+        android: AndroidNotificationDetails(
+          'thong_bao_channel',
+          'Thông báo',
+          channelDescription: 'Thông báo từ hệ thống chung cư',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
     );
-    debugPrint('>>> [ThongBao] Showed notification id=$notifId');
   }
+
   // ─────────────────────────────────────────────────────────────────
 
   Future<void> connect() async {
-    debugPrint('>>> [ThongBao] connect() called, isConnected=$isConnected');
-
-    if (isConnected) {
-      debugPrint('>>> [ThongBao] Already connected, skip');
-      return;
-    }
+    if (isConnected) return;
 
     final token = await UserSession().getAccessToken();
-    debugPrint(
-      '>>> [ThongBao] token=${token == null
-          ? "NULL"
-          : token.isEmpty
-          ? "EMPTY"
-          : "OK (${token.length} chars)"}',
-    );
-
-    if (token == null || token.isEmpty) {
-      debugPrint('>>> [ThongBao] No token — abort connect');
-      return;
-    }
+    if (token == null || token.isEmpty) return;
 
     await _initLocalNotif();
-
-    // Bật SignalR internal logger để thấy negotiate/transport details
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((record) {
-      debugPrint('>>> [SignalR] ${record.level.name}: ${record.message}');
-    });
-
-    const hubUrl = AppConfig.hubUrl;
-    debugPrint('>>> [ThongBao] Connecting to $hubUrl');
 
     _connectionStateController.add(HubConnectionState.Connecting);
 
     _connection = HubConnectionBuilder()
         .withUrl(
-          hubUrl,
+          AppConfig.hubUrl,
           options: HttpConnectionOptions(
             transport: HttpTransportType.LongPolling,
-            accessTokenFactory: () async {
-              final t = await UserSession().getAccessToken() ?? '';
-              debugPrint(
-                '>>> [ThongBao] accessTokenFactory called, token length=${t.length}',
-              );
-              return t;
-            },
-            logMessageContent: true,
+            accessTokenFactory: () async =>
+                await UserSession().getAccessToken() ?? '',
           ),
         )
-        .configureLogging(Logger('SignalR'))
         .withAutomaticReconnect(retryDelays: [0, 2000, 10000, 30000])
         .build();
 
-    _connection!.on('ReceiveNotification', (arguments) {
-      debugPrint('>>> [ThongBao] ReceiveNotification raw: $arguments');
-      if (arguments == null || arguments.isEmpty) return;
-
-      final data = arguments[0] as Map<String, dynamic>? ?? {};
-      final event = ThongBaoEvent(
-        tieuDe:
-            (data['tieuDe'] as String?) ??
-            (data['TieuDe'] as String?) ??
-            'Thông báo mới',
-        noiDung:
-            (data['noiDung'] as String?) ?? (data['NoiDung'] as String?) ?? '',
-        phanBoThongBaoId:
-            (data['phanBoThongBaoId'] as int?) ??
-            (data['PhanBoThongBaoId'] as int?),
-      );
-
-      _controller.add(event);
-      _unreadCount++;
-      _unreadCountController.add(_unreadCount);
-      _showLocalNotif(event);
-    });
+    _connection!.on('ReceiveNotification', _onReceiveNotification);
 
     _connection!.onreconnecting(({error}) {
       _connectionStateController.add(HubConnectionState.Reconnecting);
-      debugPrint('>>> [ThongBao] Reconnecting... error=$error');
     });
 
     _connection!.onreconnected(({connectionId}) {
-      _emitConnectionState();
-      debugPrint('>>> [ThongBao] Reconnected id=$connectionId');
+      _connectionStateController.add(connectionState);
     });
 
     _connection!.onclose(({error}) {
-      _emitConnectionState();
-      debugPrint('>>> [ThongBao] Connection closed error=$error');
+      _connectionStateController.add(connectionState);
     });
 
     try {
-      debugPrint('>>> [ThongBao] Calling _connection.start()...');
-      final startFuture = _connection!.start();
-      if (startFuture == null) {
-        throw StateError('SignalR start() returned null');
-      }
-
-      await startFuture.timeout(const Duration(seconds: 30));
-      _emitConnectionState();
+      await _connection!.start()?.timeout(const Duration(seconds: 30));
 
       if (_connection!.state != HubConnectionState.Connected) {
-        throw StateError(
-          'SignalR start() completed but state=${_connection!.state}',
-        );
+        throw StateError('SignalR connected but state=${_connection!.state}');
       }
 
-      debugPrint('>>> [ThongBao] Connected! State=${_connection!.state}');
-    } catch (e, stack) {
-      debugPrint('>>> [ThongBao] connect() FAILED: $e');
-      debugPrint('>>> [ThongBao] stack: $stack');
-
-      try {
-        await _connection?.stop();
-      } catch (_) {
-        // ignore
-      }
-      _emitConnectionState();
+      _connectionStateController.add(connectionState);
+    } catch (_) {
+      await _connection?.stop().catchError((_) {});
+      _connectionStateController.add(connectionState);
     }
+  }
+
+  void _onReceiveNotification(List<Object?>? arguments) {
+    if (arguments == null || arguments.isEmpty) return;
+
+    Map<String, dynamic> data;
+    final raw = arguments[0];
+
+    if (raw is String) {
+      try {
+        data = jsonDecode(utf8.decode(raw.codeUnits)) as Map<String, dynamic>;
+      } catch (_) {
+        data = {};
+      }
+    } else if (raw is Map) {
+      // SignalR đôi khi đọc bytes dưới dạng latin1 — restore lại UTF-8
+      data = raw.map((k, v) {
+        if (v is String) {
+          try {
+            return MapEntry(k, utf8.decode(latin1.encode(v)));
+          } catch (_) {
+            return MapEntry(k, v);
+          }
+        }
+        return MapEntry(k, v);
+      }).cast<String, dynamic>();
+    } else {
+      return;
+    }
+
+    final event = ThongBaoEvent(
+      tieuDe:
+          (data['tieuDe'] as String?) ??
+          (data['TieuDe'] as String?) ??
+          'Thông báo mới',
+      noiDung:
+          (data['noiDung'] as String?) ?? (data['NoiDung'] as String?) ?? '',
+      phanBoThongBaoId:
+          (data['phanBoThongBaoId'] as int?) ??
+          (data['PhanBoThongBaoId'] as int?),
+    );
+
+    _eventController.add(event);
+    _unreadCountController.add(++_unreadCount);
+    _showLocalNotif(event);
   }
 
   void resetUnreadCount() {
@@ -262,7 +217,6 @@ class ThongBaoHubService {
     await _connection?.stop();
     _connection = null;
     _unreadCount = 0;
-    _emitConnectionState();
-    debugPrint('>>> [ThongBao] Disconnected');
+    _connectionStateController.add(HubConnectionState.Disconnected);
   }
 }

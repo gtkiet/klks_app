@@ -14,7 +14,7 @@ class AppNavigation {
   }
 
   static void goHome() => goTab(0);
-  static void goResidence() => goTab(1);
-  static void goNotification() => goTab(2);
+  static void goNotification() => goTab(1);
+  static void goResidence() => goTab(2);
   static void goProfile() => goTab(3);
 }

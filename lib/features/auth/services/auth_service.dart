@@ -181,6 +181,7 @@ class AuthService {
           return newAccess;
         }
       }
+      unawaited(ThongBaoHubService.instance.connect());
       return null;
     } catch (_) {
       return null;

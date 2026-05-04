@@ -91,22 +91,22 @@ class AppRouter {
             ],
           ),
 
-          /// ================= RESIDENCE TAB =================
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/cu-tru',
-                builder: (_, _) => const QuanHeCuTruListScreen(),
-              ),
-            ],
-          ),
-
           /// ================= THÔNG BÁO TAB =================
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/thong-bao',
                 builder: (_, _) => const ThongBaoListScreen(),
+              ),
+            ],
+          ),
+
+          /// ================= RESIDENCE TAB =================
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/cu-tru',
+                builder: (_, _) => const QuanHeCuTruListScreen(),
               ),
             ],
           ),

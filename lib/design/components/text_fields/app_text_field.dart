@@ -1,9 +1,9 @@
+// lib/design/components/text_fields/app_text_field.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../tokens/colors.dart';
 import '../../tokens/typography.dart';
-// import '../../tokens/spacing.dart';
-// import '../../tokens/radius.dart';
 
 /// PKK Resident - App Text Field
 ///

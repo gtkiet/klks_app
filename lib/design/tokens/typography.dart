@@ -1,3 +1,5 @@
+// lib/design/tokens/typography.dart
+
 import 'package:flutter/material.dart';
 
 /// PKK Resident - Typography Design Tokens

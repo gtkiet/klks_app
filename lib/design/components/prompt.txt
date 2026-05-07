@@ -1,0 +1,1023 @@
+// lib/design/components/buttons/app_button.dart
+
+import 'package:flutter/material.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/typography.dart';
+import '../../foundations/constants.dart';
+
+/// Button variants matching TDS specification.
+enum AppButtonVariant { primary, secondary, outline }
+
+/// PKK Resident - App Button
+///
+/// Unified button component supporting all TDS variants and states.
+///
+/// Usage:
+/// ```dart
+/// // Primary action button (full width)
+/// AppButton(
+///   label: 'Thanh toán',
+///   onPressed: _handlePay,
+/// )
+///
+/// // Secondary
+/// AppButton(
+///   label: 'Huỷ',
+///   variant: AppButtonVariant.secondary,
+///   onPressed: _handleCancel,
+/// )
+///
+/// // Outline
+/// AppButton(
+///   label: 'Xem chi tiết',
+///   variant: AppButtonVariant.outline,
+///   onPressed: _handleView,
+/// )
+///
+/// // Loading state
+/// AppButton(
+///   label: 'Đang xử lý...',
+///   isLoading: true,
+///   onPressed: null,
+/// )
+///
+/// // Inline (not full-width)
+/// AppButton(
+///   label: 'OK',
+///   expanded: false,
+///   onPressed: _confirm,
+/// )
+/// ```
+class AppButton extends StatelessWidget {
+  const AppButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.variant = AppButtonVariant.primary,
+    this.isLoading = false,
+    this.leadingIcon,
+    this.expanded = true,
+    this.height = 52.0,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final AppButtonVariant variant;
+
+  /// If true, shows a spinner and disables interaction.
+  final bool isLoading;
+
+  /// Optional icon displayed to the left of the label.
+  final IconData? leadingIcon;
+
+  /// If true, button stretches to full available width.
+  final bool expanded;
+
+  /// Button height. Defaults to 52pt per TDS.
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = onPressed == null && !isLoading;
+
+    Widget child = _ButtonContent(
+      label: label,
+      isLoading: isLoading,
+      leadingIcon: leadingIcon,
+      variant: variant,
+      isDisabled: isDisabled,
+    );
+
+    Widget button = switch (variant) {
+      AppButtonVariant.primary => _PrimaryButton(
+        onPressed: isLoading ? null : onPressed,
+        height: height,
+        child: child,
+      ),
+      AppButtonVariant.secondary => _SecondaryButton(
+        onPressed: isLoading ? null : onPressed,
+        height: height,
+        child: child,
+      ),
+      AppButtonVariant.outline => _OutlineButton(
+        onPressed: isLoading ? null : onPressed,
+        height: height,
+        child: child,
+      ),
+    };
+
+    return expanded
+        ? SizedBox(width: double.infinity, child: button)
+        : IntrinsicWidth(child: button);
+  }
+}
+
+// ─── Internal variants ────────────────────────────────────────────────────────
+
+class _PrimaryButton extends StatelessWidget {
+  const _PrimaryButton({
+    required this.onPressed,
+    required this.height,
+    required this.child,
+  });
+  final VoidCallback? onPressed;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style:
+          ElevatedButton.styleFrom(
+            minimumSize: Size(0, height),
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.textOnPrimary,
+            disabledBackgroundColor: AppColors.secondaryLight,
+            disabledForegroundColor: AppColors.textDisabled,
+          ).copyWith(
+            overlayColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.pressed)
+                  ? AppColors.textOnPrimary.withAlpha(30)
+                  : null,
+            ),
+          ),
+      child: child,
+    );
+  }
+}
+
+class _SecondaryButton extends StatelessWidget {
+  const _SecondaryButton({
+    required this.onPressed,
+    required this.height,
+    required this.child,
+  });
+  final VoidCallback? onPressed;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(0, height),
+        backgroundColor: AppColors.secondaryLight,
+        foregroundColor: AppColors.textPrimary,
+        disabledBackgroundColor: AppColors.secondaryLight,
+        disabledForegroundColor: AppColors.textDisabled,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _OutlineButton extends StatelessWidget {
+  const _OutlineButton({
+    required this.onPressed,
+    required this.height,
+    required this.child,
+  });
+  final VoidCallback? onPressed;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: Size(0, height),
+        foregroundColor: AppColors.primary,
+        disabledForegroundColor: AppColors.textDisabled,
+        side: BorderSide(
+          color: onPressed == null ? AppColors.border : AppColors.primary,
+          width: 1.5,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _ButtonContent extends StatelessWidget {
+  const _ButtonContent({
+    required this.label,
+    required this.isLoading,
+    required this.variant,
+    required this.isDisabled,
+    this.leadingIcon,
+  });
+
+  final String label;
+  final bool isLoading;
+  final IconData? leadingIcon;
+  final AppButtonVariant variant;
+  final bool isDisabled;
+
+  Color get _spinnerColor => switch (variant) {
+    AppButtonVariant.primary => AppColors.textOnPrimary,
+    _ => AppColors.primary,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox.square(
+            dimension: AppConstants.spinnerSize,
+            child: CircularProgressIndicator(
+              strokeWidth: AppConstants.spinnerStrokeWidth,
+              valueColor: AlwaysStoppedAnimation(_spinnerColor),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(label, style: AppTypography.buttonLabel),
+        ],
+      );
+    }
+
+    if (leadingIcon != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(leadingIcon, size: 18),
+          const SizedBox(width: 8),
+          Text(label, style: AppTypography.buttonLabel),
+        ],
+      );
+    }
+
+    return Text(label, style: AppTypography.buttonLabel);
+  }
+}
+
+// lib/design/components/text_fields/app_text_field.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/typography.dart';
+
+/// PKK Resident - App Text Field
+///
+/// Unified input component matching all TDS states:
+/// Default → Focused (blue border) → Error (red border + message)
+///
+/// Usage:
+/// ```dart
+/// // Standard text field
+/// AppTextField(
+///   label: 'Họ và tên',
+///   hint: 'Nhập họ và tên',
+///   controller: _nameController,
+/// )
+///
+/// // Password field
+/// AppTextField.password(
+///   label: 'Mật khẩu',
+///   controller: _pwController,
+/// )
+///
+/// // Search field
+/// AppTextField.search(
+///   hint: 'Tìm kiếm dịch vụ...',
+///   onChanged: _onSearch,
+/// )
+///
+/// // With validation error
+/// AppTextField(
+///   label: 'Email',
+///   errorText: 'Email không hợp lệ',
+///   controller: _emailController,
+/// )
+/// ```
+class AppTextField extends StatefulWidget {
+  const AppTextField({
+    super.key,
+    this.label,
+    this.hint,
+    this.errorText,
+    this.helperText,
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.keyboardType,
+    this.textInputAction,
+    this.inputFormatters,
+    this.maxLength,
+    this.maxLines = 1,
+    this.enabled = true,
+    this.readOnly = false,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.autofocus = false,
+  }) : _isPassword = false,
+       _isSearch = false;
+
+  /// Password variant — auto adds eye toggle.
+  const AppTextField.password({
+    super.key,
+    this.label,
+    this.hint = 'Nhập mật khẩu',
+    this.errorText,
+    this.helperText,
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.inputFormatters,
+    this.maxLength,
+    this.enabled = true,
+    this.autofocus = false,
+  }) : _isPassword = true,
+       _isSearch = false,
+       keyboardType = TextInputType.visiblePassword,
+       textInputAction = TextInputAction.done,
+       maxLines = 1,
+       readOnly = false,
+       prefixIcon = null,
+       suffixIcon = null;
+
+  /// Search variant — magnifying glass prefix.
+  const AppTextField.search({
+    super.key,
+    this.hint = 'Tìm kiếm...',
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.onSubmitted,
+    this.onTap,
+    this.enabled = true,
+    this.autofocus = false,
+  }) : _isPassword = false,
+       _isSearch = true,
+       label = null,
+       errorText = null,
+       helperText = null,
+       keyboardType = TextInputType.text,
+       textInputAction = TextInputAction.search,
+       inputFormatters = null,
+       maxLength = null,
+       maxLines = 1,
+       readOnly = false,
+       prefixIcon = null,
+       suffixIcon = null;
+
+  final String? label;
+  final String? hint;
+  final String? errorText;
+  final String? helperText;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onTap;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final int maxLines;
+  final bool enabled;
+  final bool readOnly;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final bool autofocus;
+
+  final bool _isPassword;
+  final bool _isSearch;
+
+  @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  bool _obscureText = true;
+
+  Widget? get _prefix {
+    if (widget._isSearch) {
+      return const Icon(Icons.search, color: AppColors.textSecondary, size: 20);
+    }
+    return widget.prefixIcon;
+  }
+
+  Widget? get _suffix {
+    if (widget._isPassword) {
+      return GestureDetector(
+        onTap: () => setState(() => _obscureText = !_obscureText),
+        child: Icon(
+          _obscureText
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
+          color: AppColors.textSecondary,
+          size: 20,
+        ),
+      );
+    }
+    if (widget.errorText != null) {
+      return const Icon(Icons.error_outline, color: AppColors.error, size: 20);
+    }
+    return widget.suffixIcon;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Label
+        if (widget.label != null) ...[
+          Text(
+            widget.label!,
+            style: AppTypography.subhead.copyWith(color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+        ],
+
+        // Input
+        TextFormField(
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onSubmitted,
+          onTap: widget.onTap,
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          inputFormatters: widget.inputFormatters,
+          maxLength: widget.maxLength,
+          maxLines: widget.maxLines,
+          enabled: widget.enabled,
+          readOnly: widget.readOnly,
+          autofocus: widget.autofocus,
+          obscureText: widget._isPassword && _obscureText,
+          style: AppTypography.input.copyWith(color: AppColors.textPrimary),
+          cursorColor: AppColors.primary,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            errorText: widget.errorText,
+            helperText: widget.helperText,
+            prefixIcon: _prefix != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _prefix,
+                  )
+                : null,
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 44,
+              minHeight: 44,
+            ),
+            suffixIcon: _suffix != null
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _suffix,
+                  )
+                : null,
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 44,
+              minHeight: 44,
+            ),
+            counterText: '',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// lib/design/components/cards/app_card.dart
+
+import 'package:flutter/material.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/radius.dart';
+import '../../tokens/elevation.dart';
+import '../../tokens/spacing.dart';
+import '../../tokens/typography.dart';
+
+/// PKK Resident - App Card
+///
+/// Base card container used for billing items, service list items,
+/// dashboard sections, etc.
+///
+/// Usage:
+/// ```dart
+/// // Standard info card
+/// AppCard(
+///   child: Text('Content'),
+/// )
+///
+/// // Tappable card
+/// AppCard(
+///   onTap: () => _navigate(),
+///   child: Row(children: [...]),
+/// )
+///
+/// // Utility status card (colored header strip)
+/// AppCard.utility(
+///   title: 'Electricity',
+///   subtitle: '75% of monthly budget',
+///   color: AppColors.primary,
+///   child: ...,
+/// )
+/// ```
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.padding,
+    this.color,
+    this.margin,
+  });
+
+  /// Colored utility card variant — matches the "Electricity" card in the PNG.
+  const AppCard.utility({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.color = AppColors.primary,
+    this.padding,
+    this.margin,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
+  final Color? color;
+  final EdgeInsetsGeometry? margin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin,
+      decoration: BoxDecoration(
+        color: color ?? AppColors.surface,
+        borderRadius: AppRadius.card,
+        boxShadow: AppElevation.level1,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: (color ?? AppColors.primary).withAlpha(20),
+          highlightColor: (color ?? AppColors.primary).withAlpha(10),
+          child: Padding(
+            padding: padding ?? AppSpacing.cardPadding,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Service / navigation list item card.
+/// Displays an icon, title, subtitle, and a trailing chevron.
+///
+/// Usage:
+/// ```dart
+/// AppServiceCard(
+///   icon: Icons.bolt_outlined,
+///   title: 'Thanh toán điện',
+///   subtitle: 'Xem lịch sử giao dịch',
+///   onTap: () {},
+/// )
+/// ```
+class AppServiceCard extends StatelessWidget {
+  const AppServiceCard({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.leading,
+    this.icon,
+    this.onTap,
+    this.trailing,
+    this.margin,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? leading;
+  final IconData? icon;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final EdgeInsetsGeometry? margin;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      onTap: onTap,
+      margin: margin,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          // Leading icon or widget
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: 12),
+          ] else if (icon != null) ...[
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: AppRadius.buttonSmall,
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
+            const SizedBox(width: 12),
+          ],
+
+          // Text content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTypography.subhead.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Trailing
+          trailing ??
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+// lib/design/components/app_bar/app_top_bar.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/typography.dart';
+
+/// PKK Resident - App Top Bar
+///
+/// Global AppBar that should be used across all screens.
+/// Wraps Flutter's [AppBar] with design-system defaults.
+///
+/// Usage:
+/// ```dart
+/// Scaffold(
+///   appBar: AppTopBar(title: 'Dashboard'),
+/// )
+///
+/// // With back button override
+/// Scaffold(
+///   appBar: AppTopBar(
+///     title: 'Chi tiết hoá đơn',
+///     leading: BackButton(onPressed: () => context.pop()),
+///   ),
+/// )
+///
+/// // With action buttons
+/// Scaffold(
+///   appBar: AppTopBar(
+///     title: 'Thông báo',
+///     actions: [
+///       IconButton(icon: Icon(Icons.filter_list), onPressed: () {}),
+///     ],
+///   ),
+/// )
+/// ```
+class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
+  const AppTopBar({
+    super.key,
+    required this.title,
+    this.leading,
+    this.actions,
+    this.bottom,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.centerTitle = true,
+    this.automaticallyImplyLeading = true,
+    this.elevation,
+  });
+
+  final String title;
+  final Widget? leading;
+  final List<Widget>? actions;
+  final PreferredSizeWidget? bottom;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final bool centerTitle;
+  final bool automaticallyImplyLeading;
+  final double? elevation;
+
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Text(title),
+      leading: leading,
+      actions: actions,
+      bottom: bottom,
+      centerTitle: centerTitle,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      backgroundColor: backgroundColor ?? AppColors.surface,
+      foregroundColor: foregroundColor ?? AppColors.textPrimary,
+      elevation: elevation ?? 0,
+      titleTextStyle: AppTypography.headline.copyWith(
+        color: foregroundColor ?? AppColors.textPrimary,
+      ),
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+    );
+  }
+}
+
+// lib/design/components/app_bar/app_scaffold.dart
+
+import 'package:flutter/material.dart';
+import '../../tokens/colors.dart';
+import 'app_top_bar.dart';
+
+/// PKK Resident - App Scaffold
+///
+/// Wraps [Scaffold] with design-system defaults.
+/// Ensures consistent background color and safe-area handling.
+///
+/// Usage:
+/// ```dart
+/// AppScaffold(
+///   title: 'Dashboard',
+///   body: MyContent(),
+/// )
+///
+/// // Without app bar (e.g. splash, onboarding)
+/// AppScaffold(
+///   showAppBar: false,
+///   body: SplashContent(),
+/// )
+/// ```
+class AppScaffold extends StatelessWidget {
+  const AppScaffold({
+    super.key,
+    this.title,
+    required this.body,
+    this.appBar,
+    this.showAppBar = true,
+    this.bottomNavigationBar,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
+    this.backgroundColor,
+    this.resizeToAvoidBottomInset = true,
+    this.leading,
+    this.actions,
+  });
+
+  final String? title;
+  final Widget body;
+  final PreferredSizeWidget? appBar;
+  final bool showAppBar;
+  final Widget? bottomNavigationBar;
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final Color? backgroundColor;
+  final bool resizeToAvoidBottomInset;
+  final Widget? leading;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    PreferredSizeWidget? resolvedAppBar;
+
+    if (showAppBar) {
+      resolvedAppBar = appBar ??
+          (title != null
+              ? AppTopBar(title: title!, leading: leading, actions: actions)
+              : null);
+    }
+
+    return Scaffold(
+      appBar: resolvedAppBar,
+      backgroundColor: backgroundColor ?? AppColors.background,
+      body: body,
+      bottomNavigationBar: bottomNavigationBar,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+    );
+  }
+}
+
+// lib/design/components/feedback/app_feedback.dart
+
+import 'package:flutter/material.dart';
+import '../../tokens/colors.dart';
+import '../../tokens/typography.dart';
+import '../../tokens/radius.dart';
+// import '../../tokens/spacing.dart';
+import '../../foundations/constants.dart';
+
+/// Badge display variants.
+enum AppBadgeVariant { success, warning, error, info }
+
+/// PKK Resident - Status Badge
+///
+/// Compact label for statuses like "Đã thanh toán", "Pending", etc.
+///
+/// Usage:
+/// ```dart
+/// AppStatusBadge(label: 'Completed', variant: AppBadgeVariant.success)
+/// AppStatusBadge(label: 'Pending',   variant: AppBadgeVariant.warning)
+/// AppStatusBadge(label: 'High Priority', variant: AppBadgeVariant.error)
+/// ```
+class AppStatusBadge extends StatelessWidget {
+  const AppStatusBadge({
+    super.key,
+    required this.label,
+    this.variant = AppBadgeVariant.info,
+  });
+
+  final String label;
+  final AppBadgeVariant variant;
+
+  Color get _bgColor => switch (variant) {
+    AppBadgeVariant.success => AppColors.successLight,
+    AppBadgeVariant.warning => AppColors.warningLight,
+    AppBadgeVariant.error => AppColors.errorLight,
+    AppBadgeVariant.info => AppColors.primaryLight,
+  };
+
+  Color get _textColor => switch (variant) {
+    AppBadgeVariant.success => AppColors.success,
+    AppBadgeVariant.warning => AppColors.warning,
+    AppBadgeVariant.error => AppColors.error,
+    AppBadgeVariant.info => AppColors.primary,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: _bgColor, borderRadius: AppRadius.badge),
+      child: Text(
+        label.toUpperCase(),
+        style: AppTypography.captionSmall.copyWith(
+          color: _textColor,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Confirm Dialog ────────────────────────────────────────────────────────────
+
+/// PKK Resident - Confirm Dialog
+///
+/// Standard two-action confirmation dialog.
+///
+/// Usage:
+/// ```dart
+/// final confirmed = await AppConfirmDialog.show(
+///   context,
+///   title: 'Confirm Action?',
+///   message: 'This action cannot be undone.',
+///   confirmLabel: 'Proceed',
+///   cancelLabel: 'Cancel',
+/// );
+/// if (confirmed == true) { ... }
+/// ```
+class AppConfirmDialog extends StatelessWidget {
+  const AppConfirmDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    this.confirmLabel = 'Xác nhận',
+    this.cancelLabel = 'Huỷ',
+    this.isDangerous = false,
+  });
+
+  final String title;
+  final String message;
+  final String confirmLabel;
+  final String cancelLabel;
+
+  /// If true, the confirm button is rendered in error/danger color.
+  final bool isDangerous;
+
+  static Future<bool?> show(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String confirmLabel = 'Xác nhận',
+    String cancelLabel = 'Huỷ',
+    bool isDangerous = false,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (_) => AppConfirmDialog(
+        title: title,
+        message: message,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+        isDangerous: isDangerous,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(
+            cancelLabel,
+            style: AppTypography.buttonLabel.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDangerous ? AppColors.error : AppColors.primary,
+          ),
+          child: Text(confirmLabel, style: AppTypography.buttonLabel),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Loading Indicator ────────────────────────────────────────────────────────
+
+/// PKK Resident - App Loading Indicator
+///
+/// Centered spinner overlay — wraps content during async operations.
+///
+/// Usage:
+/// ```dart
+/// AppLoadingIndicator(isLoading: _isLoading, child: content)
+/// ```
+class AppLoadingIndicator extends StatelessWidget {
+  const AppLoadingIndicator({
+    super.key,
+    required this.child,
+    this.isLoading = false,
+  });
+
+  final Widget child;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        if (isLoading)
+          const ColoredBox(
+            color: Color(0x66FFFFFF),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: AppConstants.spinnerStrokeWidth,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}

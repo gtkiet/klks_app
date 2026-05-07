@@ -1,3 +1,5 @@
+// lib/design/foundations/extensions.dart
+
 import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
 // import '../tokens/spacing.dart';

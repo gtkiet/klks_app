@@ -1,3 +1,5 @@
+// lib/design/tokens/colors.dart
+
 import 'package:flutter/material.dart';
 
 /// PKK Resident - Color Design Tokens
@@ -10,6 +12,7 @@ import 'package:flutter/material.dart';
 /// import 'package:pkk_resident/design/design.dart';
 /// color: AppColors.primary,
 /// ```
+
 abstract final class AppColors {
   // ─── Brand / Primary ───────────────────────────────────────────────────────
   /// Main brand color. Used for primary buttons, active nav icons, focused inputs.

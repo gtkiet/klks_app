@@ -1,3 +1,5 @@
+// lib/design/foundations/constants.dart
+
 /// PKK Resident - Global Constants
 ///
 /// App-wide constants that don't belong to a specific feature.

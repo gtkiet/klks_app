@@ -1,3 +1,5 @@
+// lib/design/tokens/spacing.dart
+
 import 'package:flutter/material.dart';
 
 /// PKK Resident - Spacing Design Tokens

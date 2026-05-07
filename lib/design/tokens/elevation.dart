@@ -1,5 +1,6 @@
+// lib/design/tokens/elevation.dart
+
 import 'package:flutter/material.dart';
-// import '../tokens/colors.dart';
 
 /// PKK Resident - Elevation / Shadow Design Tokens
 ///
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 /// ```dart
 /// boxShadow: AppElevation.level1
 /// ```
+
 abstract final class AppElevation {
   // ─── Level 1 — Low ────────────────────────────────────────────────────────
   /// Used for cards on light backgrounds. Subtle depth.

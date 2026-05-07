@@ -1,0 +1,743 @@
+// PKK Resident - Design System
+//
+// Single import for the entire design system.
+//
+// Usage:
+// ```dart
+// import 'package:pkk_resident/design/design.dart';
+// ```
+//
+// Then use any token or component directly:
+// ```dart
+// color: AppColors.primary,
+// style: AppTypography.headline,
+// padding: EdgeInsets.all(AppSpacing.md),
+// child: AppButton(label: 'Login', onPressed: _login),
+// ```
+
+// ── Tokens ────────────────────────────────────────────────────────────────────
+export 'tokens/colors.dart';
+export 'tokens/typography.dart';
+export 'tokens/spacing.dart';
+export 'tokens/radius.dart';
+export 'tokens/elevation.dart';
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+export 'theme/app_theme.dart';
+export 'theme/app_color_scheme.dart';
+export 'theme/app_text_theme.dart';
+
+// ── Foundations ───────────────────────────────────────────────────────────────
+export 'foundations/constants.dart';
+export 'foundations/extensions.dart';
+
+// ── Components ────────────────────────────────────────────────────────────────
+export 'components/buttons/app_button.dart';
+export 'components/text_fields/app_text_field.dart';
+export 'components/cards/app_card.dart';
+export 'components/app_bar/app_top_bar.dart';
+export 'components/app_bar/app_scaffold.dart';
+export 'components/feedback/app_feedback.dart';
+
+
+// lib/design/tokens/colors.dart
+
+import 'package:flutter/material.dart';
+
+/// PKK Resident - Color Design Tokens
+///
+/// Single source of truth for all colors in the application.
+/// Never use [Colors.xxx] directly in UI code — always reference this class.
+///
+/// Usage:
+/// ```dart
+/// import 'package:pkk_resident/design/design.dart';
+/// color: AppColors.primary,
+/// ```
+
+abstract final class AppColors {
+  // ─── Brand / Primary ───────────────────────────────────────────────────────
+  /// Main brand color. Used for primary buttons, active nav icons, focused inputs.
+  static const Color primary = Color(0xFF0052CC);
+
+  /// Darker shade for pressed / hover states.
+  static const Color primaryDark = Color(0xFF003D99);
+
+  /// Lighter tint for splash / ripple.
+  static const Color primaryLight = Color(0xFFE6EEFF);
+
+  // ─── Secondary / Neutral ───────────────────────────────────────────────────
+  /// Used for inactive icons, secondary text, and dividers.
+  static const Color secondary = Color(0xFF525F73);
+
+  /// Light variant for secondary backgrounds.
+  static const Color secondaryLight = Color(0xFFEBEDF0);
+
+  // ─── Semantic ──────────────────────────────────────────────────────────────
+  /// Positive actions, "Đã thanh toán", "Hoàn thành" statuses.
+  static const Color success = Color(0xFF2E7D32);
+  static const Color successLight = Color(0xFFE8F5E9);
+
+  /// "Chờ xử lý", "Pending" warnings.
+  static const Color warning = Color(0xFFF57C00);
+  static const Color warningLight = Color(0xFFFFF3E0);
+
+  /// Validation errors, "Thanh toán thất bại".
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color errorLight = Color(0xFFFFEDEA);
+
+  // ─── Surfaces ──────────────────────────────────────────────────────────────
+  /// Main card and screen background.
+  static const Color surface = Color(0xFFFFFFFF);
+
+  /// Base screen background — provides contrast with cards.
+  static const Color background = Color(0xFFF7F9FC);
+
+  /// Input field default fill.
+  static const Color inputFill = Color(0xFFF0F2F5);
+
+  // ─── Text ──────────────────────────────────────────────────────────────────
+  static const Color textPrimary = Color(0xFF1A1C1E);
+  static const Color textSecondary = Color(0xFF525F73);
+  static const Color textDisabled = Color(0xFFADB5BD);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+
+  // ─── Border ────────────────────────────────────────────────────────────────
+  static const Color border = Color(0xFFDEE2E6);
+  static const Color borderFocused = Color(0xFF0052CC);
+  static const Color borderError = Color(0xFFBA1A1A);
+
+  // ─── Overlay ───────────────────────────────────────────────────────────────
+  static const Color scrim = Color(0x99000000);
+  static const Color divider = Color(0xFFF0F2F5);
+}
+
+// lib/design/tokens/elevation.dart
+
+import 'package:flutter/material.dart';
+// import '../tokens/colors.dart';
+
+/// PKK Resident - Elevation / Shadow Design Tokens
+///
+/// Usage:
+/// ```dart
+/// boxShadow: AppElevation.level1
+/// ```
+
+abstract final class AppElevation {
+  // ─── Level 1 — Low ────────────────────────────────────────────────────────
+  /// Used for cards on light backgrounds. Subtle depth.
+  static const List<BoxShadow> level1 = [
+    BoxShadow(
+      color: Color(0x0D000000), // ~5% black
+      blurRadius: 4,
+      offset: Offset(0, 2),
+    ),
+    BoxShadow(
+      color: Color(0x08000000), // ~3% black
+      blurRadius: 1,
+      offset: Offset(0, 0),
+    ),
+  ];
+
+  // ─── Level 2 — Floating ────────────────────────────────────────────────────
+  /// Used for sticky buttons, modals, bottom sheets.
+  static const List<BoxShadow> level2 = [
+    BoxShadow(
+      color: Color(0x1A000000), // ~10% black
+      blurRadius: 16,
+      offset: Offset(0, 4),
+    ),
+    BoxShadow(color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 1)),
+  ];
+
+  // ─── Level 3 — Overlay ────────────────────────────────────────────────────
+  /// Used for dialogs and overlays.
+  static const List<BoxShadow> level3 = [
+    BoxShadow(color: Color(0x29000000), blurRadius: 32, offset: Offset(0, 8)),
+  ];
+
+  // ─── Material elevation values (for ThemeData) ────────────────────────────
+  static const double cardElevation = 1.0;
+  static const double dialogElevation = 6.0;
+  static const double bottomNavElevation = 8.0;
+}
+
+// lib/design/tokens/radius.dart
+
+import 'package:flutter/material.dart';
+
+/// PKK Resident - Border Radius Design Tokens
+///
+/// Usage:
+/// ```dart
+/// borderRadius: AppRadius.card
+/// ```
+abstract final class AppRadius {
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double input = 12.0;
+  static const double standard = 16.0; // Cards, large buttons
+  static const double lg = 24.0;
+  static const double full = 999.0; // Pill shape (badges, chips)
+
+  // ─── BorderRadius helpers ──────────────────────────────────────────────────
+  static const BorderRadius card = BorderRadius.all(Radius.circular(standard));
+  static const BorderRadius inputField = BorderRadius.all(Radius.circular(input));
+  static const BorderRadius button = BorderRadius.all(Radius.circular(standard));
+  static const BorderRadius buttonSmall = BorderRadius.all(Radius.circular(sm));
+  static const BorderRadius badge = BorderRadius.all(Radius.circular(full));
+  static const BorderRadius modal = BorderRadius.vertical(top: Radius.circular(lg));
+
+  // ─── RoundedRectangleBorder helpers ───────────────────────────────────────
+  static RoundedRectangleBorder cardShape = const RoundedRectangleBorder(
+    borderRadius: card,
+  );
+
+  static RoundedRectangleBorder buttonShape = const RoundedRectangleBorder(
+    borderRadius: button,
+  );
+}
+
+// lib/design/tokens/spacing.dart
+
+import 'package:flutter/material.dart';
+
+/// PKK Resident - Spacing Design Tokens
+///
+/// Based on an 8pt grid system as specified in TDS.
+/// Always use these constants instead of raw numbers.
+///
+/// Usage:
+/// ```dart
+/// Padding(padding: EdgeInsets.all(AppSpacing.md))
+/// SizedBox(height: AppSpacing.lg)
+/// ```
+abstract final class AppSpacing {
+  // ─── Base Scale ────────────────────────────────────────────────────────────
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 16.0;
+  static const double lg = 24.0;
+  static const double xl = 32.0;
+  static const double xxl = 48.0;
+
+  // ─── Semantic Aliases ──────────────────────────────────────────────────────
+  /// Standard screen horizontal padding.
+  static const double screenHorizontal = md; // 16pt
+
+  /// Wide screen horizontal padding (e.g., section headers).
+  static const double screenHorizontalWide = lg; // 24pt
+
+  /// Standard gap between list items.
+  static const double gapSmall = sm; // 8pt
+
+  /// Standard gap between sections / cards.
+  static const double gapMedium = md; // 16pt
+
+  /// Large gap for layout separation.
+  static const double gapLarge = lg; // 24pt
+
+  // ─── Insets (EdgeInsets helpers) ───────────────────────────────────────────
+  static const EdgeInsets insetAll4 = EdgeInsets.all(xs);
+  static const EdgeInsets insetAll8 = EdgeInsets.all(sm);
+  static const EdgeInsets insetAll16 = EdgeInsets.all(md);
+  static const EdgeInsets insetAll24 = EdgeInsets.all(lg);
+
+  static const EdgeInsets insetH16 = EdgeInsets.symmetric(horizontal: md);
+  static const EdgeInsets insetH24 = EdgeInsets.symmetric(horizontal: lg);
+
+  static const EdgeInsets insetV8 = EdgeInsets.symmetric(vertical: sm);
+  static const EdgeInsets insetV12 = EdgeInsets.symmetric(vertical: 12);
+  static const EdgeInsets insetV16 = EdgeInsets.symmetric(vertical: md);
+
+  /// Standard card inner padding.
+  static const EdgeInsets cardPadding = EdgeInsets.all(md);
+
+  /// Button inner padding — tall hit area for accessibility.
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 14,
+  );
+
+  /// Input field inner padding.
+  static const EdgeInsets inputPadding = EdgeInsets.symmetric(
+    horizontal: md,
+    vertical: 14,
+  );
+}
+
+// lib/design/tokens/typography.dart
+
+import 'package:flutter/material.dart';
+
+/// PKK Resident - Typography Design Tokens
+///
+/// All text styles use [Be Vietnam Pro] as per TDS specification.
+/// Make sure the font is declared in pubspec.yaml:
+///
+/// ```yaml
+/// fonts:
+///   - family: Be Vietnam Pro
+///     fonts:
+///       - asset: assets/fonts/BeVietnamPro-Regular.ttf
+///       - asset: assets/fonts/BeVietnamPro-Medium.ttf    weight: 500
+///       - asset: assets/fonts/BeVietnamPro-SemiBold.ttf  weight: 600
+///       - asset: assets/fonts/BeVietnamPro-Bold.ttf      weight: 700
+/// ```
+///
+/// Usage:
+/// ```dart
+/// Text('Hello', style: AppTypography.headline)
+/// ```
+abstract final class AppTypography {
+  static const String _fontFamily = 'Be Vietnam Pro';
+
+  // ─── Display / Hero ────────────────────────────────────────────────────────
+  /// 30px Bold — Splash screen and large welcome headers.
+  static const TextStyle display = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 30,
+    fontWeight: FontWeight.w700,
+    height: 1.27, // ~38px line-height
+    letterSpacing: -0.5,
+  );
+
+  // ─── Headline ──────────────────────────────────────────────────────────────
+  /// 18px Bold — Section titles and AppBar titles.
+  static const TextStyle headline = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    height: 1.33, // ~24px
+    letterSpacing: -0.2,
+  );
+
+  // ─── Subhead ───────────────────────────────────────────────────────────────
+  /// 14px SemiBold — Sub-labels and card titles.
+  static const TextStyle subhead = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 1.43, // ~20px
+  );
+
+  // ─── Body ──────────────────────────────────────────────────────────────────
+  /// 14px Regular — Standard content and descriptions.
+  static const TextStyle body = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    height: 1.57, // ~22px
+  );
+
+  /// 14px Medium — Slightly emphasized body text.
+  static const TextStyle bodyMedium = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.57,
+  );
+
+  // ─── Caption ───────────────────────────────────────────────────────────────
+  /// 12px Medium — Timestamps, metadata, micro-copy.
+  static const TextStyle caption = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    height: 1.5, // ~18px
+    letterSpacing: 0.1,
+  );
+
+  /// 12px Regular — Smallest informational text.
+  static const TextStyle captionSmall = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 1.5,
+  );
+
+  // ─── Button Label ──────────────────────────────────────────────────────────
+  /// 14px SemiBold — Used inside buttons and interactive labels.
+  static const TextStyle buttonLabel = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 1.0,
+    letterSpacing: 0.1,
+  );
+
+  // ─── Input ─────────────────────────────────────────────────────────────────
+  /// 14px Regular — Input field value and placeholder.
+  static const TextStyle input = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    height: 1.43,
+  );
+}
+
+// lib/design/theme/app_theme.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../tokens/colors.dart';
+import '../tokens/radius.dart';
+import '../tokens/elevation.dart';
+import '../tokens/spacing.dart';
+import '../tokens/typography.dart';
+import 'app_color_scheme.dart';
+import 'app_text_theme.dart';
+
+/// PKK Resident - Main Theme
+///
+/// Entry point for all theme configuration.
+///
+/// Usage in main.dart:
+/// ```dart
+/// MaterialApp(
+///   theme: AppTheme.light,
+///   // darkTheme: AppTheme.dark,  // when ready
+/// )
+/// ```
+abstract final class AppTheme {
+  static ThemeData get light => ThemeData(
+    useMaterial3: true,
+    colorScheme: AppColorScheme.light,
+    textTheme: AppTextTheme.light,
+    scaffoldBackgroundColor: AppColors.background,
+    fontFamily: 'Be Vietnam Pro',
+
+    // ── AppBar ───────────────────────────────────────────────────────
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.surface,
+      foregroundColor: AppColors.textPrimary,
+      elevation: 0,
+      scrolledUnderElevation: 1,
+      shadowColor: AppColors.border,
+      surfaceTintColor: Colors.transparent,
+      centerTitle: true,
+      titleTextStyle: AppTypography.headline.copyWith(
+        color: AppColors.textPrimary,
+      ),
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      iconTheme: const IconThemeData(color: AppColors.textPrimary, size: 24),
+    ),
+
+    // ── Bottom Navigation Bar ─────────────────────────────────────────
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: AppColors.surface,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.secondary,
+      type: BottomNavigationBarType.fixed,
+      elevation: AppElevation.bottomNavElevation,
+      selectedLabelStyle: AppTypography.captionSmall,
+      unselectedLabelStyle: AppTypography.captionSmall,
+    ),
+
+    // ── Elevated Button ───────────────────────────────────────────────
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        disabledBackgroundColor: AppColors.secondaryLight,
+        disabledForegroundColor: AppColors.textDisabled,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        padding: AppSpacing.buttonPadding,
+        minimumSize: const Size(double.infinity, 52),
+        shape: AppRadius.buttonShape,
+        textStyle: AppTypography.buttonLabel,
+      ),
+    ),
+
+    // ── Outlined Button ───────────────────────────────────────────────
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        disabledForegroundColor: AppColors.textDisabled,
+        padding: AppSpacing.buttonPadding,
+        minimumSize: const Size(double.infinity, 52),
+        shape: AppRadius.buttonShape,
+        side: const BorderSide(color: AppColors.primary, width: 1.5),
+        textStyle: AppTypography.buttonLabel,
+      ),
+    ),
+
+    // ── Text Button ───────────────────────────────────────────────────
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        padding: AppSpacing.buttonPadding,
+        textStyle: AppTypography.buttonLabel,
+      ),
+    ),
+
+    // ── Input Decoration ──────────────────────────────────────────────
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.inputFill,
+      contentPadding: AppSpacing.inputPadding,
+      hintStyle: AppTypography.input.copyWith(color: AppColors.textDisabled),
+      errorStyle: AppTypography.captionSmall.copyWith(color: AppColors.error),
+      border: OutlineInputBorder(
+        borderRadius: AppRadius.inputField,
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: AppRadius.inputField,
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: AppRadius.inputField,
+        borderSide: const BorderSide(
+          color: AppColors.borderFocused,
+          width: 1.5,
+        ),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: AppRadius.inputField,
+        borderSide: const BorderSide(color: AppColors.borderError, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: AppRadius.inputField,
+        borderSide: const BorderSide(color: AppColors.borderError, width: 1.5),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: AppRadius.inputField,
+        borderSide: BorderSide.none,
+      ),
+    ),
+
+    // ── Card ─────────────────────────────────────────────────────────
+    cardTheme: CardThemeData(
+      color: AppColors.surface,
+      elevation: AppElevation.cardElevation,
+      shadowColor: const Color(0x0D000000),
+      shape: AppRadius.cardShape,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+    ),
+
+    // ── Dialog ────────────────────────────────────────────────────────
+    dialogTheme: DialogThemeData(
+      backgroundColor: AppColors.surface,
+      elevation: AppElevation.dialogElevation,
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.card),
+      titleTextStyle: AppTypography.headline.copyWith(
+        color: AppColors.textPrimary,
+      ),
+      contentTextStyle: AppTypography.body.copyWith(
+        color: AppColors.textSecondary,
+      ),
+    ),
+
+    // ── Chip ──────────────────────────────────────────────────────────
+    chipTheme: ChipThemeData(
+      backgroundColor: AppColors.inputFill,
+      selectedColor: AppColors.primaryLight,
+      labelStyle: AppTypography.caption,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      shape: const StadiumBorder(),
+    ),
+
+    // ── Divider ───────────────────────────────────────────────────────
+    dividerTheme: const DividerThemeData(
+      color: AppColors.divider,
+      thickness: 1,
+      space: 1,
+    ),
+
+    // ── Progress Indicator ────────────────────────────────────────────
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: AppColors.primary,
+    ),
+
+    // ── Snack Bar ─────────────────────────────────────────────────────
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: AppColors.textPrimary,
+      contentTextStyle: AppTypography.body.copyWith(color: AppColors.surface),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonSmall),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+// lib/design/theme/app_color_scheme.dart
+
+import 'package:flutter/material.dart';
+import '../tokens/colors.dart';
+
+/// PKK Resident - Color Scheme
+///
+/// Wraps [AppColors] tokens into Flutter's [ColorScheme].
+/// Used by [AppTheme] to build [ThemeData].
+abstract final class AppColorScheme {
+  static const ColorScheme light = ColorScheme(
+    brightness: Brightness.light,
+    primary: AppColors.primary,
+    onPrimary: AppColors.textOnPrimary,
+    primaryContainer: AppColors.primaryLight,
+    onPrimaryContainer: AppColors.primaryDark,
+    secondary: AppColors.secondary,
+    onSecondary: AppColors.textOnPrimary,
+    secondaryContainer: AppColors.secondaryLight,
+    onSecondaryContainer: AppColors.textPrimary,
+    error: AppColors.error,
+    onError: AppColors.textOnPrimary,
+    errorContainer: AppColors.errorLight,
+    onErrorContainer: AppColors.error,
+    surface: AppColors.surface,
+    onSurface: AppColors.textPrimary,
+    onSurfaceVariant: AppColors.textSecondary,
+    outline: AppColors.border,
+    outlineVariant: AppColors.divider,
+    scrim: AppColors.scrim,
+    inverseSurface: AppColors.textPrimary,
+    onInverseSurface: AppColors.surface,
+    inversePrimary: AppColors.primaryLight,
+    surfaceTint: AppColors.primary,
+  );
+
+  // Dark theme scaffold — extend later when dark mode is required.
+  // static const ColorScheme dark = ColorScheme( ... );
+}
+
+// lib/design/theme/app_text_theme.dart
+
+import 'package:flutter/material.dart';
+import '../tokens/typography.dart';
+import '../tokens/colors.dart';
+
+/// PKK Resident - Text Theme
+///
+/// Maps [AppTypography] tokens to Flutter's [TextTheme].
+/// Applied to [ThemeData.textTheme] so all Text widgets inherit correct styles.
+abstract final class AppTextTheme {
+  static TextTheme get light =>
+      const TextTheme(
+        // ── Display ────────────────────────────────────────────────────────
+        displayLarge: AppTypography.display,
+        displayMedium: AppTypography.display,
+        displaySmall: AppTypography.display,
+
+        // ── Headline ───────────────────────────────────────────────────────
+        headlineLarge: AppTypography.headline,
+        headlineMedium: AppTypography.headline,
+        headlineSmall: AppTypography.subhead,
+
+        // ── Title ──────────────────────────────────────────────────────────
+        titleLarge: AppTypography.headline,
+        titleMedium: AppTypography.subhead,
+        titleSmall: AppTypography.subhead,
+
+        // ── Body ───────────────────────────────────────────────────────────
+        bodyLarge: AppTypography.bodyMedium,
+        bodyMedium: AppTypography.body,
+        bodySmall: AppTypography.captionSmall,
+
+        // ── Label ──────────────────────────────────────────────────────────
+        labelLarge: AppTypography.buttonLabel,
+        labelMedium: AppTypography.caption,
+        labelSmall: AppTypography.captionSmall,
+      ).apply(
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      );
+}
+
+// lib/design/foundations/constants.dart
+
+/// PKK Resident - Global Constants
+///
+/// App-wide constants that don't belong to a specific feature.
+abstract final class AppConstants {
+  // App identity
+  static const String appName = 'PKK Resident';
+
+  // Animation durations
+  static const Duration animFast = Duration(milliseconds: 150);
+  static const Duration animNormal = Duration(milliseconds: 250);
+  static const Duration animSlow = Duration(milliseconds: 400);
+
+  // Input constraints
+  static const int maxPasswordLength = 32;
+  static const int maxInputLength = 255;
+
+  // Layout constraints
+  static const double maxContentWidth = 600.0;
+  static const double bottomNavHeight = 64.0;
+  static const double appBarHeight = 56.0;
+
+  // Loading spinner size
+  static const double spinnerSize = 20.0;
+  static const double spinnerStrokeWidth = 2.0;
+}
+
+// lib/design/foundations/extensions.dart
+
+import 'package:flutter/material.dart';
+import '../tokens/colors.dart';
+// import '../tokens/spacing.dart';
+// import '../tokens/typography.dart';
+
+/// PKK Resident - Extension helpers
+///
+/// Provides convenient accessors on [BuildContext] and common types.
+///
+/// Usage:
+/// ```dart
+/// context.colors.primary
+/// context.textTheme.headline
+/// 16.0.verticalSpace
+/// ```
+
+// ─── BuildContext extensions ──────────────────────────────────────────────────
+extension AppContextExtensions on BuildContext {
+  /// Access the resolved [ColorScheme] from context.
+  ColorScheme get colorScheme => Theme.of(this).colorScheme;
+
+  /// Access the resolved [TextTheme] from context.
+  TextTheme get textTheme => Theme.of(this).textTheme;
+
+  /// Screen size.
+  Size get screenSize => MediaQuery.sizeOf(this);
+
+  double get screenWidth => screenSize.width;
+  double get screenHeight => screenSize.height;
+
+  /// True if keyboard is visible.
+  bool get isKeyboardVisible => MediaQuery.viewInsetsOf(this).bottom > 0;
+}
+
+// ─── SizedBox helpers ─────────────────────────────────────────────────────────
+extension DoubleSpacingExtension on double {
+  /// ```dart
+  /// 16.0.verticalSpace  // SizedBox(height: 16)
+  /// ```
+  SizedBox get verticalSpace => SizedBox(height: this);
+
+  /// ```dart
+  /// 16.0.horizontalSpace  // SizedBox(width: 16)
+  /// ```
+  SizedBox get horizontalSpace => SizedBox(width: this);
+}
+
+extension IntSpacingExtension on int {
+  SizedBox get verticalSpace => SizedBox(height: toDouble());
+  SizedBox get horizontalSpace => SizedBox(width: toDouble());
+}
+
+// ─── Text style helpers ───────────────────────────────────────────────────────
+extension TextStyleColorExtension on TextStyle {
+  TextStyle withColor(Color color) => copyWith(color: color);
+  TextStyle get primary => copyWith(color: AppColors.primary);
+  TextStyle get secondary => copyWith(color: AppColors.textSecondary);
+  TextStyle get error => copyWith(color: AppColors.error);
+  TextStyle get disabled => copyWith(color: AppColors.textDisabled);
+  TextStyle get onPrimary => copyWith(color: AppColors.textOnPrimary);
+}

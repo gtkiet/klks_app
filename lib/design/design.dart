@@ -37,8 +37,7 @@ export 'components/text_fields/app_text_field.dart';
 export 'components/cards/app_card.dart';
 export 'components/app_bar/app_top_bar.dart';
 export 'components/app_bar/app_scaffold.dart';
-export 'components/navigation/app_bottom_nav.dart';
 export 'components/feedback/app_feedback.dart';
 
 // ── Demo (remove in production builds) ───────────────────────────────────────
-export 'demo/design_demo_screen.dart';
+// export 'demo/design_demo_screen.dart';

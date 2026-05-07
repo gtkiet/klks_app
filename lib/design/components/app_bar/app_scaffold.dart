@@ -1,3 +1,5 @@
+// lib/design/components/app_bar/app_scaffold.dart
+
 import 'package:flutter/material.dart';
 import '../../tokens/colors.dart';
 import 'app_top_bar.dart';

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../models/yeu_cau_sua_chua_model.dart';
+import '../models/sua_chua_model.dart';
 
 /// Mở full-screen image viewer với hỗ trợ pinch-to-zoom, swipe qua lại,
 /// và hiển thị tên file + số thứ tự ảnh.

@@ -19,6 +19,7 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppNavigation.setShell(shell);
+    AppNavigation.setRouter(GoRouter.of(context));
     return Scaffold(
       body: shell,
       bottomNavigationBar: BottomNavigationBar(
@@ -35,6 +36,11 @@ class MainScreen extends StatelessWidget {
             icon: ThongBaoNavIcon(),
             activeIcon: ThongBaoNavIcon(isActive: true),
             label: 'Thông báo',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.widgets_outlined),
+            activeIcon: Icon(Icons.widgets),
+            label: 'Tiện ích',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.apartment_outlined),

@@ -10,7 +10,7 @@ import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../models/yeu_cau_thi_cong_detail_model.dart';
 import '../models/nhan_su_thi_cong_model.dart';
 import '../models/uploaded_file_model.dart';
-import '../services/yeu_cau_thi_cong_service.dart';
+import '../services/thi_cong_service.dart';
 
 /// Screen tạo mới hoặc chỉnh sửa Yêu cầu Thi công.
 ///

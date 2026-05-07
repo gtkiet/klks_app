@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
-import '../models/yeu_cau_sua_chua_model.dart';
-import '../services/yeu_cau_sua_chua_service.dart';
+import '../models/sua_chua_model.dart';
+import '../services/sua_chua_service.dart';
 import '../widgets/full_screen_image_viewer.dart';
-import 'yeu_cau_create_screen.dart';
+import 'sua_chua_create_screen.dart';
 
 class YeuCauDetailScreen extends StatefulWidget {
   final int yeuCauId;

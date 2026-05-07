@@ -14,18 +14,17 @@ import '../../features/home/screens/home_screen.dart';
 
 import '../../features/thong_bao/screens/thong_bao_list_screen.dart';
 
-import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
-
+import '../../features/tien_ich/screens/tien_ich_screen.dart';
 import '../../features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart';
+import '../../features/tien_ich/sua_chua/screens/sua_chua_list_screen.dart';
+import '../../features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
+
+import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
 
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/profile_detail_screen.dart';
 import '../../features/profile/screens/change_password_screen.dart';
 import '../../features/profile/screens/change_avatar_screen.dart';
-
-import '../../features/tien_ich/sua_chua/screens/yeu_cau_list_screen.dart';
-
-import '../../features/tien_ich/thi_cong/screens/yeu_cau_thi_cong_list_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -71,27 +70,14 @@ class AppRouter {
           return MainScreen(shell: navigationShell);
         },
         branches: [
-          /// ================= HOME TAB =================
+          /// ── 0: HOME ──
           StatefulShellBranch(
             routes: [
-              /// HOME
               GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
-              GoRoute(
-                path: '/dich-vu',
-                builder: (_, _) => const DichVuListScreen(),
-              ),
-              GoRoute(
-                path: '/sua-chua',
-                builder: (_, _) => const YeuCauListScreen(),
-              ),
-              GoRoute(
-                path: '/thi-cong',
-                builder: (_, _) => const YeuCauThiCongListScreen(),
-              ),
             ],
           ),
 
-          /// ================= THÔNG BÁO TAB =================
+          /// ── 1: THÔNG BÁO ──
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -101,7 +87,31 @@ class AppRouter {
             ],
           ),
 
-          /// ================= RESIDENCE TAB =================
+          /// ── 2: TIỆN ÍCH ──
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/tien-ich',
+                builder: (_, _) => const TienIchScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'dich-vu',
+                    builder: (_, _) => const DichVuListScreen(),
+                  ),
+                  GoRoute(
+                    path: 'sua-chua',
+                    builder: (_, _) => const SuaChuaListScreen(),
+                  ),
+                  GoRoute(
+                    path: 'thi-cong',
+                    builder: (_, _) => const YeuCauThiCongListScreen(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          /// ── 3: CƯ TRÚ ──
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -111,7 +121,7 @@ class AppRouter {
             ],
           ),
 
-          /// ================= PROFILE TAB =================
+          /// ── 4: CÁ NHÂN ──
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -143,15 +153,3 @@ class AppRouter {
         Scaffold(body: Center(child: Text('Không tìm thấy: ${state.uri}'))),
   );
 }
-
-// /// TEMP
-// class _PlaceholderScreen extends StatelessWidget {
-//   final String title;
-
-//   const _PlaceholderScreen({required this.title});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Center(child: Text(title));
-//   }
-// }

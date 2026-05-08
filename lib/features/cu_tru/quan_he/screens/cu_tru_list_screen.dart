@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/errors/errors.dart';
+import '../../../hoa_don/hoa_don.dart';
 import '../models/quan_he_cu_tru_model.dart';
 import '../services/cu_tru_service.dart';
 import 'cu_tru_detail_screen.dart';
@@ -52,6 +53,18 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => CuTruDetailScreen(item: item, initialMode: mode),
+      ),
+    );
+  }
+
+  void _goToHoaDon(QuanHeCuTruModel item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HoaDonListScreen(
+          canHoId: item.canHoId, // canHoId từ quan hệ cư trú
+          tenCanHo: item.tenCanHo, // hiển thị trên AppBar
+        ),
       ),
     );
   }
@@ -112,6 +125,7 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
               _goToDetail(_list[index], CuTruDetailMode.thanhVien),
           onPhuongTien: () =>
               _goToDetail(_list[index], CuTruDetailMode.phuongTien),
+          onHoaDon: () => _goToHoaDon(_list[index]),
         ),
       ),
     );
@@ -124,10 +138,13 @@ class _CuTruCard extends StatelessWidget {
   final VoidCallback onThanhVien;
   final VoidCallback onPhuongTien;
 
+  final VoidCallback onHoaDon;
+
   const _CuTruCard({
     required this.item,
     required this.onThanhVien,
     required this.onPhuongTien,
+    required this.onHoaDon,
   });
 
   @override
@@ -201,6 +218,14 @@ class _CuTruCard extends StatelessWidget {
                     onPressed: onPhuongTien,
                     icon: const Icon(Icons.directions_car_outlined, size: 18),
                     label: const Text('Phương tiện'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onHoaDon,
+                    icon: const Icon(Icons.receipt, size: 18),
+                    label: const Text('Hóa đơn'),
                   ),
                 ),
               ],

@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/guards/auth_guard.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
-import 'register_screen.dart';
-import 'forgot_password_screen.dart';
+// import 'register_screen.dart';
+// import 'forgot_password_screen.dart';
 
 import '../../../design/design.dart';
 
@@ -50,17 +50,19 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _goToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (_) => const RegisterScreen()),
+    // );
+    context.push('/auth/register');
   }
 
   void _goToForgotPassword() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+    // );
+    context.push('/auth/forgot-password');
   }
 
   @override
@@ -200,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // ── Footer ───────────────────────────────────────────────────────
               Text(
-                '© 2024 PKK RESIDENT SYSTEM',
+                '© 2026 PKK RESIDENT SYSTEM',
                 style: AppTypography.captionSmall.copyWith(
                   color: AppColors.textDisabled,
                   letterSpacing: 0.8,

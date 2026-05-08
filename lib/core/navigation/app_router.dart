@@ -9,6 +9,9 @@ import 'main_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
 
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/register_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/reset_password_screen.dart';
 
 import '../../features/home/screens/home_screen.dart';
 
@@ -38,19 +41,26 @@ class AppRouter {
       final status = AuthGuard.instance.status;
       final location = state.matchedLocation;
 
-      final isLogin = location == '/login';
+      // final isLogin = location == '/login';
+      final isAuthRoute = location.startsWith('/auth');
       final isSplash = location == '/splash';
 
       if (status == AuthStatus.unknown) {
         return isSplash ? null : '/splash';
       }
 
+      // if (status == AuthStatus.unauthenticated) {
+      //   return isLogin ? null : '/login';
+      // }
       if (status == AuthStatus.unauthenticated) {
-        return isLogin ? null : '/login';
+        return isAuthRoute ? null : '/auth/login';
       }
 
+      // if (status == AuthStatus.authenticated) {
+      //   if (isLogin || isSplash) return '/home';
+      // }
       if (status == AuthStatus.authenticated) {
-        if (isLogin || isSplash) return '/home';
+        if (isAuthRoute || isSplash) return '/home';
       }
 
       return null;
@@ -61,8 +71,21 @@ class AppRouter {
       /// SPLASH
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
 
-      /// LOGIN
-      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(
+        path: '/auth',
+        routes: [
+          GoRoute(path: 'login', builder: (_, _) => const LoginScreen()),
+          GoRoute(path: 'register', builder: (_, _) => const RegisterScreen()),
+          GoRoute(
+            path: 'forgot-password',
+            builder: (_, _) => const ForgotPasswordScreen(),
+          ),
+          GoRoute(
+            path: 'reset-password',
+            builder: (_, _) => const ResetPasswordScreen(),
+          ),
+        ],
+      ),
 
       /// 🔥 STATEFUL SHELL (BOTTOM NAV)
       StatefulShellRoute.indexedStack(

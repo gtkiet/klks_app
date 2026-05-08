@@ -85,7 +85,11 @@ class AppTextField extends StatefulWidget {
        textInputAction = TextInputAction.done,
        maxLines = 1,
        readOnly = false,
-       prefixIcon = null,
+       prefixIcon = const Icon(
+         Icons.lock_outline,
+         color: AppColors.textSecondary,
+         size: 20,
+       ),
        suffixIcon = null;
 
   /// Search variant — magnifying glass prefix.

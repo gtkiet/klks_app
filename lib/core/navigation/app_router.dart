@@ -81,8 +81,10 @@ class AppRouter {
             builder: (_, _) => const ForgotPasswordScreen(),
           ),
           GoRoute(
-            path: 'reset-password',
-            builder: (_, _) => const ResetPasswordScreen(),
+            path: 'reset-password/:username',
+            builder: (_, state) => ResetPasswordScreen(
+              username: state.pathParameters['username'] ?? '',
+            ),
           ),
         ],
       ),

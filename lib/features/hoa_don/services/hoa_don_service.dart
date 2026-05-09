@@ -1,5 +1,6 @@
 // lib/features/hoa_don/services/hoa_don_service.dart
 
+import 'package:dio/dio.dart';
 import '../../../core/errors/errors.dart';
 import '../../../core/network/api_client.dart';
 import '../models/hoa_don_model.dart';
@@ -8,9 +9,52 @@ class HoaDonService {
   HoaDonService._();
   static final instance = HoaDonService._();
 
-  // ─── HELPER ─────────────────────────────────────────────────────────────────
+  // ─── HELPER ──────────────────────────────────────────────────────────────────
 
-  /// Unwrap response: nếu isOk == false hoặc có errors → throw AppException.
+  /// Gọi POST, extract `.data` từ Dio Response, rồi unwrap business logic.
+  ///
+  /// Dio trả về `Response<dynamic>` — `.data` mới là body JSON đã decode.
+  /// DioException được bắt ở đây để convert sang AppException nhất quán.
+  Future<T> _post<T>(
+    String path, {
+    required Map<String, dynamic> body,
+    required T Function(Map<String, dynamic>) fromResult,
+  }) async {
+    try {
+      final response = await ApiClient.instance.dio.post<Map<String, dynamic>>(
+        path,
+        data: body,
+      );
+
+      final data = response.data;
+      if (data == null) {
+        throw AppException('Không có dữ liệu trả về', type: ErrorType.server);
+      }
+
+      return _unwrap(data, fromResult);
+    } on DioException catch (e) {
+      // ApiInterceptor thường đã handle 401, nhưng các lỗi khác vẫn qua đây
+      final statusCode = e.response?.statusCode;
+      final responseData = e.response?.data;
+
+      // Nếu server trả về body JSON có errors[] → parse business error
+      if (responseData is Map<String, dynamic>) {
+        throw ErrorParser.parse(responseData, statusCode: statusCode);
+      }
+
+      // Network timeout / no internet / unknown
+      throw AppException(
+        _dioErrorMessage(e),
+        type: e.type == DioExceptionType.connectionError ||
+                e.type == DioExceptionType.connectionTimeout
+            ? ErrorType.network
+            : ErrorType.unknown,
+        code: statusCode,
+      );
+    }
+  }
+
+  /// Unwrap business response: isOk == false → throw, result == null → throw.
   T _unwrap<T>(
     Map<String, dynamic> json,
     T Function(Map<String, dynamic>) fromResult,
@@ -26,13 +70,22 @@ class HoaDonService {
     return fromResult(result as Map<String, dynamic>);
   }
 
-  // ─── 1. DANH SÁCH HÓA ĐƠN ───────────────────────────────────────────────────
+  String _dioErrorMessage(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'Kết nối quá thời gian, vui lòng thử lại';
+      case DioExceptionType.connectionError:
+        return 'Không có kết nối mạng';
+      default:
+        return e.message ?? 'Có lỗi xảy ra';
+    }
+  }
 
-  /// Lấy danh sách hóa đơn của một căn hộ.
-  ///
-  /// [canHoId]          – ID căn hộ (bắt buộc với cư dân)
-  /// [trangThaiHoaDonId]– 2=Chưa thanh toán, 3=Đã thanh toán, 4=Quá hạn...
-  /// [pageNumber]       – trang hiện tại (bắt đầu từ 1)
+  // ─── 1. DANH SÁCH HÓA ĐƠN ────────────────────────────────────────────────────
+
+  /// [trangThaiHoaDonId] 2=Chưa TT, 3=Đã TT, 4=Quá hạn, null=tất cả
   Future<HoaDonListResult> getList({
     required int canHoId,
     int? trangThaiHoaDonId,
@@ -41,92 +94,88 @@ class HoaDonService {
     String? keyword,
     int pageNumber = 1,
     int pageSize = 10,
-  }) async {
-    final body = <String, dynamic>{
-      'canHoId': canHoId,
-      'trangThaiHoaDonId': ?trangThaiHoaDonId,
-      'thang': ?thang,
-      'nam': ?nam,
-      if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-      'pageNumber': pageNumber,
-      'pageSize': pageSize,
-      'isAsc': false,
-    };
-
-    final json = await ApiClient.instance.dio.post(
+  }) {
+    return _post(
       '/api/hoa-don/get-list',
-      data: body,
+      body: {
+        'canHoId': canHoId,
+        // Chỉ đưa vào body nếu có giá trị — tránh gửi null làm server filter sai
+        'trangThaiHoaDonId': ?trangThaiHoaDonId,
+        'thang': ?thang,
+        'nam': ?nam,
+        if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+        'pageNumber': pageNumber,
+        'pageSize': pageSize,
+        'isAsc': false,
+      },
+      fromResult: HoaDonListResult.fromJson,
     );
-
-    return _unwrap(json as Map<String, dynamic>, HoaDonListResult.fromJson);
   }
 
-  // ─── 2. CHI TIẾT HÓA ĐƠN ────────────────────────────────────────────────────
+  // ─── 2. CHI TIẾT HÓA ĐƠN ─────────────────────────────────────────────────────
 
-  Future<HoaDonDetail> getById(int id) async {
-    final json = await ApiClient.instance.dio.post(
+  Future<HoaDonDetail> getById(int id) {
+    return _post(
       '/api/hoa-don/get-by-id',
-      data: {'id': id},
+      body: {'id': id},
+      fromResult: HoaDonDetail.fromJson,
     );
-    return _unwrap(json as Map<String, dynamic>, HoaDonDetail.fromJson);
   }
 
-  // ─── 3. CHI TIẾT CỐ ĐỊNH ─────────────────────────────────────────────────────
+  // ─── 3. CHI TIẾT CỐ ĐỊNH ──────────────────────────────────────────────────────
 
-  Future<ChiTietCoDinh> getChiTietCoDinh(int chiTietId) async {
-    final json = await ApiClient.instance.dio.post(
+  Future<ChiTietCoDinh> getChiTietCoDinh(int chiTietId) {
+    return _post(
       '/api/hoa-don/get-chi-tiet-co-dinh',
-      data: {'id': chiTietId},
+      body: {'id': chiTietId},
+      fromResult: ChiTietCoDinh.fromJson,
     );
-    return _unwrap(json as Map<String, dynamic>, ChiTietCoDinh.fromJson);
   }
 
   // ─── 4. CHI TIẾT LŨY TIẾN ────────────────────────────────────────────────────
 
-  Future<ChiTietLuyTien> getChiTietLuyTien(int chiTietId) async {
-    final json = await ApiClient.instance.dio.post(
+  Future<ChiTietLuyTien> getChiTietLuyTien(int chiTietId) {
+    return _post(
       '/api/hoa-don/get-chi-tiet-luy-tien',
-      data: {'id': chiTietId},
+      body: {'id': chiTietId},
+      fromResult: ChiTietLuyTien.fromJson,
     );
-    return _unwrap(json as Map<String, dynamic>, ChiTietLuyTien.fromJson);
   }
 
   // ─── 5. CHI TIẾT DIỆN TÍCH ───────────────────────────────────────────────────
 
-  Future<ChiTietDienTich> getChiTietDienTich(int chiTietId) async {
-    final json = await ApiClient.instance.dio.post(
+  Future<ChiTietDienTich> getChiTietDienTich(int chiTietId) {
+    return _post(
       '/api/hoa-don/get-chi-tiet-dien-tich',
-      data: {'id': chiTietId},
+      body: {'id': chiTietId},
+      fromResult: ChiTietDienTich.fromJson,
     );
-    return _unwrap(json as Map<String, dynamic>, ChiTietDienTich.fromJson);
   }
 
   // ─── 6. CHI TIẾT KHUNG GIỜ ───────────────────────────────────────────────────
 
-  Future<ChiTietKhungGio> getChiTietKhungGio(int chiTietId) async {
-    final json = await ApiClient.instance.dio.post(
+  Future<ChiTietKhungGio> getChiTietKhungGio(int chiTietId) {
+    return _post(
       '/api/hoa-don/get-chi-tiet-khung-gio',
-      data: {'id': chiTietId},
+      body: {'id': chiTietId},
+      fromResult: ChiTietKhungGio.fromJson,
     );
-    return _unwrap(json as Map<String, dynamic>, ChiTietKhungGio.fromJson);
   }
 
   // ─── 7. TẠO PHIÊN THANH TOÁN ─────────────────────────────────────────────────
 
-  /// Tạo phiên thanh toán online, trả về mã QR VietQR.
-  ///
-  /// [chiTietHoaDonIds] – để trống [] để thanh toán toàn bộ hóa đơn.
+  /// [chiTietHoaDonIds] để trống [] → thanh toán toàn bộ hóa đơn.
   Future<PhienThanhToan> taoPhienThanhToan({
     required int hoaDonId,
     List<int> chiTietHoaDonIds = const [],
-  }) async {
-    final json = await ApiClient.instance.dio.post(
+  }) {
+    return _post(
       '/api/giao-dich-thanh-toan/tao-phien',
-      data: {
+      body: {
         'hoaDonId': hoaDonId,
         'chiTietHoaDonIds': chiTietHoaDonIds,
       },
+      fromResult: PhienThanhToan.fromJson,
     );
-    return _unwrap(json as Map<String, dynamic>, PhienThanhToan.fromJson);
   }
 }

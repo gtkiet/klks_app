@@ -11,8 +11,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/errors/errors.dart';
-
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../../quan_he/models/selector_item_model.dart';
 import '../../quan_he/widgets/selector_field.dart';
@@ -45,12 +43,9 @@ class YeuCauFormCreate extends YeuCauFormMode {
 }
 
 /// Tạo yêu cầu SỬA thành viên (loaiYeuCauId = 2).
-/// Pre-fill từ thongTinCuDan nếu có, ngược lại tự gọi API.
 class YeuCauFormEdit extends YeuCauFormMode {
   final ThanhVienCuTruModel thanhVien;
   final QuanHeCuTruModel canHoInfo;
-
-  /// Data đã có sẵn (từ ThanhVienDetailScreen) → tránh gọi lại API.
   final ThongTinCuDanModel? thongTinCuDan;
 
   const YeuCauFormEdit({
@@ -84,18 +79,13 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
   final _thanhVienSvc = ThanhVienService.instance;
 
   final _formKey = GlobalKey<FormState>();
-
-  // ScrollController để cuộn về đầu khi có lỗi submit.
   final _scrollCtrl = ScrollController();
 
   // ── Load state ─────────────────────────────────────────────────────────
   bool _isLoading = false;
-  AppException? _loadError;
 
   // ── Dữ liệu resolve khi load ────────────────────────────────────────────
-  // Draft mode: lưu YeuCauCuTruModel để hiển thị readonly card.
   YeuCauCuTruModel? _draftYeuCau;
-  // Edit mode: lưu ThongTinCuDanModel để lấy taiLieuCuTrus.
   ThongTinCuDanModel? _cuDan;
 
   // ── Form controllers ────────────────────────────────────────────────────
@@ -111,14 +101,9 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
   SelectorItemModel? _loaiQuanHe;
 
   // ── Tài liệu ────────────────────────────────────────────────────────────
-  // Dùng ValueNotifier để TaiLieuCuTruEditor không bị rebuild khi
-  // screen cha cập nhật _submitError.
   final _taiLieuNotifier = ValueNotifier<List<TaiLieuCuTruRequest>>([]);
 
   // ── Submit state ────────────────────────────────────────────────────────
-  // Tách submitError ra ValueNotifier → chỉ rebuild banner lỗi,
-  // KHÔNG rebuild toàn bộ form (tránh mất file upload).
-  final _submitErrorNotifier = ValueNotifier<AppException?>(null);
   bool _isSubmitting = false;
 
   // ── Catalog futures ─────────────────────────────────────────────────────
@@ -176,7 +161,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
     _noiDungCtrl.dispose();
     _scrollCtrl.dispose();
     _taiLieuNotifier.dispose();
-    _submitErrorNotifier.dispose();
     super.dispose();
   }
 
@@ -187,15 +171,12 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
   Future<void> _initLoad() async {
     switch (widget.mode) {
       case YeuCauFormCreate():
-        // Không cần load gì — form trống.
         break;
       case YeuCauFormEdit(thongTinCuDan: final data, thanhVien: final tv):
         if (data != null) {
-          // Data đã có → prefill text ngay, load catalog song song để preselect.
           _prefillFromCuDan(data);
           await _loadCatalogAndPreselect(data);
         } else {
-          // Chưa có data → load cả data lẫn catalog.
           await _loadCuDanAndCatalog(tv.quanHeCuTruId);
         }
       case YeuCauFormDraft(yeuCauId: final id):
@@ -214,8 +195,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
             .where((e) => e.id == d.loaiQuanHeCuTruId)
             .firstOrNull;
       });
-    } on AppException catch (e) {
-      if (mounted) setState(() => _loadError = e);
     } finally {
       _setLoading(false);
     }
@@ -241,8 +220,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
             .where((e) => e.id == cuDan.loaiQuanHeCuTruId)
             .firstOrNull;
       });
-    } on AppException catch (e) {
-      if (mounted) setState(() => _loadError = e);
     } finally {
       _setLoading(false);
     }
@@ -268,8 +245,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
             .where((e) => e.id == d.yeuCauLoaiQuanHeId)
             .firstOrNull;
       });
-    } on AppException catch (e) {
-      if (mounted) setState(() => _loadError = e);
     } finally {
       _setLoading(false);
     }
@@ -321,7 +296,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
     if (!_validateRequiredFields()) return;
     if (_isSubmitting) return;
 
-    // Confirm khi nộp từ draft mode.
     if (_isDraft && isSubmit) {
       final ok = await _showConfirmDialog(
         title: 'Xác nhận gửi yêu cầu',
@@ -334,7 +308,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
     }
 
     setState(() => _isSubmitting = true);
-    _submitErrorNotifier.value = null;
 
     try {
       final taiLieus = _taiLieuNotifier.value;
@@ -358,7 +331,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
           ),
         );
       } else {
-        // create hoặc edit → createYeuCau
         final canHoId = _canHoInfo!.canHoId;
         final loaiYeuCauId = _isCreate ? 1 : 2;
         final targetId = _isEdit ? (_thanhVien!.quanHeCuTruId) : null;
@@ -385,17 +357,8 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
 
       if (mounted) {
         _showSnack(isSubmit ? 'Đã nộp yêu cầu thành công' : 'Đã lưu nháp');
-        Navigator.pop(context, true); // pop(true) → caller reload
+        Navigator.pop(context, true);
       }
-    } on AppException catch (e) {
-      // Chỉ cập nhật notifier — KHÔNG gọi setState toàn bộ screen
-      // → TaiLieuCuTruEditor không bị rebuild → file không mất.
-      _submitErrorNotifier.value = e;
-      _scrollCtrl.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -477,15 +440,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
 
   Widget _buildBody() {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-
-    if (_loadError != null) {
-      return TvAsyncLayout(
-        isLoading: false,
-        error: _loadError,
-        onRetry: _initLoad,
-      );
-    }
-
     if (_isSubmitting) return const Center(child: CircularProgressIndicator());
 
     return Form(
@@ -497,18 +451,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
           // ── Readonly card ──────────────────────────────────────────────
           _buildReadonlyCard(),
           const SizedBox(height: 20),
-
-          // ── Submit error banner (ValueNotifier → rebuild chỉ banner) ──
-          ValueListenableBuilder<AppException?>(
-            valueListenable: _submitErrorNotifier,
-            builder: (_, error, _) {
-              if (error == null) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: AppErrorWidget(error: error),
-              );
-            },
-          ),
 
           // ── Thông tin chính ────────────────────────────────────────────
           SectionLabel(_sectionLabel),
@@ -585,7 +527,6 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
           // ── Tài liệu đính kèm ─────────────────────────────────────────
           const SectionLabel('Tài liệu đính kèm'),
 
-          // Key cố định → không rebuild khi screen gọi setState
           TaiLieuCuTruEditor(
             key: const ValueKey('tai_lieu_editor'),
             initialDocuments: _isDraft

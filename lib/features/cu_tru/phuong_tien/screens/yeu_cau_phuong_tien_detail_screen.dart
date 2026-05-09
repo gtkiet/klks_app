@@ -1,7 +1,6 @@
 // lib/features/cu_tru/phuong_tien/screens/yeu_cau_phuong_tien_detail_screen.dart
 
 import 'package:flutter/material.dart';
-import '../../../../../core/errors/errors.dart';
 import '../services/pt_yeu_cau_service.dart';
 import '../models/yeu_cau_phuong_tien_model.dart';
 
@@ -28,7 +27,6 @@ class _YeuCauPhuongTienDetailScreenState
   final _service = PTYeuCauService.instance;
 
   bool _isLoading = false;
-  AppException? _error;
   YeuCauPhuongTien? _data;
 
   @override
@@ -42,15 +40,10 @@ class _YeuCauPhuongTienDetailScreenState
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    setState(() => _isLoading = true);
     try {
       final result = await _service.getYeuCauById(widget.yeuCauId);
       setState(() => _data = result);
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -77,26 +70,6 @@ class _YeuCauPhuongTienDetailScreenState
   Widget _buildBody() {
     if (_isLoading && _data == null) {
       return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null && _data == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppErrorWidget(error: _error!),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _loadData,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Thử lại'),
-              ),
-            ],
-          ),
-        ),
-      );
     }
 
     if (_data == null) return const SizedBox.shrink();

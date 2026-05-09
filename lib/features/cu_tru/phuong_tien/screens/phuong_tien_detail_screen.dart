@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/errors/errors.dart';
 import '../models/phuong_tien_model.dart';
 import '../services/phuong_tien_service.dart';
 
@@ -32,7 +31,6 @@ class _PhuongTienDetailScreenState extends State<PhuongTienDetailScreen> {
 
   // ── State ──────────────────────────────────────────────────────────────
   bool _isLoading = false;
-  AppException? _error;
   PhuongTien? _data;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────
@@ -46,16 +44,11 @@ class _PhuongTienDetailScreenState extends State<PhuongTienDetailScreen> {
 
   // ── Service call ───────────────────────────────────────────────────────
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final result = await _service.getPhuongTienById(widget.phuongTienId);
       setState(() => _data = result);
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -91,25 +84,6 @@ class _PhuongTienDetailScreenState extends State<PhuongTienDetailScreen> {
   }
 
   Widget _buildBody() {
-    // Lỗi khi không có snapshot (không có gì để hiển thị)
-    if (_error != null && _data == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppErrorWidget(error: _error!),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Không có gì cả
     if (_data == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -242,8 +216,8 @@ class _PhuongTienDetailScreenState extends State<PhuongTienDetailScreen> {
       title: 'Thẻ phương tiện (${theList.length})',
       children: theList.map((the) {
         final (bg, text) = switch (the.trangThaiThePhuongTienId) {
-          1 => (Colors.green.shade50, Colors.green.shade800), // Đang dùng
-          2 => (Colors.grey.shade100, Colors.grey.shade600), // Hết hạn
+          1 => (Colors.green.shade50, Colors.green.shade800),
+          2 => (Colors.grey.shade100, Colors.grey.shade600),
           _ => (Colors.orange.shade50, Colors.orange.shade800),
         };
 

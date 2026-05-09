@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/errors/errors.dart';
 import '../../../hoa_don/screens/hoa_don_list_screen.dart';
 import '../models/quan_he_cu_tru_model.dart';
 import '../services/cu_tru_service.dart';
@@ -21,28 +20,22 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
 
   // ── State ──────────────────────────────────────────────────────────────
   bool _isLoading = false;
-  AppException? _error;
   List<QuanHeCuTruModel> _list = [];
 
   // ── Lifecycle ──────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    _loadData(); // tự động tải khi mở màn hình
+    _loadData();
   }
 
   // ── Service call ───────────────────────────────────────────────────────
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final result = await _service.getQuanHeCuTruList();
       setState(() => _list = result);
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -50,12 +43,6 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
 
   // ── Navigation ─────────────────────────────────────────────────────────
   void _goToDetail(QuanHeCuTruModel item, CuTruDetailMode mode) {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => CuTruDetailScreen(item: item, initialMode: mode),
-    //   ),
-    // );
     context.push(
       '/detail',
       extra: CuTruDetailArgs(item: item, initialMode: mode),
@@ -67,15 +54,6 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
       '/hoa-don',
       extra: HoaDonListArgs(canHoId: item.canHoId, tenCanHo: item.tenCanHo),
     );
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => HoaDonListScreen(
-    //       canHoId: item.canHoId, // canHoId từ quan hệ cư trú
-    //       tenCanHo: item.tenCanHo, // hiển thị trên AppBar
-    //     ),
-    //   ),
-    // );
   }
 
   // ── Build ──────────────────────────────────────────────────────────────
@@ -99,23 +77,6 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppErrorWidget(error: _error!),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
     }
 
     if (_list.isEmpty) {
@@ -146,7 +107,6 @@ class _CuTruCard extends StatelessWidget {
   final QuanHeCuTruModel item;
   final VoidCallback onThanhVien;
   final VoidCallback onPhuongTien;
-
   final VoidCallback onHoaDon;
 
   const _CuTruCard({
@@ -167,7 +127,6 @@ class _CuTruCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Địa chỉ đầy đủ
             Text(
               item.diaChiDayDu,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -176,7 +135,6 @@ class _CuTruCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
 
-            // Loại quan hệ + mã căn hộ + tổng cư dân
             Row(
               children: [
                 Chip(
@@ -198,7 +156,6 @@ class _CuTruCard extends StatelessWidget {
               ],
             ),
 
-            // Ngày bắt đầu
             if (item.ngayBatDau != null) ...[
               const SizedBox(height: 2),
               Text(
@@ -211,7 +168,6 @@ class _CuTruCard extends StatelessWidget {
 
             const Divider(height: 16),
 
-            // 2 nút điều hướng
             Row(
               children: [
                 Expanded(

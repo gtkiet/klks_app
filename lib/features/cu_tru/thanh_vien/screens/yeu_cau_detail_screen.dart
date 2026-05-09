@@ -67,8 +67,6 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
     if (_isLoading || _error != null) {
       return TvAsyncLayout(
         isLoading: _isLoading,
-        error: _error,
-        onRetry: _loadDetail,
       );
     }
 

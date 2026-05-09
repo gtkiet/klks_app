@@ -6,4 +6,4 @@
 export 'error_type.dart';
 export 'app_exception.dart';
 export 'error_parser.dart';
-export 'app_error_widget.dart';
+// export 'app_error_widget.dart';

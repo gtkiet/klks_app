@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/errors/errors.dart';
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../models/thanh_vien_cu_tru_model.dart';
 import '../models/thong_tin_cu_dan_model.dart';
@@ -45,7 +44,6 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
   final _service = ThanhVienService.instance;
 
   bool _isLoading = false;
-  AppException? _error;
   ThongTinCuDanModel? _data;
 
   @override
@@ -57,15 +55,12 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
     try {
       final result = await _service.getThongTinCuDan(
         widget.thanhVien.quanHeCuTruId,
       );
       setState(() => _data = result);
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -145,11 +140,9 @@ class _ThanhVienDetailScreenState extends State<ThanhVienDetailScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading || _error != null) {
+    if (_isLoading) {
       return TvAsyncLayout(
         isLoading: _isLoading,
-        error: _error,
-        onRetry: _loadData,
       );
     }
 

@@ -7,8 +7,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../core/errors/errors.dart';
-
 import '../../../quan_he/models/quan_he_cu_tru_model.dart';
 
 import '../../models/thanh_vien_request.dart';
@@ -48,7 +46,6 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
 
   bool _isLoading = false;
   bool _isLoadingMore = false;
-  AppException? _error;
   List<YeuCauCuTruModel> _list = [];
   int _pageNumber = 1;
   static const _pageSize = 10;
@@ -79,7 +76,6 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
       _pageNumber = 1;
       _hasMore = true;
     });
@@ -97,8 +93,6 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
         _list = result.items;
         _hasMore = result.items.length >= _pageSize;
       });
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -122,12 +116,6 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
         _pageNumber = nextPage;
         _hasMore = result.items.length >= _pageSize;
       });
-    } on AppException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
     } finally {
       setState(() => _isLoadingMore = false);
     }
@@ -164,11 +152,11 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
         ).showSnackBar(const SnackBar(content: Text('Đã thu hồi yêu cầu')));
         _loadData();
       }
-    } on AppException catch (e) {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -207,11 +195,9 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (_isLoading || _error != null) {
+    if (_isLoading) {
       return TvAsyncLayout(
         isLoading: _isLoading,
-        error: _error,
-        onRetry: _loadData,
       );
     }
 

@@ -6,8 +6,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../core/errors/errors.dart';
-
 import '../screens/yeu_cau_phuong_tien_detail_screen.dart';
 import '../services/pt_yeu_cau_service.dart';
 
@@ -38,7 +36,6 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
   // ── State ──────────────────────────────────────────────────────────────
   bool _isLoading = false;
   bool _isLoadingMore = false;
-  AppException? _error;
   List<YeuCauPhuongTien> _list = [];
   int _pageNumber = 1;
   static const int _pageSize = 10;
@@ -70,7 +67,6 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
       _pageNumber = 1;
       _hasMore = true;
     });
@@ -87,8 +83,6 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
         _list = result.items;
         _hasMore = !result.pagingInfo.isLastPage;
       });
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -112,13 +106,6 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
         _pageNumber = nextPage;
         _hasMore = !result.pagingInfo.isLastPage;
       });
-    } on AppException catch (e) {
-      // Load more thất bại: snackbar, giữ nguyên data cũ
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
     } finally {
       setState(() => _isLoadingMore = false);
     }
@@ -131,23 +118,6 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
 
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppErrorWidget(error: _error!),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
     }
 
     if (_list.isEmpty) {
@@ -188,7 +158,6 @@ class _YeuCauCard extends StatelessWidget {
     final theme = Theme.of(context);
     final (bg, textColor) = _trangThaiColor(yeuCau.trangThaiId);
 
-    // Dòng tóm tắt xe: loại + biển số + màu
     final xeInfo = [
       if (yeuCau.tenYeuCauLoaiPhuongTien != null)
         yeuCau.tenYeuCauLoaiPhuongTien!,
@@ -202,13 +171,12 @@ class _YeuCauCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => YeuCauPhuongTienDetailScreen(
               yeuCauId: yeuCau.id,
-              initialData: yeuCau, // hiển thị ngay, không chờ API
+              initialData: yeuCau,
             ),
           ),
         ),
         leading: CircleAvatar(
           radius: 20,
-          // Dùng ảnh đầu tiên nếu có, fallback icon loại yêu cầu
           backgroundImage: yeuCau.yeuCauHinhAnhPhuongTiens.isNotEmpty
               ? NetworkImage(yeuCau.yeuCauHinhAnhPhuongTiens.first.fileUrl)
               : null,
@@ -220,7 +188,6 @@ class _YeuCauCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thông tin xe yêu cầu
             if (xeInfo.isNotEmpty)
               Text(xeInfo, style: const TextStyle(fontWeight: FontWeight.w500)),
             Text('Người gửi: ${yeuCau.tenNguoiGui}'),
@@ -231,7 +198,6 @@ class _YeuCauCard extends StatelessWidget {
                   color: theme.colorScheme.outline,
                 ),
               ),
-            // Lý do từ chối
             if (yeuCau.lyDo != null && yeuCau.lyDo!.isNotEmpty)
               Text(
                 'Lý do: ${yeuCau.lyDo}',
@@ -256,19 +222,17 @@ class _YeuCauCard extends StatelessWidget {
     );
   }
 
-  // Điều chỉnh trangThaiId theo enum backend
   (Color bg, Color text) _trangThaiColor(int id) => switch (id) {
-    2 => (Colors.green.shade50, Colors.green.shade800), // Đã duyệt
-    3 => (Colors.red.shade50, Colors.red.shade800), // Từ chối
-    4 => (Colors.grey.shade100, Colors.grey.shade700), // Đã rút
-    _ => (Colors.orange.shade50, Colors.orange.shade800), // Chờ duyệt
+    2 => (Colors.green.shade50, Colors.green.shade800),
+    3 => (Colors.red.shade50, Colors.red.shade800),
+    4 => (Colors.grey.shade100, Colors.grey.shade700),
+    _ => (Colors.orange.shade50, Colors.orange.shade800),
   };
 
-  // Điều chỉnh loaiYeuCauId theo enum backend
   IconData _loaiIcon(int id) => switch (id) {
-    1 => Icons.add_road, // Đăng ký xe mới
-    2 => Icons.no_crash, // Hủy đăng ký
-    3 => Icons.edit_road, // Cập nhật thông tin
+    1 => Icons.add_road,
+    2 => Icons.no_crash,
+    3 => Icons.edit_road,
     _ => Icons.description_outlined,
   };
 

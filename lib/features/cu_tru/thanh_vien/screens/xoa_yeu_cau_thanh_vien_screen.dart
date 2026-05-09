@@ -5,7 +5,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/errors/errors.dart';
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../../quan_he/widgets/shared_widget.dart';
 import '../models/thanh_vien_cu_tru_model.dart';
@@ -33,7 +32,6 @@ class _XoaYeuCauThanhVienScreenState extends State<XoaYeuCauThanhVienScreen> {
   final _noiDungCtrl = TextEditingController();
 
   bool _isSubmitting = false;
-  AppException? _submitError;
 
   @override
   void dispose() {
@@ -70,10 +68,7 @@ class _XoaYeuCauThanhVienScreenState extends State<XoaYeuCauThanhVienScreen> {
       if (confirmed != true || !mounted) return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-      _submitError = null;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
       await _service.createYeuCau(
@@ -100,8 +95,6 @@ class _XoaYeuCauThanhVienScreenState extends State<XoaYeuCauThanhVienScreen> {
         );
         Navigator.pop(context, true);
       }
-    } on AppException catch (e) {
-      setState(() => _submitError = e);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -122,7 +115,7 @@ class _XoaYeuCauThanhVienScreenState extends State<XoaYeuCauThanhVienScreen> {
                   _WarningBanner(thanhVien: widget.thanhVien),
                   const SizedBox(height: 20),
 
-                  // ── Thông tin thành viên (dùng shared card) ────────────
+                  // ── Thông tin thành viên ───────────────────────────────
                   TvMemberReadonlyCard(
                     thanhVien: widget.thanhVien,
                     diaChiCanHo: widget.canHoInfo.diaChiDayDu,
@@ -130,11 +123,6 @@ class _XoaYeuCauThanhVienScreenState extends State<XoaYeuCauThanhVienScreen> {
                     badgeColor: Colors.red,
                   ),
                   const SizedBox(height: 20),
-
-                  if (_submitError != null) ...[
-                    AppErrorWidget(error: _submitError!),
-                    const SizedBox(height: 12),
-                  ],
 
                   // ── Lý do ────────────────────────────────────────────────
                   const SectionLabel('Lý do yêu cầu xóa (tùy chọn)'),

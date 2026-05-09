@@ -7,8 +7,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../core/errors/errors.dart';
-
 import '../services/phuong_tien_service.dart';
 
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
@@ -38,7 +36,6 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
   // ── State ──────────────────────────────────────────────────────────────
   bool _isLoading = false;
   bool _isLoadingMore = false;
-  AppException? _error;
   List<PhuongTien> _list = [];
   int _pageNumber = 1;
   static const int _pageSize = 10;
@@ -72,7 +69,6 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
       _pageNumber = 1;
       _hasMore = true;
     });
@@ -82,15 +78,13 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
         GetListPhuongTienRequest(
           pageNumber: 1,
           pageSize: _pageSize,
-          canHoId: widget.item.canHoId, // lọc theo căn hộ
+          canHoId: widget.item.canHoId,
         ),
       );
       setState(() {
         _list = result.items;
         _hasMore = !result.pagingInfo.isLastPage;
       });
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -114,13 +108,6 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
         _pageNumber = nextPage;
         _hasMore = !result.pagingInfo.isLastPage;
       });
-    } on AppException catch (e) {
-      // Load more thất bại: snackbar, không xóa data cũ
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
     } finally {
       setState(() => _isLoadingMore = false);
     }
@@ -133,7 +120,6 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
       MaterialPageRoute(
         builder: (_) => PhuongTienDetailScreen(
           phuongTienId: pt.id,
-          // Truyền snapshot để hiển thị ngay trong khi chờ API chi tiết
           snapshot: pt,
         ),
       ),
@@ -149,23 +135,6 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppErrorWidget(error: _error!),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
-    }
-
     if (_list.isEmpty) {
       return const Center(child: Text('Chưa có phương tiện nào'));
     }
@@ -178,7 +147,6 @@ class _PhuongTienListTabState extends State<PhuongTienListTab>
         itemCount: _list.length + (_isLoadingMore ? 1 : 0),
         separatorBuilder: (_, _) => const Divider(height: 1),
         itemBuilder: (_, i) {
-          // Load more indicator ở cuối
           if (i == _list.length) {
             return const Center(
               child: Padding(
@@ -249,9 +217,9 @@ class _PhuongTienTile extends StatelessWidget {
   }
 
   IconData _loaiIcon(int loaiId) => switch (loaiId) {
-    1 => Icons.two_wheeler, // Xe máy
-    2 => Icons.directions_car, // Ô tô
-    3 => Icons.pedal_bike, // Xe đạp
+    1 => Icons.two_wheeler,
+    2 => Icons.directions_car,
+    3 => Icons.pedal_bike,
     _ => Icons.commute,
   };
 }
@@ -266,9 +234,9 @@ class _TrangThaiChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, text) = switch (trangThaiId) {
-      1 => (Colors.green.shade50, Colors.green.shade800), // Đang hoạt động
-      2 => (Colors.grey.shade100, Colors.grey.shade700), // Ngừng hoạt động
-      _ => (Colors.orange.shade50, Colors.orange.shade800), // Khác
+      1 => (Colors.green.shade50, Colors.green.shade800),
+      2 => (Colors.grey.shade100, Colors.grey.shade700),
+      _ => (Colors.orange.shade50, Colors.orange.shade800),
     };
 
     return Container(

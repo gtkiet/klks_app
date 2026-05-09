@@ -10,8 +10,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/errors/errors.dart';
-
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../../quan_he/models/selector_item_model.dart';
 import '../../quan_he/models/uploaded_file_model.dart';
@@ -53,13 +51,10 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
   SelectorItemModel? _loaiPhuongTien;
 
   // ── Upload state ───────────────────────────────────────────────────────
-  // File upload lên server ngay → giữ fileId để đính vào request
-  // Xóa khỏi list = xóa khỏi yêu cầu, không gọi API xóa server
   final List<UploadedFileModel> _uploadedFiles = [];
 
   // ── Submit state ───────────────────────────────────────────────────────
   bool _isSubmitting = false;
-  AppException? _submitError;
 
   @override
   void dispose() {
@@ -80,10 +75,7 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-      _submitError = null;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
       await _ptService.taoYeuCau(
@@ -96,7 +88,6 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
           yeuCauBienSo: _bienSoCtrl.text.trim(),
           yeuCauMauXe: _mauXeCtrl.text.trim(),
           noiDung: _noiDungCtrl.text.trim(),
-          // fileIds từ các ảnh đã upload lên server
           fileIds: _uploadedFiles.isNotEmpty
               ? _uploadedFiles.map((f) => f.fileId).toList()
               : null,
@@ -113,8 +104,6 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
         );
         Navigator.pop(context, true);
       }
-    } on AppException catch (e) {
-      setState(() => _submitError = e);
     } finally {
       setState(() => _isSubmitting = false);
     }
@@ -135,12 +124,6 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
                   // ── Căn hộ (readonly) ────────────────────────────────
                   ReadonlyCanHoCard(canHoInfo: widget.canHoInfo),
                   const SizedBox(height: 20),
-
-                  // ── Lỗi submit ───────────────────────────────────────
-                  if (_submitError != null) ...[
-                    AppErrorWidget(error: _submitError!),
-                    const SizedBox(height: 12),
-                  ],
 
                   // ── Thông tin phương tiện ────────────────────────────
                   SectionLabel('Thông tin phương tiện'),
@@ -198,13 +181,10 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
                   AppFileUploadField(
                     label: 'Ảnh xe (tùy chọn)',
                     targetContainer: 'tai-lieu-phuong-tien',
-                    // Upload lên server ngay khi chọn → nhận fileId
                     uploadFn: _ptService.uploadMedia,
                     initialFiles: _uploadedFiles,
                     allowMultiple: true,
                     onChanged: (files) {
-                      // Xóa file: chỉ xóa khỏi list,
-                      // không gọi API xóa trên server
                       setState(() {
                         _uploadedFiles
                           ..clear()

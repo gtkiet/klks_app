@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../../core/errors/errors.dart';
 import '../../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../../models/thanh_vien_cu_tru_model.dart';
 import '../thanh_vien_detail_screen.dart';
@@ -33,7 +32,6 @@ class _ThanhVienListTabState extends State<ThanhVienListTab>
   final _service = ThanhVienService.instance;
 
   bool _isLoading = false;
-  AppException? _error;
   List<ThanhVienCuTruModel> _list = [];
 
   @override
@@ -45,13 +43,10 @@ class _ThanhVienListTabState extends State<ThanhVienListTab>
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
     try {
       final result = await _service.getThanhVienCuTru(widget.item.canHoId);
       setState(() => _list = result);
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -101,11 +96,9 @@ class _ThanhVienListTabState extends State<ThanhVienListTab>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (_isLoading || _error != null) {
+    if (_isLoading) {
       return TvAsyncLayout(
         isLoading: _isLoading,
-        error: _error,
-        onRetry: _loadData,
         empty: const Center(child: Text('Chưa có thành viên nào')),
       );
     }

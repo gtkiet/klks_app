@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/errors/errors.dart';
 import '../models/selector_item_model.dart';
 
 class AppSelectorField extends StatefulWidget {
@@ -70,7 +69,6 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
   List<SelectorItemModel> _allItems = [];
   List<SelectorItemModel> _selected = [];
   bool _loading = false;
-  AppException? _error;
 
   @override
   void initState() {
@@ -95,10 +93,7 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
   }
 
   Future<void> _loadFromFuture() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() => _loading = true);
     try {
       final result = await widget.itemsFuture!;
       if (mounted) {
@@ -107,20 +102,8 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
           _loading = false;
         });
       }
-    } on AppException catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e;
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = AppException(e.toString());
-          _loading = false;
-        });
-      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -131,7 +114,7 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
   }
 
   Future<void> _openPicker() async {
-    if (!widget.enabled || _error != null) return;
+    if (!widget.enabled) return;
 
     final result = await showModalBottomSheet<List<SelectorItemModel>>(
       context: context,
@@ -193,10 +176,6 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
               border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
-              // Viền đỏ khi có lỗi, nhưng ẩn errorText ở đây —
-              // sẽ render đầy đủ qua AppErrorWidget bên dưới.
-              errorText: _error != null ? '' : null,
-              errorStyle: const TextStyle(height: 0, fontSize: 0),
               suffixIcon: _loading
                   ? const Padding(
                       padding: EdgeInsets.all(12),
@@ -205,12 +184,6 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                    )
-                  : _error != null
-                  ? IconButton(
-                      icon: const Icon(Icons.refresh),
-                      tooltip: 'Thử lại',
-                      onPressed: _loadFromFuture,
                     )
                   : const Icon(Icons.arrow_drop_down),
               enabled: widget.enabled && !_loading,
@@ -225,12 +198,6 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
                   ),
           ),
         ),
-
-        // ── Lỗi chi tiết — dùng AppErrorWidget ───────────────────────────
-        if (_error != null) ...[
-          const SizedBox(height: 4),
-          AppErrorWidget(error: _error!),
-        ],
 
         // ── Chip list (multi-select) ───────────────────────────────────────
         if (widget.isMultiple && _selected.isNotEmpty) ...[

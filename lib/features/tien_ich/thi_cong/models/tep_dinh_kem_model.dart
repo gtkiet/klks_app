@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_thi_cong/models/tep_dinh_kem_model.dart
+// lib/features/tien_ich/thi_cong/models/tep_dinh_kem_model.dart
 
 class TepDinhKemModel {
   final int id;

@@ -1,4 +1,4 @@
-// lib/features/dich_vu/models/bang_gia_model.dart
+// lib/features/tien_ich/dich_vu/models/bang_gia_model.dart
 
 class BangGia {
   final int id;

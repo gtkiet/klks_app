@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_sua_chua/models/yeu_cau_sua_chua_model.dart
+// lib/features/tien_ich/sua_chua/models/sua_chua_model.dart
 
 // ─────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -438,19 +438,19 @@ class YeuCauSuaChua {
 // PAGED RESULT – map đúng với pagingInfo từ API
 // ─────────────────────────────────────────────────────────────
 
-class PagedResult<T> {
-  final List<T> items;
-  final int totalItems;
-  final int pageNumber;
-  final int pageSize;
+// class PagedResult<T> {
+//   final List<T> items;
+//   final int totalItems;
+//   final int pageNumber;
+//   final int pageSize;
 
-  int get totalPages => pageSize > 0 ? (totalItems / pageSize).ceil() : 0;
-  bool get hasMore => pageNumber < totalPages;
+//   int get totalPages => pageSize > 0 ? (totalItems / pageSize).ceil() : 0;
+//   bool get hasMore => pageNumber < totalPages;
 
-  const PagedResult({
-    required this.items,
-    required this.totalItems,
-    required this.pageNumber,
-    required this.pageSize,
-  });
-}
+//   const PagedResult({
+//     required this.items,
+//     required this.totalItems,
+//     required this.pageNumber,
+//     required this.pageSize,
+//   });
+// }

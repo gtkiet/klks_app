@@ -1,4 +1,4 @@
-// lib/features/dich_vu/models/khung_gio_model.dart
+// lib/features/tien_ich/dich_vu/models/khung_gio_model.dart
 
 class KhungGioItem {
   final int id;

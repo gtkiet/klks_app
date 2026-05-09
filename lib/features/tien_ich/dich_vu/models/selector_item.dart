@@ -1,4 +1,4 @@
-// lib/features/dich_vu/models/selector_item.dart
+// lib/features/tien_ich/dich_vu/models/selector_item.dart
 
 class SelectorItem {
   final int id;

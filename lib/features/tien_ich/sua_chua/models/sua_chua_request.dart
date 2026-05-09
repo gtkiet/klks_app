@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_sua_chua/models/yeu_cau_sua_chua_request.dart
+// lib/features/tien_ich/sua_chua/models/sua_chua_request.dart
 
 class GetListYeuCauRequest {
   final int pageNumber;

@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_thi_cong/screens/yeu_cau_thi_cong_detail_screen.dart
+// lib/features/tien_ich/thi_cong/screens/thi_cong_detail_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

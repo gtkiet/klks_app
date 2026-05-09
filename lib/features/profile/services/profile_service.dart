@@ -1,6 +1,7 @@
 // lib/features/profile/services/profile_service.dart
 
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
@@ -9,102 +10,64 @@ import '../model/user_profile.dart';
 
 class ProfileService {
   ProfileService._();
-
   static final ProfileService instance = ProfileService._();
-  
-  final UserSession _session = UserSession();
 
-  Dio get _dio =>  ApiClient.instance.dio;
+  static final _client = ApiClient.instance;
+  final _session = UserSession();
 
-  /// ===================== GET SESSION PROFILE =====================
-  Future<Map<String, String?>> getSessionProfile() async {
-    return {
-      'fullName': await _session.getFullName(),
-      'email': await _session.getEmail(),
-      'role': await _session.getRole(),
-      'anhDaiDienUrl': await _session.getanhDaiDienUrl(),
-    };
-  }
+  // ── Session profile (local) ───────────────────────────────────────────────
 
-  /// ===================== GET PROFILE =====================
+  Future<Map<String, String?>> getSessionProfile() async => {
+        'fullName': await _session.getFullName(),
+        'email': await _session.getEmail(),
+        'role': await _session.getRole(),
+        'anhDaiDienUrl': await _session.getanhDaiDienUrl(),
+      };
+
+  // ── Remote profile ────────────────────────────────────────────────────────
+
   Future<UserProfile> getProfile() async {
-    try {
-      final response = await _dio.post("/api/profile/get-profile");
-
-      final data = response.data;
-      final profile = UserProfile.fromJson(data['result']);
-      return profile;
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } catch (_) {
-      throw AppException('Lỗi không xác định');
-    }
+    final res = await _client.post('/api/profile/get-profile');
+    return res.item(UserProfile.fromJson);
   }
 
-  /// ===================== CHANGE AVATAR =====================
+  // ── Change avatar ─────────────────────────────────────────────────────────
+
   Future<String> changeAvatar(File file) async {
-    try {
-      final formData = FormData.fromMap({
-        'avatar': await MultipartFile.fromFile(
-          file.path,
-          filename: file.path.split('/').last,
-        ),
-      });
+    final formData = FormData.fromMap({
+      'avatar': await MultipartFile.fromFile(
+        file.path,
+        filename: file.path.split('/').last,
+      ),
+    });
 
-      final response = await _dio.post(
-        "/api/profile/change-avatar",
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
-      );
-
-      final data = response.data;
-
-      final url = data['result'].toString();
-      _session.updateAvatar(url);
-      return url;
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } catch (_) {
-      throw AppException('Lỗi không xác định');
-    }
+    final res = await _client.postForm('/api/profile/change-avatar', formData);
+    final url = res.raw<String>();
+    await _session.updateAvatar(url);
+    return url;
   }
 
-  /// ===================== CHANGE PASSWORD =====================
+  // ── Change password ───────────────────────────────────────────────────────
+
   Future<void> changePassword({
     required String oldPassword,
     required String newPassword,
     required String confirmPassword,
   }) async {
-    try {
-      if (newPassword != confirmPassword) {
-        throw AppException('Mật khẩu xác nhận không khớp');
-      }
-
-      if (oldPassword == newPassword) {
-        throw AppException('Mật khẩu mới không được trùng mật khẩu cũ');
-      }
-
-      await _dio.post(
-        "/api/profile/change-password",
-        data: {
-          "oldPassword": oldPassword,
-          "newPassword": newPassword,
-          "confirmPassword": confirmPassword,
-        },
-      );
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } catch (_) {
-      throw AppException('Lỗi không xác định');
+    if (newPassword != confirmPassword) {
+      throw const AppException('Mật khẩu xác nhận không khớp');
     }
+    if (oldPassword == newPassword) {
+      throw const AppException('Mật khẩu mới không được trùng mật khẩu cũ');
+    }
+
+    await _client.post(
+      '/api/profile/change-password',
+      body: {
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      },
+    );
   }
 }

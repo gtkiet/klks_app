@@ -234,27 +234,27 @@ class PhanAnhDetailResponse extends PhanAnhResponse {
 
 // ---------------------------------------------------------------------------
 
-class PagingInfo {
-  final int pageSize;
-  final int pageNumber;
-  final int totalItems;
+// class PagingInfo {
+//   final int pageSize;
+//   final int pageNumber;
+//   final int totalItems;
 
-  const PagingInfo({
-    required this.pageSize,
-    required this.pageNumber,
-    required this.totalItems,
-  });
+//   const PagingInfo({
+//     required this.pageSize,
+//     required this.pageNumber,
+//     required this.totalItems,
+//   });
 
-  factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-    pageSize: json['pageSize'] as int,
-    pageNumber: json['pageNumber'] as int,
-    totalItems: json['totalItems'] as int,
-  );
-}
+//   factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
+//     pageSize: json['pageSize'] as int,
+//     pageNumber: json['pageNumber'] as int,
+//     totalItems: json['totalItems'] as int,
+//   );
+// }
 
-class PagedResult<T> {
-  final List<T> items;
-  final PagingInfo pagingInfo;
+// class PagedResult<T> {
+//   final List<T> items;
+//   final PagingInfo pagingInfo;
 
-  const PagedResult({required this.items, required this.pagingInfo});
-}
+//   const PagedResult({required this.items, required this.pagingInfo});
+// }

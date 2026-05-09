@@ -1,6 +1,10 @@
-// lib/features/thong_bao/services/thong_bao_service.dart
 
-import 'package:dio/dio.dart';
+// lib/features/thong_bao/services/thong_bao_service.dart
+//
+// ThongBaoService dùng ServiceResult<T> — pattern riêng không throw exception
+// mà trả về success/failure — giữ nguyên vì đây là design decision của feature.
+// Chỉ đồng bộ error parsing và bỏ boilerplate lặp lại.
+
 import '../../../core/network/api_client.dart';
 import '../models/thong_bao_model.dart';
 
@@ -18,10 +22,8 @@ class ThongBaoService {
   ThongBaoService._internal();
   static final ThongBaoService instance = ThongBaoService._internal();
 
-  // Dùng ApiClient.instance.dio — đã có interceptor gắn Bearer token
-  final Dio _dio = ApiClient.instance.dio;
+  static final _client = ApiClient.instance;
 
-  /// POST /api/thong-bao/get-list
   Future<ServiceResult<ThongBaoListResult>> getList({
     String keyword = '',
     int pageNumber = 0,
@@ -31,9 +33,9 @@ class ThongBaoService {
     bool isAsc = false,
   }) async {
     try {
-      final response = await _dio.post(
+      final res = await _client.post(
         '/api/thong-bao/get-list',
-        data: {
+        body: {
           'keyword': keyword,
           'sortCol': sortCol,
           'isAsc': isAsc,
@@ -42,71 +44,27 @@ class ThongBaoService {
           'onlyUnread': onlyUnread,
         },
       );
-
-      final body = response.data as Map<String, dynamic>;
-
-      if (body['isOk'] != true) {
-        final errors = body['errors'] as List<dynamic>? ?? [];
-        final msg = errors.isNotEmpty
-            ? (errors.first as Map<String, dynamic>)['description'] as String?
-            : null;
-        return ServiceResult.failure(msg ?? 'Lấy danh sách thông báo thất bại');
-      }
-
-      final result = ThongBaoListResult.fromJson(
-        body['result'] as Map<String, dynamic>,
-      );
-      return ServiceResult.success(result);
-    } on DioException catch (e) {
-      return ServiceResult.failure(_parseDioError(e));
+      return ServiceResult.success(res.item(ThongBaoListResult.fromJson));
+    } on AppException catch (e) {
+      return ServiceResult.failure(e.message);
     } catch (e) {
       return ServiceResult.failure('Lỗi không xác định: $e');
     }
   }
 
-  /// PUT /api/thong-bao/da-doc
-  Future<ServiceResult<bool>> daDDoc({required int phanBoThongBaoId}) async {
+  Future<ServiceResult<bool>> daDDoc({
+    required int phanBoThongBaoId,
+  }) async {
     try {
-      final response = await _dio.put(
+      await _client.put(
         '/api/thong-bao/da-doc',
-        data: {'phanBoThongBaoId': phanBoThongBaoId},
+        body: {'phanBoThongBaoId': phanBoThongBaoId},
       );
-
-      final body = response.data as Map<String, dynamic>;
-
-      if (body['isOk'] != true) {
-        final errors = body['errors'] as List<dynamic>? ?? [];
-        final msg = errors.isNotEmpty
-            ? (errors.first as Map<String, dynamic>)['description'] as String?
-            : null;
-        return ServiceResult.failure(msg ?? 'Đánh dấu đã đọc thất bại');
-      }
-
       return const ServiceResult.success(true);
-    } on DioException catch (e) {
-      return ServiceResult.failure(_parseDioError(e));
+    } on AppException catch (e) {
+      return ServiceResult.failure(e.message);
     } catch (e) {
       return ServiceResult.failure('Lỗi không xác định: $e');
     }
-  }
-
-  String _parseDioError(DioException e) {
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.receiveTimeout:
-      case DioExceptionType.sendTimeout:
-        return 'Kết nối quá thời gian, vui lòng thử lại';
-      default:
-        break;
-    }
-    switch (e.response?.statusCode) {
-      case 401:
-        return 'Phiên đăng nhập hết hạn';
-      case 403:
-        return 'Bạn không có quyền thực hiện';
-      case 500:
-        return 'Lỗi máy chủ, vui lòng thử lại sau';
-    }
-    return e.message ?? 'Lỗi kết nối mạng';
   }
 }

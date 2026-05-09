@@ -1,4 +1,4 @@
-// lib/features/dich_vu/models/dang_ky_model.dart
+// lib/features/tien_ich/dich_vu/models/dang_ky_model.dart
 
 class DichVuDangKyItem {
   final int id;

@@ -1,4 +1,4 @@
-// lib/features/dich_vu/models/dich_vu_model.dart
+// lib/features/tien_ich/dich_vu/models/dich_vu_model.dart
 
 import 'bang_gia_model.dart';
 import 'khung_gio_model.dart';

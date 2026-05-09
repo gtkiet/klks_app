@@ -1,70 +1,34 @@
-// lib/features/yeu_cau_thi_cong/services/yeu_cau_thi_cong_service.dart
+// lib/features/tien_ich/thi_cong/services/thi_cong_service.dart
 
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_client.dart';
-// import '../../../../core/errors/errors.dart';
-
 import '../models/trang_thai_thi_cong_model.dart';
 import '../models/yeu_cau_thi_cong_list_item_model.dart';
 import '../models/yeu_cau_thi_cong_detail_model.dart';
 import '../models/uploaded_file_model.dart';
-import '../models/paging_info_model.dart';
 import '../models/nhan_su_thi_cong_model.dart';
-
-/// Kết quả phân trang cho danh sách yêu cầu thi công.
-class YeuCauThiCongListResult {
-  final List<YeuCauThiCongListItemModel> items;
-  final PagingInfoModel pagingInfo;
-
-  const YeuCauThiCongListResult({
-    required this.items,
-    required this.pagingInfo,
-  });
-}
 
 class YeuCauThiCongService {
   YeuCauThiCongService._();
   static final YeuCauThiCongService instance = YeuCauThiCongService._();
 
-  Dio get _dio => ApiClient.instance.dio;
+  static final _client = ApiClient.instance;
 
-  // ── 1. Danh sách trạng thái thi công (catalog) ──────────────────────────
+  // ── 1. Catalog ────────────────────────────────────────────────────────────
 
   Future<List<TrangThaiThiCongModel>> getTrangThaiThiCongList() async {
-    try {
-      final response = await _dio.post(
-        '/api/catalog/trang-thai-thi-cong-for-selector',
-      );
-      final data = response.data as Map<String, dynamic>;
-
-      if (data['isOk'] != true) {
-        throw ErrorParser.parse(data);
-      }
-
-      final list = data['result'] as List<dynamic>? ?? [];
-      return list
-          .map((e) => TrangThaiThiCongModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw const AppException(
-        'Lỗi không xác định khi tải trạng thái thi công',
-      );
-    }
+    final res = await _client.post(
+      '/api/catalog/trang-thai-thi-cong-for-selector',
+    );
+    return res.list(TrangThaiThiCongModel.fromJson);
   }
 
-  // ── 2. Danh sách yêu cầu thi công (có phân trang + lọc) ─────────────────
+  // ── 2. Danh sách (phân trang + lọc) ──────────────────────────────────────
 
-  Future<YeuCauThiCongListResult> getList({
+  Future<PagedResult<YeuCauThiCongListItemModel>> getList({
     int? canHoId,
     int? trangThaiId,
     int? trangThaiThiCongId,
@@ -80,8 +44,9 @@ class YeuCauThiCongService {
     int pageNumber = 1,
     int pageSize = 10,
   }) async {
-    try {
-      final body = {
+    final res = await _client.post(
+      '/api/yeu-cau-thi-cong/get-list',
+      body: {
         'canHoId': ?canHoId,
         'trangThaiId': ?trangThaiId,
         'trangThaiThiCongId': ?trangThaiThiCongId,
@@ -96,72 +61,22 @@ class YeuCauThiCongService {
         'isAsc': isAsc,
         'pageNumber': pageNumber,
         'pageSize': pageSize,
-      };
-
-      final response = await _dio.post(
-        '/api/yeu-cau-thi-cong/get-list',
-        data: body,
-      );
-      final data = response.data as Map<String, dynamic>;
-
-      if (data['isOk'] != true) {
-        throw ErrorParser.parse(data);
-      }
-
-      final result = data['result'] as Map<String, dynamic>;
-      final items = (result['items'] as List<dynamic>? ?? [])
-          .map(
-            (e) =>
-                YeuCauThiCongListItemModel.fromJson(e as Map<String, dynamic>),
-          )
-          .toList();
-      final paging = PagingInfoModel.fromJson(
-        result['pagingInfo'] as Map<String, dynamic>? ?? {},
-      );
-
-      return YeuCauThiCongListResult(items: items, pagingInfo: paging);
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw const AppException('Lỗi không xác định khi tải danh sách yêu cầu');
-    }
+      },
+    );
+    return res.pagedResult(YeuCauThiCongListItemModel.fromJson);
   }
 
-  // ── 3. Chi tiết yêu cầu thi công ─────────────────────────────────────────
+  // ── 3. Chi tiết ───────────────────────────────────────────────────────────
 
   Future<YeuCauThiCongDetailModel> getById(int id) async {
-    try {
-      final response = await _dio.post(
-        '/api/yeu-cau-thi-cong/get-by-id',
-        data: {'id': id},
-      );
-      final data = response.data as Map<String, dynamic>;
-
-      if (data['isOk'] != true) {
-        throw ErrorParser.parse(data);
-      }
-
-      return YeuCauThiCongDetailModel.fromJson(
-        data['result'] as Map<String, dynamic>,
-      );
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw const AppException('Lỗi không xác định khi tải chi tiết yêu cầu');
-    }
+    final res = await _client.post(
+      '/api/yeu-cau-thi-cong/get-by-id',
+      body: {'id': id},
+    );
+    return res.item(YeuCauThiCongDetailModel.fromJson);
   }
 
-  // ── 4. Tạo mới yêu cầu thi công ──────────────────────────────────────────
+  // ── 4. Tạo mới ────────────────────────────────────────────────────────────
 
   Future<YeuCauThiCongListItemModel> create({
     required int canHoId,
@@ -176,8 +91,9 @@ class YeuCauThiCongService {
     required List<int> danhSachTepIds,
     required bool isSubmit,
   }) async {
-    try {
-      final body = {
+    final res = await _client.post(
+      '/api/yeu-cau-thi-cong',
+      body: {
         'canHoId': canHoId,
         'hangMucThiCong': hangMucThiCong,
         'duKienBatDau': duKienBatDau.toIso8601String(),
@@ -189,33 +105,12 @@ class YeuCauThiCongService {
         'danhSachNhanSu': danhSachNhanSu.map((e) => e.toJson()).toList(),
         'danhSachTepIds': danhSachTepIds,
         'isSubmit': isSubmit,
-      };
-
-      final response = await _dio.post('/api/yeu-cau-thi-cong', data: body);
-      final data = response.data as Map<String, dynamic>;
-
-      if (data['isOk'] != true) {
-        throw ErrorParser.parse(data);
-      }
-
-      return YeuCauThiCongListItemModel.fromJson(
-        data['result'] as Map<String, dynamic>,
-      );
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw const AppException('Lỗi không xác định khi tạo yêu cầu');
-    }
+      },
+    );
+    return res.item(YeuCauThiCongListItemModel.fromJson);
   }
 
-  // ── 5. Cập nhật yêu cầu thi công ─────────────────────────────────────────
-  // Dành cho cư dân: sửa bản nháp (Saved) hoặc cập nhật theo BQL (Returned)
-  // QUAN TRỌNG: luôn gửi toàn bộ dữ liệu cũ, không chỉ phần thay đổi
+  // ── 5. Cập nhật ───────────────────────────────────────────────────────────
 
   Future<YeuCauThiCongListItemModel> update({
     required int id,
@@ -231,8 +126,9 @@ class YeuCauThiCongService {
     required bool isSubmit,
     bool isWithdraw = false,
   }) async {
-    try {
-      final body = {
+    final res = await _client.put(
+      '/api/yeu-cau-thi-cong',
+      body: {
         'id': id,
         'hangMucThiCong': hangMucThiCong,
         'duKienBatDau': duKienBatDau.toIso8601String(),
@@ -245,52 +141,30 @@ class YeuCauThiCongService {
         'danhSachTepIds': danhSachTepIds,
         'isSubmit': isSubmit,
         'isWithdraw': isWithdraw,
-      };
-
-      final response = await _dio.put('/api/yeu-cau-thi-cong', data: body);
-      final data = response.data as Map<String, dynamic>;
-
-      if (data['isOk'] != true) {
-        throw ErrorParser.parse(data);
-      }
-
-      return YeuCauThiCongListItemModel.fromJson(
-        data['result'] as Map<String, dynamic>,
-      );
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw const AppException('Lỗi không xác định khi cập nhật yêu cầu');
-    }
+      },
+    );
+    return res.item(YeuCauThiCongListItemModel.fromJson);
   }
 
-  // ── 6. Thu hồi yêu cầu ───────────────────────────────────────────────────
-  // Gọi PUT với isWithdraw = true, isSubmit = false
-  // Gửi kèm toàn bộ dữ liệu hiện tại của yêu cầu
+  // ── 6. Thu hồi ────────────────────────────────────────────────────────────
 
   Future<YeuCauThiCongListItemModel> withdraw(
     YeuCauThiCongDetailModel detail,
-  ) async {
-    return update(
-      id: detail.id,
-      hangMucThiCong: detail.hangMucThiCong,
-      duKienBatDau: detail.duKienBatDau ?? DateTime.now(),
-      duKienKetThuc: detail.duKienKetThuc ?? DateTime.now(),
-      noiDung: detail.noiDung,
-      tenDonViThiCong: detail.tenDonViThiCong,
-      nguoiDaiDien: detail.nguoiDaiDien,
-      soDienThoaiDaiDien: detail.soDienThoaiDaiDien,
-      danhSachNhanSu: detail.nhanSuThiCongs,
-      danhSachTepIds: detail.danhSachTep.map((e) => e.id).toList(),
-      isSubmit: false,
-      isWithdraw: true,
-    );
-  }
+  ) =>
+      update(
+        id: detail.id,
+        hangMucThiCong: detail.hangMucThiCong,
+        duKienBatDau: detail.duKienBatDau ?? DateTime.now(),
+        duKienKetThuc: detail.duKienKetThuc ?? DateTime.now(),
+        noiDung: detail.noiDung,
+        tenDonViThiCong: detail.tenDonViThiCong,
+        nguoiDaiDien: detail.nguoiDaiDien,
+        soDienThoaiDaiDien: detail.soDienThoaiDaiDien,
+        danhSachNhanSu: detail.nhanSuThiCongs,
+        danhSachTepIds: detail.danhSachTep.map((e) => e.id).toList(),
+        isSubmit: false,
+        isWithdraw: true,
+      );
 
   // ── 7. Upload file ────────────────────────────────────────────────────────
 
@@ -298,44 +172,18 @@ class YeuCauThiCongService {
     required List<File> files,
     String targetContainer = 'tai-lieu-nhan-vien',
   }) async {
-    try {
-      final formData = FormData();
-      formData.fields.add(MapEntry('targetContainer', targetContainer));
-
-      for (final file in files) {
-        final fileName = file.path.split('/').last;
-        formData.files.add(
-          MapEntry(
-            'files',
-            await MultipartFile.fromFile(file.path, filename: fileName),
-          ),
-        );
-      }
-
-      final response = await _dio.post(
-        '/api/upload-media',
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
-      );
-      final data = response.data as Map<String, dynamic>;
-
-      if (data['isOk'] != true) {
-        throw ErrorParser.parse(data);
-      }
-
-      final list = data['result'] as List<dynamic>? ?? [];
-      return list
-          .map((e) => UploadedFileModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw ErrorParser.parse(
-        e.response?.data,
-        statusCode: e.response?.statusCode,
-      );
-    } on AppException {
-      rethrow;
-    } catch (_) {
-      throw const AppException('Lỗi không xác định khi upload file');
+    final formData = FormData()
+      ..fields.add(MapEntry('targetContainer', targetContainer));
+    for (final file in files) {
+      formData.files.add(MapEntry(
+        'files',
+        await MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      ));
     }
+    final res = await _client.postForm('/api/upload-media', formData);
+    return res.list(UploadedFileModel.fromJson);
   }
 }

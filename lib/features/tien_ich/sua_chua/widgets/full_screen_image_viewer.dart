@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_sua_chua/widgets/full_screen_image_viewer.dart
+// lib/features/tien_ich/sua_chua/widgets/full_screen_image_viewer.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

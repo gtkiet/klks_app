@@ -20,7 +20,7 @@ class PhanAnhCreateScreen extends StatefulWidget {
 }
 
 class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
-  final _service = PhanAnhService();
+  final _service = PhanAnhService.instance;
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _tieuDeCtrl;

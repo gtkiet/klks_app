@@ -62,7 +62,7 @@ class PhanAnhListScreen extends StatefulWidget {
 }
 
 class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
-  final _service = PhanAnhService();
+  final _service = PhanAnhService.instance;
   final _searchCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
 

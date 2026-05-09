@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_thi_cong/models/nhan_su_thi_cong_model.dart
+// lib/features/tien_ich/thi_cong/models/nhan_su_thi_cong_model.dart
 
 class NhanSuThiCongModel {
   final int? id;

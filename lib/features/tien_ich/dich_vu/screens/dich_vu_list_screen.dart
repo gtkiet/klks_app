@@ -1,9 +1,8 @@
-// lib/features/dich_vu/screens/dich_vu_list_screen.dart
+// lib/features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart
 
 import 'package:flutter/material.dart';
 
 import '../models/paging.dart';
-// import '../models/selector_item.dart';
 import '../models/dich_vu_model.dart';
 
 import '../services/dich_vu_service.dart';
@@ -83,7 +82,7 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
       );
       setState(() {
         _items = reset ? result.items : [..._items, ...result.items];
-        _paging = result.pagingInfo;
+        _paging = result.pagingInfo as PagingInfo?;
       });
     } catch (e) {
       setState(() => _error = e.toString());

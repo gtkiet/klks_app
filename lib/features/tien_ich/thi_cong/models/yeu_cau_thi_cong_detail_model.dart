@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_thi_cong/models/yeu_cau_thi_cong_detail_model.dart
+// lib/features/tien_ich/thi_cong/models/yeu_cau_thi_cong_detail_model.dart
 
 import 'nhan_su_thi_cong_model.dart';
 import 'tep_dinh_kem_model.dart';

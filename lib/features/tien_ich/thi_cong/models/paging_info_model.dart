@@ -1,4 +1,4 @@
-// lib/features/yeu_cau_thi_cong/models/paging_info_model.dart
+// lib/features/tien_ich/thi_cong/models/paging_info_model.dart
 
 class PagingInfoModel {
   final int pageSize;

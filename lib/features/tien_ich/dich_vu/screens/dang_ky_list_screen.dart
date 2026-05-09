@@ -1,4 +1,4 @@
-// lib/features/dich_vu/screens/dang_ky_list_screen.dart
+// lib/features/tien_ich/dich_vu/screens/dang_ky_list_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -61,7 +61,7 @@ class _DangKyListScreenState extends State<DangKyListScreen> {
       final result = await _service.getDanhSachDangKy(_request);
       setState(() {
         _items = reset ? result.items : [..._items, ...result.items];
-        _paging = result.pagingInfo;
+        _paging = result.pagingInfo as PagingInfo?;
       });
     } catch (e) {
       setState(() => _error = e.toString());

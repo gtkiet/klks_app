@@ -16,7 +16,7 @@ class PhanAnhDetailScreen extends StatefulWidget {
 }
 
 class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
-  final _service = PhanAnhService();
+  final _service = PhanAnhService.instance;
   final _chatCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
 

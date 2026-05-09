@@ -1,4 +1,4 @@
-// lib/features/dich_vu/models/paging.dart
+// lib/features/tien_ich/dich_vu/models/paging.dart
 
 class PagingInfo {
   final int pageSize;

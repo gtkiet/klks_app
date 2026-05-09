@@ -1,4 +1,4 @@
-// lib/features/dich_vu/screens/dich_vu_detail_screen.dart
+// lib/features/tien_ich/dich_vu/screens/dich_vu_detail_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

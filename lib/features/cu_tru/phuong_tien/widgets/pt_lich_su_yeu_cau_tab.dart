@@ -81,7 +81,7 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
       );
       setState(() {
         _list = result.items;
-        _hasMore = !result.pagingInfo.isLastPage;
+        _hasMore = result.pagingInfo.hasNextPage;
       });
     } finally {
       setState(() => _isLoading = false);
@@ -104,7 +104,7 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
       setState(() {
         _list.addAll(result.items);
         _pageNumber = nextPage;
-        _hasMore = !result.pagingInfo.isLastPage;
+        _hasMore = result.pagingInfo.hasNextPage;
       });
     } finally {
       setState(() => _isLoadingMore = false);

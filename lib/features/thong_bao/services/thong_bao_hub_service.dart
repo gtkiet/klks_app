@@ -6,7 +6,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import '../../../core/storage/user_session.dart';
-import '../../../core/config/app_config.dart';
 
 class ThongBaoEvent {
   final String tieuDe;
@@ -21,6 +20,9 @@ class ThongBaoEvent {
 }
 
 class ThongBaoHubService {
+  static const String hubUrl =
+      'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net/notifications';
+      
   ThongBaoHubService._();
   static final ThongBaoHubService instance = ThongBaoHubService._();
 
@@ -125,7 +127,7 @@ class ThongBaoHubService {
 
     _connection = HubConnectionBuilder()
         .withUrl(
-          AppConfig.hubUrl,
+          hubUrl,
           options: HttpConnectionOptions(
             transport: HttpTransportType.LongPolling,
             accessTokenFactory: () async =>

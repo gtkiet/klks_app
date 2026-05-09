@@ -6,10 +6,22 @@ import '../services/hoa_don_service.dart';
 import '../utils/hoa_don_utils.dart';
 import 'hoa_don_detail_screen.dart';
 
+// TODO:
+// [ ] Validation: kiểm tra canHoId > 0 trước khi vào list screen
+// [ ] Thêm filter tháng/năm trên list screen
+
 /// Screen 1: Danh sách hóa đơn của cư dân.
 ///
 /// Truyền vào [canHoId] của cư dân đang đăng nhập.
 /// Có tab filter: Tất cả / Chưa thanh toán / Đã thanh toán / Quá hạn.
+
+class HoaDonListArgs {
+  final int canHoId;
+  final String tenCanHo;
+
+  HoaDonListArgs({required this.canHoId, required this.tenCanHo});
+}
+
 class HoaDonListScreen extends StatefulWidget {
   final int canHoId;
   final String tenCanHo;

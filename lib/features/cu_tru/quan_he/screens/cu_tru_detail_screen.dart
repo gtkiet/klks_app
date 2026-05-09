@@ -22,6 +22,13 @@ import '../../phuong_tien/widgets/phuong_tien_list_tab.dart';
 import '../../phuong_tien/widgets/pt_lich_su_yeu_cau_tab.dart';
 import '../../phuong_tien/screens/tao_yeu_cau_phuong_tien_screen.dart';
 
+class CuTruDetailArgs {
+  final QuanHeCuTruModel item;
+  final CuTruDetailMode initialMode;
+
+  CuTruDetailArgs({required this.item, required this.initialMode});
+}
+
 // ── Enum mode ─────────────────────────────────────────────────────────────
 
 enum CuTruDetailMode { thanhVien, phuongTien }

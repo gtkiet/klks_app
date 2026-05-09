@@ -17,6 +17,16 @@ import 'yeu_cau_cu_tru_form_screen.dart';
 import '../services/thanh_vien_service.dart';
 import '../widgets/tv_shared_widgets.dart';
 
+class ThanhVienDetailArgs {
+  final ThanhVienCuTruModel thanhVien;
+  final QuanHeCuTruModel canHoInfo;
+
+  ThanhVienDetailArgs({
+    required this.thanhVien,
+    required this.canHoInfo,
+  });
+}
+
 class ThanhVienDetailScreen extends StatefulWidget {
   final ThanhVienCuTruModel thanhVien;
   final QuanHeCuTruModel canHoInfo;

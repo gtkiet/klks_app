@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../models/thong_bao_model.dart';
 import '../services/thong_bao_service.dart';
+export '../models/thong_bao_model.dart';
 
 class ThongBaoDetailScreen extends StatefulWidget {
   final ThongBaoItem item;

@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/thong_bao_model.dart';
 import '../services/thong_bao_service.dart';
 import '../services/thong_bao_hub_service.dart';
@@ -268,12 +269,13 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
               await _markAsRead(index);
               // if (!mounted) return;
               if (!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ThongBaoDetailScreen(item: _items[index]),
-                ),
-              );
+              context.push('detail', extra: _items[index]);
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_) => ThongBaoDetailScreen(item: _items[index]),
+              //   ),
+              // );
             },
           );
         },

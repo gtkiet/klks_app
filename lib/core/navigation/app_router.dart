@@ -3,6 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
+import '../../features/cu_tru/thanh_vien/screens/thanh_vien_detail_screen.dart';
+import '../../features/hoa_don/screens/hoa_don_list_screen.dart';
+import '../../features/thong_bao/screens/thong_bao_detail_screen.dart';
 import '../guards/auth_guard.dart';
 import 'main_screen.dart';
 
@@ -109,6 +113,18 @@ class AppRouter {
               GoRoute(
                 path: '/thong-bao',
                 builder: (_, _) => const ThongBaoListScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'detail',
+                    builder: (_, state) {
+                      final extra = state.extra as ThongBaoItem;
+
+                      return ThongBaoDetailScreen(
+                        item: extra,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -143,6 +159,40 @@ class AppRouter {
               GoRoute(
                 path: '/cu-tru',
                 builder: (_, _) => const QuanHeCuTruListScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'detail',
+                    builder: (_, state) {
+                      final extra = state.extra as CuTruDetailArgs;
+
+                      return CuTruDetailScreen(
+                        item: extra.item,
+                        initialMode: extra.initialMode,
+                      );
+                    },
+                    routes: [
+                      GoRoute(path: 'thanh-vien-detail', builder: (_, state) {
+                        final extra = state.extra as ThanhVienDetailArgs;
+
+                        return ThanhVienDetailScreen(
+                          thanhVien: extra.thanhVien,
+                          canHoInfo: extra.canHoInfo,
+                        );
+                      }),
+                    ]
+                  ),
+                  GoRoute(
+                    path: '/hoa-don',
+                    builder: (context, state) {
+                      final args = state.extra as HoaDonListArgs;
+
+                      return HoaDonListScreen(
+                        canHoId: args.canHoId,
+                        tenCanHo: args.tenCanHo,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

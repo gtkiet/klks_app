@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/paging.dart';
-import '../models/selector_item.dart';
+// import '../models/selector_item.dart';
 import '../models/dich_vu_model.dart';
 
 import '../services/dich_vu_service.dart';
@@ -23,21 +23,21 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
   final _searchCtrl = TextEditingController();
 
   List<DichVuItem> _items = [];
-  List<SelectorItem> _loaiDichVuList = [];
-  List<SelectorItem> _trangThaiList = [];
+  // List<SelectorItem> _loaiDichVuList = [];
+  // List<SelectorItem> _trangThaiList = [];
 
   PagingInfo? _paging;
   bool _isLoading = false;
   String? _error;
 
-  int? _selectedLoaiDichVuId;
-  int? _selectedTrangThaiId;
+  // int? _selectedLoaiDichVuId;
+  // int? _selectedTrangThaiId;
   int _page = 1;
 
   @override
   void initState() {
     super.initState();
-    _loadCatalogs();
+    // _loadCatalogs();
     _loadData();
   }
 
@@ -47,21 +47,21 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
     super.dispose();
   }
 
-  Future<void> _loadCatalogs() async {
-    try {
-      final results = await Future.wait([
-        _service.getLoaiDichVu(),
-        _service.getTrangThaiDichVu(),
-      ]);
-      if (!mounted) return;
-      setState(() {
-        _loaiDichVuList = results[0];
-        _trangThaiList = results[1];
-      });
-    } catch (_) {
-      // Catalog lỗi không block UI chính
-    }
-  }
+  // Future<void> _loadCatalogs() async {
+  //   try {
+  //     final results = await Future.wait([
+  //       _service.getLoaiDichVu(),
+  //       _service.getTrangThaiDichVu(),
+  //     ]);
+  //     if (!mounted) return;
+  //     setState(() {
+  //       _loaiDichVuList = results[0];
+  //       _trangThaiList = results[1];
+  //     });
+  //   } catch (_) {
+  //     // Catalog lỗi không block UI chính
+  //   }
+  // }
 
   Future<void> _loadData({bool reset = false}) async {
     if (reset) {
@@ -76,8 +76,8 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
 
     try {
       final result = await _service.getDichVuList(
-        loaiDichVuId: _selectedLoaiDichVuId,
-        trangThaiDichVuId: _selectedTrangThaiId,
+        // loaiDichVuId: _selectedLoaiDichVuId ?? 3,
+        // trangThaiDichVuId: _selectedTrangThaiId,
         keyword: _searchCtrl.text.trim(),
         pageNumber: _page,
       );
@@ -149,70 +149,70 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
             onSubmitted: (_) => _loadData(reset: true),
             textInputAction: TextInputAction.search,
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDropdown(
-                  hint: 'Loại dịch vụ',
-                  value: _selectedLoaiDichVuId,
-                  items: _loaiDichVuList,
-                  onChanged: (val) {
-                    setState(() => _selectedLoaiDichVuId = val);
-                    _loadData(reset: true);
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDropdown(
-                  hint: 'Trạng thái',
-                  value: _selectedTrangThaiId,
-                  items: _trangThaiList,
-                  onChanged: (val) {
-                    setState(() => _selectedTrangThaiId = val);
-                    _loadData(reset: true);
-                  },
-                ),
-              ),
-            ],
-          ),
+          // const SizedBox(height: 8),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: _buildDropdown(
+          //         hint: 'Loại dịch vụ',
+          //         value: _selectedLoaiDichVuId,
+          //         items: _loaiDichVuList,
+          //         onChanged: (val) {
+          //           setState(() => _selectedLoaiDichVuId = val);
+          //           _loadData(reset: true);
+          //         },
+          //       ),
+          //     ),
+          //     const SizedBox(width: 8),
+          //     Expanded(
+          //       child: _buildDropdown(
+          //         hint: 'Trạng thái',
+          //         value: _selectedTrangThaiId,
+          //         items: _trangThaiList,
+          //         onChanged: (val) {
+          //           setState(() => _selectedTrangThaiId = val);
+          //           _loadData(reset: true);
+          //         },
+          //       ),
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
   }
 
-  Widget _buildDropdown({
-    required String hint,
-    required int? value,
-    required List<SelectorItem> items,
-    required void Function(int?) onChanged,
-  }) {
-    return DropdownButtonFormField<int>(
-      initialValue: value,
-      isExpanded: true,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      hint: Text(hint, style: const TextStyle(fontSize: 13)),
-      items: [
-        DropdownMenuItem<int>(
-          value: null,
-          child: Text('Tất cả - $hint', style: const TextStyle(fontSize: 13)),
-        ),
-        ...items.map(
-          (e) => DropdownMenuItem<int>(
-            value: e.id,
-            child: Text(e.name, style: const TextStyle(fontSize: 13)),
-          ),
-        ),
-      ],
-      onChanged: onChanged,
-    );
-  }
+  // Widget _buildDropdown({
+  //   required String hint,
+  //   required int? value,
+  //   required List<SelectorItem> items,
+  //   required void Function(int?) onChanged,
+  // }) {
+  //   return DropdownButtonFormField<int>(
+  //     initialValue: value,
+  //     isExpanded: true,
+  //     decoration: InputDecoration(
+  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+  //       filled: true,
+  //       fillColor: Colors.white,
+  //       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //     ),
+  //     hint: Text(hint, style: const TextStyle(fontSize: 13)),
+  //     items: [
+  //       DropdownMenuItem<int>(
+  //         value: null,
+  //         child: Text('Tất cả - $hint', style: const TextStyle(fontSize: 13)),
+  //       ),
+  //       ...items.map(
+  //         (e) => DropdownMenuItem<int>(
+  //           value: e.id,
+  //           child: Text(e.name, style: const TextStyle(fontSize: 13)),
+  //         ),
+  //       ),
+  //     ],
+  //     onChanged: onChanged,
+  //   );
+  // }
 
   Widget _buildBody() {
     if (_isLoading && _items.isEmpty) {

@@ -101,9 +101,9 @@ class DichVuService {
   // ── DỊCH VỤ ───────────────────────────────────────────────────────────────
 
   Future<PagedResult<DichVuItem>> getDichVuList({
-    int? loaiDichVuId,
-    int? trangThaiDichVuId,
-    bool? isBatBuoc,
+    int loaiDichVuId = 3, // Mặc định chỉ lấy dịch vụ tiện ích
+    int trangThaiDichVuId = 1,
+    bool isBatBuoc = false,
     String? keyword,
     int pageNumber = 1,
     int pageSize = 10,
@@ -111,9 +111,9 @@ class DichVuService {
     final json = await _post(
       '/api/dich-vu/get-list',
       body: {
-        'loaiDichVuId': ?loaiDichVuId,
-        'trangThaiDichVuId': ?trangThaiDichVuId,
-        'isBatBuoc': ?isBatBuoc,
+        'loaiDichVuId': loaiDichVuId,
+        'trangThaiDichVuId': trangThaiDichVuId,
+        'isBatBuoc': isBatBuoc,
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
         'pageNumber': pageNumber,
         'pageSize': pageSize,
@@ -147,9 +147,9 @@ class DichVuService {
     final json = await _post(
       '/api/dich-vu/khung-gio/get-list',
       body: {
-        'dichVuId': ?dichVuId,
+        'dichVuId': dichVuId,
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-        'isActive': ?isActive,
+        'isActive': isActive,
         'pageNumber': pageNumber,
         'pageSize': pageSize,
       },
@@ -199,7 +199,7 @@ class DichVuService {
         'dichVuId': dichVuId,
         'ngaySuDung': ngaySuDung.toIso8601String(),
         'soLuong': soLuong,
-        'khungGioId': ?khungGioId,
+        'khungGioId': khungGioId,
       },
     );
     return json['result'] as int;

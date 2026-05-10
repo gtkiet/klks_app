@@ -1,5 +1,7 @@
 // lib/features/tien_ich/dich_vu/models/dich_vu_model.dart
 
+// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+
 class DichVuItem {
   final int id;
   final String maDichVu;

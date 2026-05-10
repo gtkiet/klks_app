@@ -1,7 +1,6 @@
 // lib/features/cu_tru/phuong_tien/models/phuong_tien_model.dart
-//
-// ThePhuongTien và HinhAnhPhuongTien giữ cùng file —
-// cả hai là nested data của PhuongTien, không dùng độc lập.
+
+// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
 
 // ── Nested: thẻ phương tiện ───────────────────────────────────────────────────
 

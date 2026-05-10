@@ -1,5 +1,7 @@
 // lib/features/phan_anh/models/phan_anh_model.dart
 
+// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+
 class PhanAnhResponse {
   final int id;
   final int canHoId;

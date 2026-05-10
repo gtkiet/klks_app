@@ -1,5 +1,7 @@
 // lib/features/tien_ich/thi_cong/models/thi_cong_model.dart
 
+// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+
 abstract class TrangThaiYeuCauConst {
   static const int dangChoDuyet = 1;
   static const int daDuyet = 2;

@@ -1,5 +1,7 @@
 // lib/features/cu_tru/thanh_vien/models/thanh_vien_model.dart
 
+// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+
 class ThanhVienCuTruModel {
   final int quanHeCuTruId;
   final int userId;

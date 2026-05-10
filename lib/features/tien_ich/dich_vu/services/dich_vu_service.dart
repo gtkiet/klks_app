@@ -5,10 +5,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 
-import '../models/selector_item.dart';
 import '../models/dich_vu_model.dart';
-import '../models/khung_gio_model.dart';
-import '../models/dang_ky_model.dart';
 
 class DichVuService {
   DichVuService._();

@@ -2,9 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../models/paging.dart';
-import '../models/selector_item.dart';
-import '../models/dang_ky_model.dart';
+import '../models/dich_vu_model.dart';
 
 import '../services/dich_vu_service.dart';
 import '../widgets/common_widgets.dart';
@@ -261,4 +259,32 @@ class _TrangThaiChip extends StatelessWidget {
       ),
     );
   }
+}
+
+
+class PagingInfo {
+  final int pageSize;
+  final int pageNumber;
+  final int totalItems;
+
+  const PagingInfo({
+    required this.pageSize,
+    required this.pageNumber,
+    required this.totalItems,
+  });
+
+  factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
+    pageSize: json['pageSize'] as int? ?? 10,
+    pageNumber: json['pageNumber'] as int? ?? 1,
+    totalItems: json['totalItems'] as int? ?? 0,
+  );
+
+  bool get hasNextPage => pageNumber * pageSize < totalItems;
+}
+
+class PagedResult<T> {
+  final List<T> items;
+  final PagingInfo pagingInfo;
+
+  const PagedResult({required this.items, required this.pagingInfo});
 }

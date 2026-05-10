@@ -12,7 +12,6 @@ import '../services/phuong_tien_service.dart';
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
 
 import '../models/phuong_tien_model.dart';
-import '../models/phuong_tien_request_models.dart';
 
 import '../screens/phuong_tien_detail_screen.dart';
 

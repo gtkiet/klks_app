@@ -1,8 +1,8 @@
 // lib/features/cu_tru/phuong_tien/screens/yeu_cau_phuong_tien_detail_screen.dart
 
 import 'package:flutter/material.dart';
-import '../services/pt_yeu_cau_service.dart';
-import '../models/yeu_cau_phuong_tien_model.dart';
+import '../models/phuong_tien_model.dart';
+import '../services/phuong_tien_service.dart';
 
 class YeuCauPhuongTienDetailScreen extends StatefulWidget {
   final int yeuCauId;
@@ -24,7 +24,7 @@ class YeuCauPhuongTienDetailScreen extends StatefulWidget {
 
 class _YeuCauPhuongTienDetailScreenState
     extends State<YeuCauPhuongTienDetailScreen> {
-  final _service = PTYeuCauService.instance;
+  final _service = PhuongTienService.instance;
 
   bool _isLoading = false;
   YeuCauPhuongTien? _data;

@@ -6,10 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 
-import '../models/trang_thai_yeu_cau.dart';
-import '../models/yeu_cau_thi_cong_list_item_model.dart';
-import '../models/trang_thai_thi_cong_model.dart';
-
+import '../models/thi_cong_model.dart';
 import '../services/thi_cong_service.dart';
 
 import 'thi_cong_detail_screen.dart';
@@ -122,8 +119,7 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
     final created = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            YeuCauThiCongFormScreen(dsCanHo: _dsCanHo),
+        builder: (_) => YeuCauThiCongFormScreen(dsCanHo: _dsCanHo),
       ),
     );
     if (created == true) _loadList();
@@ -132,9 +128,7 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
   void _navigateToDetail(YeuCauThiCongListItemModel item) async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => YeuCauThiCongDetailScreen(id: item.id),
-      ),
+      MaterialPageRoute(builder: (_) => YeuCauThiCongDetailScreen(id: item.id)),
     );
     if (changed == true) _loadList();
   }
@@ -471,8 +465,7 @@ class _CanHoDropdown extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide:
-                    BorderSide(color: Colors.blue.shade600, width: 1.5),
+                borderSide: BorderSide(color: Colors.blue.shade600, width: 1.5),
               ),
               filled: true,
               fillColor: Colors.grey.shade50,
@@ -581,7 +574,10 @@ class _YeuCauCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _StatusChip(label: item.trangThaiYeuCauTen, color: _statusColor),
+                  _StatusChip(
+                    label: item.trangThaiYeuCauTen,
+                    color: _statusColor,
+                  ),
                 ],
               ),
               const SizedBox(height: 6),
@@ -623,10 +619,7 @@ class _StatusChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _StatusChip({
-    required this.label,
-    this.color = Colors.blue,
-  });
+  const _StatusChip({required this.label, this.color = Colors.blue});
 
   @override
   Widget build(BuildContext context) {

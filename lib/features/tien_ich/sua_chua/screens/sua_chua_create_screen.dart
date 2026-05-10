@@ -6,7 +6,6 @@ import 'dart:io';
 
 import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../models/sua_chua_model.dart';
-import '../models/sua_chua_request.dart';
 import '../services/sua_chua_service.dart';
 
 class YeuCauCreateScreen extends StatefulWidget {

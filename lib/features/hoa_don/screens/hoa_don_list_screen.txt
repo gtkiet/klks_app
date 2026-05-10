@@ -6,6 +6,22 @@ import '../services/hoa_don_service.dart';
 import '../utils/hoa_don_utils.dart';
 import 'hoa_don_detail_screen.dart';
 
+// TODO:
+// [ ] Validation: kiểm tra canHoId > 0 trước khi vào list screen
+// [ ] Thêm filter tháng/năm trên list screen
+
+/// Screen 1: Danh sách hóa đơn của cư dân.
+///
+/// Truyền vào [canHoId] của cư dân đang đăng nhập.
+/// Có tab filter: Tất cả / Chưa thanh toán / Đã thanh toán / Quá hạn.
+
+class HoaDonListArgs {
+  final int canHoId;
+  final String tenCanHo;
+
+  HoaDonListArgs({required this.canHoId, required this.tenCanHo});
+}
+
 class HoaDonListScreen extends StatefulWidget {
   final int canHoId;
   final String tenCanHo;
@@ -24,30 +40,12 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  bool get _isValidCanHoId => widget.canHoId > 0;
-
-  int? _filterThang;
-  int? _filterNam;
-
-  bool get _hasFilter => _filterThang != null || _filterNam != null;
-
-  String get _filterLabel {
-    if (_filterThang != null && _filterNam != null) {
-      return 'T$_filterThang/$_filterNam';
-    }
-    if (_filterThang != null) return 'Tháng $_filterThang';
-    if (_filterNam != null) return 'Năm $_filterNam';
-    return 'Lọc';
-  }
-
+  // Tabs: null = tất cả
   static const _tabs = [
     (label: 'Tất cả', trangThaiId: null as int?),
-    (label: 'Chờ duyệt', trangThaiId: 1),
-    (label: 'Chưa thanh toán', trangThaiId: 2),
-    (label: 'Đã thanh toán', trangThaiId: 3),
+    (label: 'Chưa TT', trangThaiId: 2),
+    (label: 'Đã TT', trangThaiId: 3),
     (label: 'Quá hạn', trangThaiId: 4),
-    (label: 'Một phần', trangThaiId: 5),
-    (label: 'Đã hủy', trangThaiId: 6),
   ];
 
   @override
@@ -62,249 +60,8 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
     super.dispose();
   }
 
-  Future<void> _openFilterSheet() async {
-    // Lưu giá trị tạm — user Cancel thì không mất filter cũ
-    int? tempThang = _filterThang;
-    int? tempNam = _filterNam;
-
-    final now = DateTime.now();
-    final years = List.generate(now.year - 2019, (i) => now.year - i);
-
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-            20,
-            16,
-            20,
-            20 + MediaQuery.of(ctx).padding.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Title + nút xoá filter
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Lọc theo tháng/năm',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  if (tempThang != null || tempNam != null)
-                    TextButton(
-                      onPressed: () => setSheetState(() {
-                        tempThang = null;
-                        tempNam = null;
-                      }),
-                      child: const Text(
-                        'Xoá lọc',
-                        style: TextStyle(
-                          color: Color(0xFFDC2626),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // ── Chọn năm
-              const Text(
-                'Năm',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF475569),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: years.map((y) {
-                  final selected = tempNam == y;
-                  return GestureDetector(
-                    onTap: () =>
-                        setSheetState(() => tempNam = selected ? null : y),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? const Color(0xFF6366F1)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '$y',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: selected
-                              ? Colors.white
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-
-              // ── Chọn tháng
-              const Text(
-                'Tháng',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF475569),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(12, (i) => i + 1).map((m) {
-                  final selected = tempThang == m;
-                  return GestureDetector(
-                    onTap: () =>
-                        setSheetState(() => tempThang = selected ? null : m),
-                    child: Container(
-                      width: 52,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? const Color(0xFF6366F1)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'T$m',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: selected
-                              ? Colors.white
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-
-              // ── Nút Áp dụng
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Commit filter ra ngoài — sẽ trigger rebuild TabBarView
-                    setState(() {
-                      _filterThang = tempThang;
-                      _filterNam = tempNam;
-                    });
-                    Navigator.pop(ctx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Áp dụng',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (!_isValidCanHoId) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: const Text(
-            'Hóa đơn',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-        ),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.home_work_outlined,
-                  size: 56,
-                  color: Color(0xFFCBD5E1),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  'Không tìm thấy thông tin căn hộ',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'Vui lòng liên hệ Ban Quản Lý\nđể được hỗ trợ.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -331,36 +88,6 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton.icon(
-              onPressed: _openFilterSheet,
-              icon: Icon(
-                _hasFilter
-                    ? Icons.filter_alt_rounded
-                    : Icons.filter_alt_outlined,
-                size: 18,
-                color: _hasFilter
-                    ? const Color(0xFF6366F1)
-                    : const Color(0xFF94A3B8),
-              ),
-              label: Text(
-                _filterLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _hasFilter
-                      ? const Color(0xFF6366F1)
-                      : const Color(0xFF94A3B8),
-                ),
-              ),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-            ),
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -378,15 +105,11 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        // ValueKey theo filter → force rebuild toàn bộ tabs khi filter thay đổi
-        key: ValueKey('$_filterThang-$_filterNam'),
         children: _tabs
             .map(
               (t) => _HoaDonTabContent(
                 canHoId: widget.canHoId,
                 trangThaiId: t.trangThaiId,
-                filterThang: _filterThang,
-                filterNam: _filterNam,
               ),
             )
             .toList(),
@@ -400,15 +123,8 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
 class _HoaDonTabContent extends StatefulWidget {
   final int canHoId;
   final int? trangThaiId;
-  final int? filterThang;
-  final int? filterNam;
 
-  const _HoaDonTabContent({
-    required this.canHoId,
-    this.trangThaiId,
-    this.filterThang,
-    this.filterNam,
-  });
+  const _HoaDonTabContent({required this.canHoId, this.trangThaiId});
 
   @override
   State<_HoaDonTabContent> createState() => _HoaDonTabContentState();
@@ -417,8 +133,7 @@ class _HoaDonTabContent extends StatefulWidget {
 class _HoaDonTabContentState extends State<_HoaDonTabContent>
     with AutomaticKeepAliveClientMixin {
   @override
-  // false vì filter thay đổi thì TabBarView rebuild hoàn toàn qua ValueKey
-  bool get wantKeepAlive => false;
+  bool get wantKeepAlive => true;
 
   List<HoaDon> _items = [];
   PagingInfo? _paging;
@@ -464,8 +179,6 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
       final result = await HoaDonService.instance.getList(
         canHoId: widget.canHoId,
         trangThaiHoaDonId: widget.trangThaiId,
-        thang: widget.filterThang,
-        nam: widget.filterNam,
         pageNumber: _currentPage,
       );
       if (!mounted) return;
@@ -496,8 +209,6 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
       final result = await HoaDonService.instance.getList(
         canHoId: widget.canHoId,
         trangThaiHoaDonId: widget.trangThaiId,
-        thang: widget.filterThang,
-        nam: widget.filterNam,
         pageNumber: _currentPage,
       );
       if (!mounted) return;
@@ -533,9 +244,7 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
     }
 
     if (_items.isEmpty) {
-      return _EmptyState(
-        hasFilter: widget.filterThang != null || widget.filterNam != null,
-      );
+      return const _EmptyState();
     }
 
     return RefreshIndicator(
@@ -772,28 +481,19 @@ class _HoaDonCard extends StatelessWidget {
 // ─── EMPTY / ERROR ────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  final bool hasFilter;
-
-  const _EmptyState({this.hasFilter = false});
+  const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            hasFilter ? Icons.search_off_rounded : Icons.receipt_long_outlined,
-            size: 56,
-            color: const Color(0xFFCBD5E1),
-          ),
-          const SizedBox(height: 12),
+          Icon(Icons.receipt_long_outlined, size: 56, color: Color(0xFFCBD5E1)),
+          SizedBox(height: 12),
           Text(
-            hasFilter
-                ? 'Không có hóa đơn nào\ntrong khoảng thời gian này'
-                : 'Không có hóa đơn nào',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
+            'Không có hóa đơn nào',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
           ),
         ],
       ),

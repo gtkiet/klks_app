@@ -12,18 +12,12 @@
 import 'package:flutter/material.dart';
 
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
-import '../../quan_he/models/selector_item_model.dart';
 import '../../quan_he/widgets/selector_field.dart';
 import '../../quan_he/widgets/shared_widget.dart';
 
-import '../models/tai_lieu_cu_tru_request.dart';
-import '../models/thanh_vien_cu_tru_model.dart';
-import '../models/thanh_vien_request.dart';
-import '../models/thong_tin_cu_dan_model.dart';
-import '../models/yeu_cau_cu_tru_model.dart';
+import '../models/thanh_vien_model.dart';
 
 import '../services/thanh_vien_service.dart';
-import '../services/tv_yeu_cau_service.dart';
 
 import '../widgets/tai_lieu_cu_tru_editor.dart';
 import '../widgets/tv_shared_widgets.dart';
@@ -75,7 +69,6 @@ class YeuCauCuTruFormScreen extends StatefulWidget {
 }
 
 class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
-  final _yeuCauSvc = YeuCauCuTruService.instance;
   final _thanhVienSvc = ThanhVienService.instance;
 
   final _formKey = GlobalKey<FormState>();
@@ -107,9 +100,9 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
   bool _isSubmitting = false;
 
   // ── Catalog futures ─────────────────────────────────────────────────────
-  late final Future<List<SelectorItemModel>> _gioiTinhFuture = _yeuCauSvc
+  late final Future<List<SelectorItemModel>> _gioiTinhFuture = _thanhVienSvc
       .getGioiTinhSelector();
-  late final Future<List<SelectorItemModel>> _loaiQuanHeFuture = _yeuCauSvc
+  late final Future<List<SelectorItemModel>> _loaiQuanHeFuture = _thanhVienSvc
       .getLoaiQuanHeCuTruSelector();
 
   // ── Computed helpers ────────────────────────────────────────────────────
@@ -229,7 +222,7 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
     _setLoading(true);
     try {
       final results = await Future.wait([
-        _yeuCauSvc.getYeuCauById(yeuCauId),
+        _thanhVienSvc.getYeuCauById(yeuCauId),
         _gioiTinhFuture,
         _loaiQuanHeFuture,
       ]);
@@ -314,7 +307,7 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
 
       if (_isDraft) {
         final mode = widget.mode as YeuCauFormDraft;
-        await _yeuCauSvc.updateYeuCau(
+        await _thanhVienSvc.updateYeuCau(
           CapNhatYeuCauCuTruRequest(
             id: mode.yeuCauId,
             isSubmit: isSubmit,
@@ -335,7 +328,7 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
         final loaiYeuCauId = _isCreate ? 1 : 2;
         final targetId = _isEdit ? (_thanhVien!.quanHeCuTruId) : null;
 
-        await _yeuCauSvc.createYeuCau(
+        await _thanhVienSvc.createYeuCau(
           TaoYeuCauCuTruRequest(
             canHoId: canHoId,
             loaiYeuCauId: loaiYeuCauId,

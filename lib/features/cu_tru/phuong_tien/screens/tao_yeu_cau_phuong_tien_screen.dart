@@ -11,16 +11,14 @@
 import 'package:flutter/material.dart';
 
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
-import '../../quan_he/models/selector_item_model.dart';
-import '../../quan_he/models/uploaded_file_model.dart';
 
 import '../../quan_he/widgets/shared_widget.dart';
 import '../../quan_he/widgets/selector_field.dart';
 import '../../quan_he/widgets/file_upload_field.dart';
 
-import '../models/phuong_tien_request_models.dart';
+import '../models/phuong_tien_model.dart';
+import '../services/phuong_tien_service.dart';
 
-import '../services/pt_yeu_cau_service.dart';
 
 class TaoYeuCauPhuongTienScreen extends StatefulWidget {
   final QuanHeCuTruModel canHoInfo;
@@ -38,7 +36,7 @@ class TaoYeuCauPhuongTienScreen extends StatefulWidget {
 }
 
 class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
-  final _ptService = PTYeuCauService.instance;
+  final _ptService = PhuongTienService.instance;
   final _formKey = GlobalKey<FormState>();
 
   // ── Text controllers ───────────────────────────────────────────────────

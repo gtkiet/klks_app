@@ -2,9 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../core/errors/errors.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../models/phan_anh_model.dart';
 import '../services/phan_anh_service.dart';
+import 'phan_anh_create_screen.dart';
 
 class PhanAnhDetailScreen extends StatefulWidget {
   final int phanAnhId;
@@ -19,6 +21,9 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
   final _service = PhanAnhService.instance;
   final _chatCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
+
+  // Giới hạn ký tự chat
+  static const _maxChatLength = 500;
 
   PhanAnhDetailResponse? _detail;
   bool _isLoading = true;
@@ -38,6 +43,8 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     super.dispose();
   }
 
+  // ── Data ─────────────────────────────────────────────────────────────────
+
   Future<void> _fetchDetail() async {
     setState(() {
       _isLoading = true;
@@ -46,10 +53,10 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     try {
       final detail = await _service.getById(widget.phanAnhId);
       setState(() => _detail = detail);
-      // Scroll to bottom after render
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    } on AppException catch (e) {
-      setState(() => _errorMsg = e.message);
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _scrollToBottom());
+    } catch (e) {
+      setState(() => _errorMsg = 'Đã xảy ra lỗi khi tải thông tin phản ánh.');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -65,11 +72,17 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     }
   }
 
+  // ── Actions ───────────────────────────────────────────────────────────────
+
   Future<void> _sendChat() async {
     final text = _chatCtrl.text.trim();
     if (text.isEmpty) return;
 
-    // TODO: validate max length
+    // Validate độ dài
+    if (text.length > _maxChatLength) {
+      _showError('Tin nhắn không được vượt quá $_maxChatLength ký tự.');
+      return;
+    }
 
     setState(() => _isSending = true);
     try {
@@ -79,17 +92,18 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
       );
       _chatCtrl.clear();
       await _fetchDetail();
-    } on AppException catch (e) {
-      _showError(e.message);
+    } catch (e) {
+      _showError('Đã xảy ra lỗi khi gửi tin nhắn.');
     } finally {
-      setState(() => _isSending = false);
+      if (mounted) setState(() => _isSending = false);
     }
   }
 
   Future<void> _withdraw() async {
     final confirmed = await _confirmDialog(
       title: 'Thu hồi phản ánh',
-      content: 'Bạn có chắc muốn thu hồi phản ánh này không?',
+      content:
+          'Phản ánh sẽ chuyển về trạng thái "Đã thu hồi". Bạn có thể chỉnh sửa và gửi lại sau.',
     );
     if (!confirmed) return;
 
@@ -98,11 +112,23 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
       await _service.withdraw(widget.phanAnhId);
       _showSuccess('Đã thu hồi phản ánh.');
       await _fetchDetail();
-    } on AppException catch (e) {
-      _showError(e.message);
+    } catch (e) {
+      _showError('Đã xảy ra lỗi khi thu hồi phản ánh.');
     } finally {
-      setState(() => _isSending = false);
+      if (mounted) setState(() => _isSending = false);
     }
+  }
+
+  /// Mở màn hình chỉnh sửa cho phản ánh đang ở Nháp / Đã thu hồi
+  Future<void> _openEdit() async {
+    if (_detail == null) return;
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PhanAnhCreateScreen(existing: _detail),
+      ),
+    );
+    if (updated == true && mounted) await _fetchDetail();
   }
 
   Future<void> _openRatingDialog() async {
@@ -121,6 +147,29 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     );
   }
 
+  /// Mở file/URL đính kèm bằng url_launcher
+  Future<void> _openAttachment(TepDinhKem tep) async {
+    final raw = tep.fileUrl.trim();
+    if (raw.isEmpty) {
+      _showError('Đường dẫn file không hợp lệ.');
+      return;
+    }
+
+    // Nếu là path tương đối thì bỏ qua — cần baseUrl thực tế
+    final uri = Uri.tryParse(raw);
+    if (uri == null || !uri.hasScheme) {
+      _showError(
+          'Không thể mở file này trực tiếp (đường dẫn tương đối).\nURL: $raw');
+      return;
+    }
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      _showError('Không thể mở file: ${tep.fileName}');
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   Future<bool> _confirmDialog(
       {required String title, required String content}) async {
     final result = await showDialog<bool>(
@@ -130,11 +179,13 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
         content: Text(content),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Xác nhận')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xác nhận'),
+          ),
         ],
       ),
     );
@@ -143,22 +194,28 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
+    );
   }
 
   void _showSuccess(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.green));
+      SnackBar(content: Text(msg), backgroundColor: Colors.green),
+    );
   }
+
+  // ── UI ────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_detail?.tieuDe ?? 'Chi tiết phản ánh',
-            overflow: TextOverflow.ellipsis),
+        title: Text(
+          _detail?.tieuDe ?? 'Chi tiết phản ánh',
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: _buildActions(),
       ),
       body: _buildBody(),
@@ -169,18 +226,26 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     if (_detail == null) return [];
     final status = _detail!.trangThaiPhanAnhId;
     return [
-      // Cư dân thu hồi khi đang chờ tiếp nhận
+      // Chờ tiếp nhận → Thu hồi
       if (status == 1)
         TextButton(
           onPressed: _isSending ? null : _withdraw,
-          child: const Text('Thu hồi', style: TextStyle(color: Colors.white)),
+          child: const Text('Thu hồi',
+              style: TextStyle(color: Colors.white)),
         ),
-      // Cư dân đánh giá khi chờ đánh giá
+      // Nháp / Đã thu hồi → Chỉnh sửa
+      if (status == 8 || status == 9)
+        IconButton(
+          icon: const Icon(Icons.edit_outlined),
+          tooltip: 'Chỉnh sửa',
+          onPressed: _isSending ? null : _openEdit,
+        ),
+      // Chờ đánh giá → Đánh giá
       if (status == 5)
         TextButton(
           onPressed: _isSending ? null : _openRatingDialog,
-          child:
-              const Text('Đánh giá', style: TextStyle(color: Colors.white)),
+          child: const Text('Đánh giá',
+              style: TextStyle(color: Colors.white)),
         ),
     ];
   }
@@ -191,34 +256,41 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     }
     if (_errorMsg != null) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_errorMsg!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 12),
-            ElevatedButton(
-                onPressed: _fetchDetail, child: const Text('Thử lại')),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 12),
+              Text(_errorMsg!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _fetchDetail,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     final d = _detail!;
     final fmt = DateFormat('dd/MM/yyyy HH:mm');
-    // Show chat input if ticket is active (not done/cancelled/draft)
+    // Cho phép chat nếu ticket chưa đóng / hủy / nháp
     final canChat = ![6, 7, 8].contains(d.trangThaiPhanAnhId);
 
     return Column(
       children: [
-        // ── Main scrollable content ──────────────────────────────────────
         Expanded(
           child: ListView(
             controller: _scrollCtrl,
             padding: const EdgeInsets.all(16),
             children: [
-              // ── Info card ──────────────────────────────────────────────
+              // ── Info card ────────────────────────────────────────────
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
@@ -230,7 +302,8 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
                       _InfoRow('Trạng thái', d.trangThaiPhanAnhTen),
                       if (d.tenNguoiXuLy != null)
                         _InfoRow('Người xử lý', d.tenNguoiXuLy!),
-                      _InfoRow('Ngày tạo', fmt.format(d.createdAt.toLocal())),
+                      _InfoRow(
+                          'Ngày tạo', fmt.format(d.createdAt.toLocal())),
                       _InfoRow('Người gửi', d.tenNguoiGui),
                       if (d.noiDung != null && d.noiDung!.isNotEmpty) ...[
                         const Divider(height: 20),
@@ -242,7 +315,7 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
                 ),
               ),
 
-              // ── Rating result (if done) ────────────────────────────────
+              // ── Rating result ────────────────────────────────────────
               if (d.trangThaiPhanAnhId == 6 && d.diemDanhGia != null) ...[
                 const SizedBox(height: 12),
                 Card(
@@ -253,7 +326,8 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Đánh giá của cư dân',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                            style:
+                                TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
                         Row(
                           children: List.generate(
@@ -273,40 +347,41 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(d.nhanXetDanhGia!),
                           ),
+                        if (d.ngayDanhGia != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              fmt.format(d.ngayDanhGia!.toLocal()),
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.grey[600]),
+                            ),
+                          ),
                       ],
                     ),
                   ),
                 ),
               ],
 
-              // ── Attachments ───────────────────────────────────────────
+              // ── Attachments ──────────────────────────────────────────
               if (d.danhSachTep.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 const Text('Tệp đính kèm',
                     style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                ...d.danhSachTep.map(
-                  (f) => ListTile(
-                    dense: true,
-                    leading: const Icon(Icons.attach_file),
-                    title: Text(f.fileName, style: const TextStyle(fontSize: 13)),
-                    subtitle: Text(f.fileUrl,
-                        style: const TextStyle(fontSize: 11),
-                        overflow: TextOverflow.ellipsis),
-                    // TODO: tap to open/download file
-                  ),
-                ),
+                const SizedBox(height: 4),
+                ...d.danhSachTep.map((f) => _AttachmentTile(
+                      tep: f,
+                      onTap: () => _openAttachment(f),
+                    )),
               ],
 
               // ── Chat history ─────────────────────────────────────────
               if (d.traLoiPhanAnhs.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 const Text('Trao đổi',
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
-                ...d.traLoiPhanAnhs.map(
-                  (t) => _ChatBubble(traLoi: t),
-                ),
+                ...d.traLoiPhanAnhs
+                    .map((t) => _ChatBubble(traLoi: t)),
               ],
 
               const SizedBox(height: 8),
@@ -314,48 +389,13 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
           ),
         ),
 
-        // ── Chat input ───────────────────────────────────────────────────
-        if (canChat)
-          SafeArea(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                border: const Border(top: BorderSide(color: Colors.black12)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _chatCtrl,
-                      decoration: InputDecoration(
-                        hintText: 'Nhập tin nhắn...',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24)),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                      ),
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.newline,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _isSending
-                      ? const SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : IconButton(
-                          icon: const Icon(Icons.send),
-                          color: Theme.of(context).primaryColor,
-                          onPressed: _sendChat,
-                        ),
-                ],
-              ),
-            ),
-          ),
+        // ── Chat input ───────────────────────────────────────────────
+        if (canChat) _ChatInput(
+          controller: _chatCtrl,
+          isSending: _isSending,
+          maxLength: _maxChatLength,
+          onSend: _sendChat,
+        ),
       ],
     );
   }
@@ -393,6 +433,63 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
+// ── Attachment tile với icon theo loại file ────────────────────────────────
+
+class _AttachmentTile extends StatelessWidget {
+  final TepDinhKem tep;
+  final VoidCallback onTap;
+
+  const _AttachmentTile({required this.tep, required this.onTap});
+
+  IconData _iconForFile(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return Icons.image_outlined;
+      case 'pdf':
+        return Icons.picture_as_pdf_outlined;
+      case 'doc':
+      case 'docx':
+        return Icons.description_outlined;
+      case 'xls':
+      case 'xlsx':
+        return Icons.table_chart_outlined;
+      case 'mp4':
+      case 'mov':
+      case 'avi':
+        return Icons.video_file_outlined;
+      default:
+        return Icons.attach_file;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 6),
+      child: ListTile(
+        dense: true,
+        leading: Icon(_iconForFile(tep.fileName), color: Colors.blue[600]),
+        title: Text(tep.fileName,
+            style: const TextStyle(fontSize: 13),
+            overflow: TextOverflow.ellipsis),
+        subtitle: tep.contentType != null
+            ? Text(tep.contentType!,
+                style: const TextStyle(fontSize: 11))
+            : null,
+        trailing: const Icon(Icons.open_in_new, size: 18),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+// ── Chat bubble ───────────────────────────────────────────────────────────────
+
 class _ChatBubble extends StatelessWidget {
   final TraLoiPhanAnh traLoi;
 
@@ -403,11 +500,12 @@ class _ChatBubble extends StatelessWidget {
     final isStaff = traLoi.isNhanVien;
     final fmt = DateFormat('HH:mm dd/MM');
     return Align(
-      alignment: isStaff ? Alignment.centerLeft : Alignment.centerRight,
+      alignment:
+          isStaff ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75),
         padding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -427,19 +525,142 @@ class _ChatBubble extends StatelessWidget {
             Text(
               traLoi.tenNguoiGui,
               style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: isStaff
-                      ? Colors.blue[700]
-                      : Colors.green[700]),
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isStaff
+                    ? Colors.blue[700]
+                    : Colors.green[700],
+              ),
             ),
             const SizedBox(height: 2),
-            Text(traLoi.noiDung, style: const TextStyle(fontSize: 14)),
+            Text(traLoi.noiDung,
+                style: const TextStyle(fontSize: 14)),
             const SizedBox(height: 2),
             Text(
               fmt.format(traLoi.createdAt.toLocal()),
-              style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+              style:
+                  TextStyle(fontSize: 10, color: Colors.grey[500]),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Chat input box (tách widget để dễ đọc) ────────────────────────────────────
+
+class _ChatInput extends StatefulWidget {
+  final TextEditingController controller;
+  final bool isSending;
+  final int maxLength;
+  final VoidCallback onSend;
+
+  const _ChatInput({
+    required this.controller,
+    required this.isSending,
+    required this.maxLength,
+    required this.onSend,
+  });
+
+  @override
+  State<_ChatInput> createState() => _ChatInputState();
+}
+
+class _ChatInputState extends State<_ChatInput> {
+  int _charCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    setState(() => _charCount = widget.controller.text.length);
+  }
+
+  bool get _overLimit => _charCount > widget.maxLength;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          border:
+              const Border(top: BorderSide(color: Colors.black12)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: widget.controller,
+                    decoration: InputDecoration(
+                      hintText: 'Nhập tin nhắn...',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24)),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      // Hiện viền đỏ khi vượt giới hạn
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: _overLimit
+                              ? Colors.red
+                              : Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                    minLines: 1,
+                    maxLines: 4,
+                    textInputAction: TextInputAction.newline,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                widget.isSending
+                    ? const SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2))
+                    : IconButton(
+                        icon: const Icon(Icons.send),
+                        color: _overLimit
+                            ? Colors.grey
+                            : Theme.of(context).primaryColor,
+                        onPressed:
+                            _overLimit ? null : widget.onSend,
+                      ),
+              ],
+            ),
+            // Bộ đếm ký tự — chỉ hiện khi gần / vượt giới hạn
+            if (_charCount > widget.maxLength * 0.8)
+              Padding(
+                padding:
+                    const EdgeInsets.only(top: 2, right: 44),
+                child: Text(
+                  '$_charCount / ${widget.maxLength}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color:
+                        _overLimit ? Colors.red : Colors.grey[600],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -469,6 +690,9 @@ class _RatingDialogState extends State<_RatingDialog> {
   final _commentCtrl = TextEditingController();
   bool _isSubmitting = false;
 
+  // Giới hạn nhận xét đánh giá
+  static const _maxComment = 500;
+
   @override
   void dispose() {
     _commentCtrl.dispose();
@@ -478,23 +702,37 @@ class _RatingDialogState extends State<_RatingDialog> {
   Future<void> _submit() async {
     if (_stars == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng chọn số sao đánh giá.')));
+        const SnackBar(
+            content: Text('Vui lòng chọn số sao đánh giá.')),
+      );
       return;
     }
-    // TODO: validate min comment length if needed
+
+    final comment = _commentCtrl.text.trim();
+    if (comment.length > _maxComment) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Nhận xét không được vượt quá $_maxComment ký tự.')),
+      );
+      return;
+    }
 
     setState(() => _isSubmitting = true);
     try {
       await widget.service.danhGia(
         phanAnhId: widget.phanAnhId,
         diemDanhGia: _stars,
-        nhanXetDanhGia: _commentCtrl.text.trim(),
+        nhanXetDanhGia: comment,
       );
       widget.onDone();
-    } on AppException catch (e) {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.message), backgroundColor: Colors.red));
+          SnackBar(
+              content: Text('Đã xảy ra lỗi khi gửi đánh giá.'),
+              backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -508,7 +746,8 @@ class _RatingDialogState extends State<_RatingDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Chọn số sao:', style: TextStyle(fontSize: 14)),
+          const Text('Chọn số sao:',
+              style: TextStyle(fontSize: 14)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -516,30 +755,60 @@ class _RatingDialogState extends State<_RatingDialog> {
               5,
               (i) => GestureDetector(
                 onTap: () => setState(() => _stars = i + 1),
-                child: Icon(
-                  i < _stars ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 36,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4),
+                  child: Icon(
+                    i < _stars ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 36,
+                  ),
                 ),
               ),
             ),
           ),
+          // Label sao
+          if (_stars > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _starLabel(_stars),
+                style: TextStyle(
+                    fontSize: 12, color: Colors.amber[700]),
+              ),
+            ),
           const SizedBox(height: 12),
           TextField(
             controller: _commentCtrl,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Nhận xét (không bắt buộc)...',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
               isDense: true,
+              counterText:
+                  '${_commentCtrl.text.length}/$_maxComment',
             ),
             minLines: 2,
             maxLines: 4,
+            maxLength: _maxComment,
+            buildCounter: (_, {required currentLength,
+                    required isFocused, maxLength}) =>
+                Text(
+              '$currentLength/${maxLength ?? _maxComment}',
+              style: TextStyle(
+                fontSize: 11,
+                color: currentLength > (maxLength ?? _maxComment) * 0.8
+                    ? Colors.orange
+                    : Colors.grey,
+              ),
+            ),
+            onChanged: (_) => setState(() {}),
           ),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          onPressed:
+              _isSubmitting ? null : () => Navigator.pop(context),
           child: const Text('Hủy'),
         ),
         ElevatedButton(
@@ -553,5 +822,22 @@ class _RatingDialogState extends State<_RatingDialog> {
         ),
       ],
     );
+  }
+
+  String _starLabel(int stars) {
+    switch (stars) {
+      case 1:
+        return 'Rất không hài lòng';
+      case 2:
+        return 'Không hài lòng';
+      case 3:
+        return 'Bình thường';
+      case 4:
+        return 'Hài lòng';
+      case 5:
+        return 'Rất hài lòng';
+      default:
+        return '';
+    }
   }
 }

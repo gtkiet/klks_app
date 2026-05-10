@@ -11,7 +11,7 @@ class HoaDonService {
 
   // ── 1. Danh sách hóa đơn ─────────────────────────────────────────────────
 
-  /// [trangThaiHoaDonId] 2=Chưa TT, 3=Đã TT, 4=Quá hạn, null=tất cả
+  /// [trangThaiHoaDonId] 1=Chờ duyệt, 2=Chưa thanh toán, 3=Đã thanh toán, 4=Quá hạn, 5=Một phần, 6=Đã hủy, null=tất cả
   Future<HoaDonListResult> getList({
     required int canHoId,
     int? trangThaiHoaDonId,
@@ -25,9 +25,9 @@ class HoaDonService {
       '/api/hoa-don/get-list',
       body: {
         'canHoId': canHoId,
-        'trangThaiHoaDonId': ?trangThaiHoaDonId,
-        'thang': ?thang,
-        'nam': ?nam,
+        'trangThaiHoaDonId': trangThaiHoaDonId,
+        'thang': thang,
+        'nam': nam,
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
         'pageNumber': pageNumber,
         'pageSize': pageSize,
@@ -93,10 +93,7 @@ class HoaDonService {
   }) async {
     final res = await _client.post(
       '/api/giao-dich-thanh-toan/tao-phien',
-      body: {
-        'hoaDonId': hoaDonId,
-        'chiTietHoaDonIds': chiTietHoaDonIds,
-      },
+      body: {'hoaDonId': hoaDonId, 'chiTietHoaDonIds': chiTietHoaDonIds},
     );
     return res.item(PhienThanhToan.fromJson);
   }

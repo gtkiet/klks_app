@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../quan_he/models/quan_he_cu_tru_model.dart';
-import '../../models/thanh_vien_cu_tru_model.dart';
+import '../../models/thanh_vien_model.dart';
 import '../thanh_vien_detail_screen.dart';
 import '../xoa_yeu_cau_thanh_vien_screen.dart';
 import '../yeu_cau_cu_tru_form_screen.dart';

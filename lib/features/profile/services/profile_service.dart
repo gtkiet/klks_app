@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/user_session.dart';
+import '../../auth/services/auth_service.dart';
 import '../model/user_profile.dart';
 
 class ProfileService {
@@ -18,11 +19,11 @@ class ProfileService {
   // ── Session profile (local) ───────────────────────────────────────────────
 
   Future<Map<String, String?>> getSessionProfile() async => {
-        'fullName': await _session.getFullName(),
-        'email': await _session.getEmail(),
-        'role': await _session.getRole(),
-        'anhDaiDienUrl': await _session.getanhDaiDienUrl(),
-      };
+    'fullName': await _session.getFullName(),
+    'email': await _session.getEmail(),
+    'role': await _session.getRole(),
+    'anhDaiDienUrl': await _session.getanhDaiDienUrl(),
+  };
 
   // ── Remote profile ────────────────────────────────────────────────────────
 
@@ -69,5 +70,9 @@ class ProfileService {
         'confirmPassword': confirmPassword,
       },
     );
+  }
+
+  Future<void> logout() async {
+    AuthService.instance.logout();
   }
 }

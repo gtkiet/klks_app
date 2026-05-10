@@ -5,8 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 
-import '../models/khung_gio_model.dart';
-
+import '../models/dich_vu_model.dart';
 import '../services/dich_vu_service.dart';
 
 class DangKyDichVuScreen extends StatefulWidget {

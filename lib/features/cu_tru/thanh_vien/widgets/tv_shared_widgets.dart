@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../models/thanh_vien_cu_tru_model.dart';
+import '../models/thanh_vien_model.dart';
 
 // =============================================================================
 // DATE FORMATTING

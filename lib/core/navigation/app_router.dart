@@ -3,10 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
-import '../../features/cu_tru/thanh_vien/screens/thanh_vien_detail_screen.dart';
-import '../../features/hoa_don/screens/hoa_don_list_screen.dart';
-import '../../features/thong_bao/screens/thong_bao_detail_screen.dart';
 import '../guards/auth_guard.dart';
 import 'main_screen.dart';
 
@@ -19,6 +15,10 @@ import '../../features/auth/screens/reset_password_screen.dart';
 
 import '../../features/home/screens/home_screen.dart';
 
+import '../../features/hoa_don/screens/hoa_don_list_screen.dart';
+import '../../features/phan_anh/screens/phan_anh_list_screen.dart';
+import '../../features/thong_bao/screens/thong_bao_detail_screen.dart';
+
 import '../../features/thong_bao/screens/thong_bao_list_screen.dart';
 
 import '../../features/tien_ich/screens/tien_ich_screen.dart';
@@ -27,6 +27,8 @@ import '../../features/tien_ich/sua_chua/screens/sua_chua_list_screen.dart';
 import '../../features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
 
 import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
+import '../../features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
+import '../../features/cu_tru/thanh_vien/screens/thanh_vien_detail_screen.dart';
 
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/profile_detail_screen.dart';
@@ -103,7 +105,14 @@ class AppRouter {
           /// ── 0: HOME ──
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+              GoRoute(path: '/home', builder: (_, _) => const HomeScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'phan-anh',
+                    builder: (_, _) => const PhanAnhListScreen(),
+                  ),
+                ]
+              ),
             ],
           ),
 
@@ -183,12 +192,12 @@ class AppRouter {
                   ),
                   GoRoute(
                     path: '/hoa-don',
-                    builder: (context, state) {
-                      final args = state.extra as HoaDonListArgs;
+                    builder: (_, state) {
+                      final args = state.extra as Map<String, dynamic>;
 
                       return HoaDonListScreen(
-                        canHoId: args.canHoId,
-                        tenCanHo: args.tenCanHo,
+                        canHoId: args['canHoId'],
+                        tenCanHo: args['tenCanHo'],
                       );
                     },
                   ),

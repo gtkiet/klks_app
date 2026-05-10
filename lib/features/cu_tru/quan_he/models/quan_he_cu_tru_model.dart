@@ -104,3 +104,63 @@ class QuanHeCuTruModel {
     tongCuDan: tongCuDan ?? this.tongCuDan,
   );
 }
+
+
+class SelectorItemModel {
+  final int id;
+  final String name;
+
+  const SelectorItemModel({required this.id, required this.name});
+
+  factory SelectorItemModel.fromJson(Map<String, dynamic> json) =>
+      SelectorItemModel(
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name};
+
+  @override
+  bool operator ==(Object other) =>
+      other is SelectorItemModel && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+
+class UploadedFileModel {
+  final int fileId;
+  final String fileName;
+  final String fileUrl;
+  final String contentType;
+
+  const UploadedFileModel({
+    required this.fileId,
+    required this.fileName,
+    required this.fileUrl,
+    required this.contentType,
+  });
+
+  factory UploadedFileModel.fromJson(Map<String, dynamic> json) {
+    // Server có thể trả 'fileId' hoặc 'id' — đọc cả hai, ưu tiên 'fileId'
+    final fileId = (json['fileId'] as int?) ?? (json['id'] as int?) ?? 0;
+
+    return UploadedFileModel(
+      fileId: fileId,
+      fileName: json['fileName'] as String? ?? '',
+      fileUrl: json['fileUrl'] as String? ?? '',
+      contentType: json['contentType'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'fileId': fileId,
+    'fileName': fileName,
+    'fileUrl': fileUrl,
+    'contentType': contentType,
+  };
+
+  bool get isImage => contentType.startsWith('image/');
+  bool get isPdf => contentType == 'application/pdf';
+}

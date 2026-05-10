@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../hoa_don/screens/hoa_don_list_screen.dart';
 import '../models/quan_he_cu_tru_model.dart';
 import '../services/cu_tru_service.dart';
 import 'cu_tru_detail_screen.dart';
@@ -44,15 +43,18 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
   // ── Navigation ─────────────────────────────────────────────────────────
   void _goToDetail(QuanHeCuTruModel item, CuTruDetailMode mode) {
     context.push(
-      '/detail',
+      '/cu-tru/detail',
       extra: CuTruDetailArgs(item: item, initialMode: mode),
     );
   }
 
   void _goToHoaDon(QuanHeCuTruModel item) {
     context.push(
-      '/hoa-don',
-      extra: HoaDonListArgs(canHoId: item.canHoId, tenCanHo: item.tenCanHo),
+      '/cu-tru/hoa-don',
+      extra: {
+        'canHoId': item.canHoId,
+        'tenCanHo': item.tenCanHo,
+      },
     );
   }
 

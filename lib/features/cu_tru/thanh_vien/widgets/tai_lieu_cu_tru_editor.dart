@@ -3,18 +3,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-import '../models/tai_lieu_cu_tru_request.dart';
-import '../models/thong_tin_cu_dan_model.dart';
-
-import '../../quan_he/models/selector_item_model.dart';
-import '../../quan_he/models/uploaded_file_model.dart';
-
-import '../services/tv_yeu_cau_service.dart';
+import '../../quan_he/models/quan_he_cu_tru_model.dart';
 
 import '../../quan_he/widgets/shared_widget.dart';
 
 import '../../quan_he/widgets/file_upload_field.dart';
 import '../../quan_he/widgets/selector_field.dart';
+import '../models/thanh_vien_model.dart';
+import '../services/thanh_vien_service.dart';
 
 typedef UploadFn =
     Future<List<UploadedFileModel>> Function({
@@ -45,7 +41,7 @@ class TaiLieuCuTruEditor extends StatefulWidget {
 }
 
 class _TaiLieuCuTruEditorState extends State<TaiLieuCuTruEditor> {
-  final _yeuCauSvc = YeuCauCuTruService.instance;
+  final _yeuCauSvc = ThanhVienService.instance;
 
   // Future được khởi tạo 1 lần — chia sẻ với tất cả _TaiLieuCard.
   late final Future<List<SelectorItemModel>> _loaiGiayToFuture = _yeuCauSvc

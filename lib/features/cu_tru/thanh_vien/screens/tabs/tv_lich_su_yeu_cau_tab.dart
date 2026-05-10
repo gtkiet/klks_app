@@ -9,13 +9,12 @@ import 'package:flutter/material.dart';
 
 import '../../../quan_he/models/quan_he_cu_tru_model.dart';
 
-import '../../models/thanh_vien_request.dart';
-import '../../models/yeu_cau_cu_tru_model.dart';
+import '../../models/thanh_vien_model.dart';
 
 import '../../screens/yeu_cau_cu_tru_form_screen.dart';
 import '../../screens/yeu_cau_detail_screen.dart';
 
-import '../../services/tv_yeu_cau_service.dart';
+import '../../services/thanh_vien_service.dart';
 
 import '../../widgets/tv_shared_widgets.dart';
 
@@ -41,7 +40,7 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
 
   void reload() => _loadData();
 
-  final _service = YeuCauCuTruService.instance;
+  final _service = ThanhVienService.instance;
   final _scrollCtrl = ScrollController();
 
   bool _isLoading = false;

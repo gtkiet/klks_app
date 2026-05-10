@@ -3,10 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/errors/errors.dart';
-import '../models/thong_tin_cu_dan_model.dart';
-import '../models/yeu_cau_cu_tru_model.dart';
-import '../services/tv_yeu_cau_service.dart';
+import '../models/thanh_vien_model.dart';
+import '../services/thanh_vien_service.dart';
 import '../widgets/tv_shared_widgets.dart';
 
 class YeuCauDetailScreen extends StatefulWidget {
@@ -19,10 +17,9 @@ class YeuCauDetailScreen extends StatefulWidget {
 }
 
 class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
-  final _service = YeuCauCuTruService.instance;
+  final _service = ThanhVienService.instance;
 
   bool _isLoading = true;
-  AppException? _error;
   YeuCauCuTruModel? _data;
 
   @override
@@ -34,13 +31,10 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
   Future<void> _loadDetail() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
     try {
       final result = await _service.getYeuCauById(widget.yeuCauId);
       setState(() => _data = result);
-    } on AppException catch (e) {
-      setState(() => _error = e);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -64,10 +58,8 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading || _error != null) {
-      return TvAsyncLayout(
-        isLoading: _isLoading,
-      );
+    if (_isLoading) {
+      return TvAsyncLayout(isLoading: _isLoading);
     }
 
     final d = _data!;

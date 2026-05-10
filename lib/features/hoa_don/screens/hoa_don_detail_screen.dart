@@ -365,9 +365,9 @@ class _ChiTietCard extends StatelessWidget {
         return 'Cố định';
       case 2:
         return 'Lũy tiến';
-      case 3:
+      case 6:
         return 'Diện tích';
-      case 4:
+      case 7:
         return 'Khung giờ';
       default:
         return chiTiet.loaiDinhGiaTen;

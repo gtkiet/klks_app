@@ -1,6 +1,7 @@
 // lib/features/home/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../models/home_data.dart';
 import '../services/home_service.dart';
@@ -41,13 +42,13 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoading = false);
   }
 
-  Future<void> _logout() async {
-    await _service.logout();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã đăng xuất')),
-    );
-  }
+  // Future<void> _logout() async {
+  //   await _service.logout();
+  //   if (!mounted) return;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Đã đăng xuất')),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -79,10 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_data?.fullName ?? 'Trang chủ'),
-        actions: [
-          ThongBaoBellIcon(),
-          const SizedBox(width: 4),
-        ],
+        actions: [ThongBaoBellIcon(), const SizedBox(width: 4)],
       ),
       body: RefreshIndicator(
         onRefresh: _fetch,
@@ -104,20 +102,37 @@ class _HomeScreenState extends State<HomeScreen> {
             _quickTabRow(),
             const SizedBox(height: 32),
 
-            /// ── Đăng xuất ──
-            ElevatedButton.icon(
-              onPressed: _logout,
-              icon: const Icon(Icons.logout),
-              label: const Text('Đăng xuất'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade50,
-                foregroundColor: Colors.red,
-                elevation: 0,
-              ),
-            ),
+            _sectionTitle('Test chức năng'),
+            const SizedBox(height: 8),
+            _buildTestFeatures(),
+            const SizedBox(height: 32),
+
+            // /// ── Đăng xuất ──
+            // ElevatedButton.icon(
+            //   onPressed: _logout,
+            //   icon: const Icon(Icons.logout),
+            //   label: const Text('Đăng xuất'),
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: Colors.red.shade50,
+            //     foregroundColor: Colors.red,
+            //     elevation: 0,
+            //   ),
+            // ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTestFeatures() {
+    return Column(
+      children: [
+        // Add test feature buttons or widgets here
+        _NavButton(
+          label: 'Phản ánh',
+          onPressed: () => context.push('/home/phan-anh'),
+        ),
+      ],
     );
   }
 
@@ -265,9 +280,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Helpers ────────────────────────────────────────────────
 
   Widget _sectionTitle(String text) => Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-      );
+    text,
+    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+  );
 }
 
 class _TienIchItem {
@@ -279,4 +294,19 @@ class _TienIchItem {
     required this.label,
     required this.onTap,
   });
+}
+
+class _NavButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _NavButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: ElevatedButton(onPressed: onPressed, child: Text(label)),
+    );
+  }
 }

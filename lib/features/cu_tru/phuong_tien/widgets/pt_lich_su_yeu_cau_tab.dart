@@ -6,12 +6,11 @@
 
 import 'package:flutter/material.dart';
 
+import '../models/phuong_tien_model.dart';
 import '../screens/yeu_cau_phuong_tien_detail_screen.dart';
-import '../services/pt_yeu_cau_service.dart';
 
 import '../../quan_he/models/quan_he_cu_tru_model.dart';
-import '../models/yeu_cau_phuong_tien_model.dart';
-import '../models/phuong_tien_request_models.dart';
+import '../services/phuong_tien_service.dart';
 
 class LichSuYeuCauPhuongTienTab extends StatefulWidget {
   final QuanHeCuTruModel item;
@@ -30,7 +29,7 @@ class LichSuYeuCauPhuongTienTabState extends State<LichSuYeuCauPhuongTienTab>
 
   void reload() => _loadData();
 
-  final _service = PTYeuCauService.instance;
+  final _service = PhuongTienService.instance;
   final _scrollController = ScrollController();
 
   // ── State ──────────────────────────────────────────────────────────────

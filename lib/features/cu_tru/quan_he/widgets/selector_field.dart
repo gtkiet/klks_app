@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../models/selector_item_model.dart';
+import '../models/quan_he_cu_tru_model.dart';
 
 class AppSelectorField extends StatefulWidget {
   final String label;

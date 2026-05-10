@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 import '../models/sua_chua_model.dart';
-import '../models/sua_chua_request.dart';
 import '../services/sua_chua_service.dart';
 import 'sua_chua_create_screen.dart';
 import 'sua_chua_detail_screen.dart';

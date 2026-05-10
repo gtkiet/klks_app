@@ -1,17 +1,24 @@
 // lib/features/phan_anh/screens/phan_anh_create_screen.dart
 
 import 'package:flutter/material.dart';
-import '../../../core/errors/errors.dart';
+import 'package:flutter/services.dart';
 import '../models/phan_anh_model.dart';
 import '../services/phan_anh_service.dart';
 
-/// Màn hình tạo mới hoặc chỉnh sửa phản ánh.
-///
-/// - Truyền [existing] để vào chế độ chỉnh sửa (chỉ hoạt động khi status là
-///   Nháp hoặc Đã thu hồi).
-/// - Không truyền → chế độ tạo mới.
+// ─── Danh sách loại phản ánh (hardcode cho bản test).
+const _kLoaiPhanAnh = <(int, String)>[
+  (1, 'Vệ sinh & Môi trường'),
+  (2, 'An ninh & Bảo vệ'),
+  (3, 'Hạ tầng & Kỹ thuật'),
+  (4, 'Thái độ phục vụ'),
+  (5, 'Tài chính & Phí dịch vụ'),
+  (6, 'Khác'),
+];
+
 class PhanAnhCreateScreen extends StatefulWidget {
-  final PhanAnhResponse? existing;
+  /// Truyền vào khi muốn chỉnh sửa phản ánh đang ở trạng thái Nháp (8)
+  /// hoặc Đã thu hồi (9).
+  final PhanAnhDetailResponse? existing;
 
   const PhanAnhCreateScreen({super.key, this.existing});
 
@@ -26,22 +33,32 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
   late final TextEditingController _tieuDeCtrl;
   late final TextEditingController _noiDungCtrl;
   late final TextEditingController _canHoIdCtrl;
-  late final TextEditingController _loaiCtrl;
+
+  // Dropdown loại phản ánh — mặc định là item đầu tiên
+  late int _selectedLoaiId;
 
   bool _isSubmitting = false;
 
   bool get _isEdit => widget.existing != null;
 
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
   @override
   void initState() {
     super.initState();
     final e = widget.existing;
+
     _tieuDeCtrl = TextEditingController(text: e?.tieuDe ?? '');
-    _noiDungCtrl = TextEditingController();
+    // Pre-fill noiDung nếu đang ở chế độ edit
+    _noiDungCtrl = TextEditingController(text: e?.noiDung ?? '');
     _canHoIdCtrl =
         TextEditingController(text: e != null ? '${e.canHoId}' : '');
-    _loaiCtrl =
-        TextEditingController(text: e != null ? '${e.loaiPhanAnhId}' : '1');
+
+    // Tìm loại phù hợp trong danh sách; fallback về item đầu nếu không có
+    final existingLoai = e?.loaiPhanAnhId;
+    _selectedLoaiId = _kLoaiPhanAnh.any((l) => l.$1 == existingLoai)
+        ? existingLoai!
+        : _kLoaiPhanAnh.first.$1;
   }
 
   @override
@@ -49,25 +66,23 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
     _tieuDeCtrl.dispose();
     _noiDungCtrl.dispose();
     _canHoIdCtrl.dispose();
-    _loaiCtrl.dispose();
     super.dispose();
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
   Future<void> _submit({required bool asDraft}) async {
+    // Form-level validation (required, minLength, ...)
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // TODO: refactor validation into a validator class
-    final canHoId = int.tryParse(_canHoIdCtrl.text.trim());
-    final loaiId = int.tryParse(_loaiCtrl.text.trim());
-    if (canHoId == null) {
-      _showError('Mã căn hộ phải là số nguyên.');
-      return;
-    }
-    if (loaiId == null) {
-      _showError('Mã loại phản ánh phải là số nguyên.');
-      return;
+    // canHoId chỉ cần validate khi tạo mới
+    int? canHoId;
+    if (!_isEdit) {
+      canHoId = int.tryParse(_canHoIdCtrl.text.trim());
+      if (canHoId == null || canHoId <= 0) {
+        _showError('Mã căn hộ phải là số nguyên dương.');
+        return;
+      }
     }
 
     setState(() => _isSubmitting = true);
@@ -79,16 +94,16 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
           id: widget.existing!.id,
           tieuDe: _tieuDeCtrl.text.trim(),
           noiDung: _noiDungCtrl.text.trim(),
-          loaiPhanAnhId: loaiId,
+          loaiPhanAnhId: _selectedLoaiId,
           isSubmit: !asDraft,
           isWithdraw: false,
         );
       } else {
         result = await _service.create(
-          canHoId: canHoId,
+          canHoId: canHoId!,
           tieuDe: _tieuDeCtrl.text.trim(),
           noiDung: _noiDungCtrl.text.trim(),
-          loaiPhanAnhId: loaiId,
+          loaiPhanAnhId: _selectedLoaiId,
           isSubmit: !asDraft,
         );
       }
@@ -101,9 +116,7 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context, true); // signal list to refresh
-    } on AppException catch (e) {
-      _showError(e.message);
+      Navigator.pop(context, true); // báo list reload
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -116,32 +129,41 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
     );
   }
 
-  // ── UI ────────────────────────────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Chỉnh sửa phản ánh' : 'Tạo phản ánh mới'),
+        title:
+            Text(_isEdit ? 'Chỉnh sửa phản ánh' : 'Tạo phản ánh mới'),
       ),
+      // Tránh overflow khi bàn phím bật lên
+      resizeToAvoidBottomInset: true,
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // ── Căn hộ ID ────────────────────────────────────────────────
+            // ── Mã căn hộ (chỉ hiện khi tạo mới) ──────────────────────
             if (!_isEdit) ...[
               _SectionLabel('Mã căn hộ *'),
               TextFormField(
                 controller: _canHoIdCtrl,
                 keyboardType: TextInputType.number,
-                decoration: _inputDeco('Nhập ID căn hộ, VD: 12'),
+                // Chỉ cho nhập số
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: _inputDeco(
+                  hint: 'Nhập ID căn hộ, VD: 12',
+                  prefixIcon: Icons.home_outlined,
+                ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
                     return 'Mã căn hộ không được để trống';
                   }
-                  if (int.tryParse(v.trim()) == null) {
-                    return 'Mã căn hộ phải là số nguyên';
+                  final n = int.tryParse(v.trim());
+                  if (n == null || n <= 0) {
+                    return 'Mã căn hộ phải là số nguyên dương';
                   }
                   return null;
                 },
@@ -149,31 +171,38 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
               const SizedBox(height: 16),
             ],
 
-            // ── Loại phản ánh ────────────────────────────────────────────
-            _SectionLabel('Mã loại phản ánh *'),
-            TextFormField(
-              controller: _loaiCtrl,
-              keyboardType: TextInputType.number,
-              decoration: _inputDeco('VD: 1 = Vệ sinh, 3 = Hạ tầng...'),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) {
-                  return 'Loại phản ánh không được để trống';
-                }
-                if (int.tryParse(v.trim()) == null) {
-                  return 'Phải là số nguyên';
-                }
-                return null;
+            // ── Loại phản ánh (Dropdown) ────────────────────────────────
+            _SectionLabel('Loại phản ánh *'),
+            DropdownButtonFormField<int>(
+              initialValue: _selectedLoaiId,
+              decoration: _inputDeco(
+                hint: 'Chọn loại phản ánh',
+                prefixIcon: Icons.category_outlined,
+              ),
+              items: _kLoaiPhanAnh
+                  .map((l) => DropdownMenuItem(
+                        value: l.$1,
+                        child: Text(l.$2),
+                      ))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _selectedLoaiId = v);
               },
+              validator: (v) =>
+                  v == null ? 'Vui lòng chọn loại phản ánh' : null,
             ),
-            // TODO: replace with DropdownButtonFormField fetched from API
             const SizedBox(height: 16),
 
-            // ── Tiêu đề ──────────────────────────────────────────────────
+            // ── Tiêu đề ─────────────────────────────────────────────────
             _SectionLabel('Tiêu đề *'),
             TextFormField(
               controller: _tieuDeCtrl,
-              decoration: _inputDeco('Mô tả ngắn gọn sự cố...'),
+              decoration: _inputDeco(
+                hint: 'Mô tả ngắn gọn sự cố...',
+                prefixIcon: Icons.title,
+              ),
               maxLength: 200,
+              textCapitalization: TextCapitalization.sentences,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Tiêu đề không được để trống';
@@ -186,33 +215,39 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Nội dung ─────────────────────────────────────────────────
+            // ── Nội dung ────────────────────────────────────────────────
             _SectionLabel('Nội dung chi tiết *'),
             TextFormField(
               controller: _noiDungCtrl,
               decoration: _inputDeco(
-                  'Mô tả chi tiết vị trí, tình trạng hư hỏng...'),
+                hint:
+                    'Mô tả chi tiết vị trí, tình trạng hư hỏng...',
+                prefixIcon: Icons.notes,
+              ),
               minLines: 4,
               maxLines: 10,
               maxLength: 2000,
+              textCapitalization: TextCapitalization.sentences,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Nội dung không được để trống';
                 }
+                if (v.trim().length < 10) {
+                  return 'Nội dung phải có ít nhất 10 ký tự';
+                }
                 return null;
               },
             ),
+            const SizedBox(height: 4),
 
-            // TODO: Add file picker for danhSachTepIds
-            const SizedBox(height: 8),
-            const Text(
-              '* Tệp đính kèm: chưa tích hợp trong bản test này.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            // ── Tệp đính kèm placeholder ────────────────────────────────
+            // TODO: tích hợp image_picker + upload endpoint để lấy fileId
+            // rồi đưa vào danhSachTepIds trước khi submit.
+            _AttachmentPlaceholder(),
 
             const SizedBox(height: 32),
 
-            // ── Buttons ───────────────────────────────────────────────────
+            // ── Buttons ─────────────────────────────────────────────────
             if (_isSubmitting)
               const Center(child: CircularProgressIndicator())
             else
@@ -222,9 +257,11 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _submit(asDraft: false),
                     icon: const Icon(Icons.send),
-                    label: Text(_isEdit ? 'Lưu và gửi' : 'Gửi phản ánh'),
+                    label: Text(
+                        _isEdit ? 'Lưu và gửi' : 'Gửi phản ánh'),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -233,23 +270,36 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
                     icon: const Icon(Icons.save_outlined),
                     label: const Text('Lưu nháp'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ],
               ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  InputDecoration _inputDeco(String hint) => InputDecoration(
+  InputDecoration _inputDeco({
+    required String hint,
+    IconData? prefixIcon,
+  }) =>
+      InputDecoration(
         hintText: hint,
+        prefixIcon:
+            prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
         border: const OutlineInputBorder(),
         isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12, vertical: 12),
       );
 }
+
+// ─── Widgets nội bộ ──────────────────────────────────────────────────────────
 
 class _SectionLabel extends StatelessWidget {
   final String text;
@@ -261,7 +311,49 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+/// Placeholder cho tính năng đính kèm file — hiển thị card gợi ý
+/// thay vì comment text dễ bị bỏ qua.
+class _AttachmentPlaceholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+            color: Colors.grey[300]!, style: BorderStyle.solid),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.attach_file, color: Colors.grey[500], size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tệp đính kèm',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w500, fontSize: 13),
+                ),
+                Text(
+                  'Tính năng upload ảnh/tài liệu chưa tích hợp trong bản test.\n'
+                  'TODO: dùng image_picker → upload → lấy fileId.',
+                  style: TextStyle(
+                      fontSize: 11, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

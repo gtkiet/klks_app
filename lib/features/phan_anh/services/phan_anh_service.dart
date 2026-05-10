@@ -154,7 +154,7 @@ class PhanAnhService {
 
   Future<List<UploadedFileModel>> uploadFiles({
     required List<File> files,
-    String targetContainer = 'phan-anh',
+    String targetContainer = 'yeu-cau-phan-anh',
   }) async {
     final formData = FormData()
       ..fields.add(MapEntry('targetContainer', targetContainer));

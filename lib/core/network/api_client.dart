@@ -154,7 +154,10 @@ class ApiResponse {
   /// Ném [AppException] nếu result null.
   T item<T>(T Function(Map<String, dynamic>) fromJson) {
     if (_result == null) {
-      throw const AppException('Không có dữ liệu trả về', type: ErrorType.server);
+      throw const AppException(
+        'Không có dữ liệu trả về',
+        type: ErrorType.server,
+      );
     }
     return fromJson(_result as Map<String, dynamic>);
   }
@@ -204,11 +207,11 @@ class PagingInfo {
   });
 
   factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-        pageNumber: json['pageNumber'] as int? ?? 1,
-        pageSize: json['pageSize'] as int? ?? 10,
-        totalItems: json['totalItems'] as int? ?? 0,
-        totalPages: json['totalPages'] as int?,
-      );
+    pageNumber: json['pageNumber'] as int? ?? 1,
+    pageSize: json['pageSize'] as int? ?? 10,
+    totalItems: json['totalItems'] as int? ?? 0,
+    totalPages: json['totalPages'] as int?,
+  );
 
   int get _effectiveTotalPages =>
       totalPages ?? (pageSize > 0 ? (totalItems / pageSize).ceil() : 0);
@@ -270,12 +273,12 @@ class ApiClient {
   Dio _createPlainDio() => Dio(_baseOptions());
 
   BaseOptions _baseOptions() => BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        sendTimeout: const Duration(seconds: 30),
-        headers: {'Content-Type': 'application/json'},
-      );
+    baseUrl: baseUrl,
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    sendTimeout: const Duration(seconds: 30),
+    headers: {'Content-Type': 'application/json'},
+  );
 
   // ── Unified request helpers ───────────────────────────────────────────────
   //
@@ -286,32 +289,29 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? body,
     Options? options,
-  }) =>
-      _execute(() => dio.post(path, data: body ?? {}, options: options));
+  }) => _execute(() => dio.post(path, data: body ?? {}, options: options));
 
   Future<ApiResponse> put(
     String path, {
     Map<String, dynamic>? body,
     Options? options,
-  }) =>
-      _execute(() => dio.put(path, data: body ?? {}, options: options));
+  }) => _execute(() => dio.put(path, data: body ?? {}, options: options));
 
   Future<ApiResponse> delete(
     String path, {
     Map<String, dynamic>? body,
     Options? options,
-  }) =>
-      _execute(() => dio.delete(path, data: body ?? {}, options: options));
+  }) => _execute(() => dio.delete(path, data: body ?? {}, options: options));
 
   /// Upload multipart/form-data.
   /// Caller tự build [FormData], method này chỉ wrap error handling.
   Future<ApiResponse> postForm(String path, FormData formData) => _execute(
-        () => dio.post(
-          path,
-          data: formData,
-          options: Options(contentType: 'multipart/form-data'),
-        ),
-      );
+    () => dio.post(
+      path,
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    ),
+  );
 
   // ── Core executor ─────────────────────────────────────────────────────────
 
@@ -326,10 +326,7 @@ class ApiClient {
     } on DioException catch (e) {
       throw _fromDio(e);
     } catch (e) {
-      throw AppException(
-        e.toString(),
-        type: ErrorType.unknown,
-      );
+      throw AppException(e.toString(), type: ErrorType.unknown);
     }
   }
 
@@ -375,20 +372,19 @@ class ApiClient {
   }
 
   String _dioMessage(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.sendTimeout ||
-        DioExceptionType.receiveTimeout =>
-          'Kết nối quá thời gian, vui lòng thử lại',
-        DioExceptionType.connectionError => 'Không có kết nối mạng',
-        _ => e.message ?? 'Có lỗi xảy ra',
-      };
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout =>
+      'Kết nối quá thời gian, vui lòng thử lại',
+    DioExceptionType.connectionError => 'Không có kết nối mạng',
+    _ => e.message ?? 'Có lỗi xảy ra',
+  };
 
   ErrorType _dioType(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.sendTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.connectionError =>
-          ErrorType.network,
-        _ => ErrorType.unknown,
-      };
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.connectionError => ErrorType.network,
+    _ => ErrorType.unknown,
+  };
 }

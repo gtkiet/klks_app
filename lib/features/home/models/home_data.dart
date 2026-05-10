@@ -1,3 +1,5 @@
+// lib/features/home/models/home_data.dart
+
 /// HomeData chứa thông tin hiển thị trên HomeScreen
 class HomeData {
   final String fullName;

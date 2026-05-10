@@ -16,7 +16,6 @@ class TrangThaiYeuCau {
   static const int returned = 9; // Yêu cầu bổ sung
 }
 
-/// Khớp 1:1 với /api/catalog/trang-thai-sua-chua-for-selector
 class TrangThaiSuaChua {
   static const int daDieuPhoi = 1; // Đã điều phối
   static const int choBaoGia = 2; // Chờ báo giá

@@ -1,9 +1,15 @@
 // lib/features/thong_bao/screens/thong_bao_detail_screen.dart
 
 import 'package:flutter/material.dart';
+
 import '../models/thong_bao_model.dart';
 import '../services/thong_bao_service.dart';
-export '../models/thong_bao_model.dart';
+
+class ThongBaoDetailArgs {
+  final ThongBaoItem item;
+
+  ThongBaoDetailArgs({required this.item});
+}
 
 class ThongBaoDetailScreen extends StatefulWidget {
   final ThongBaoItem item;
@@ -23,7 +29,6 @@ class _ThongBaoDetailScreenState extends State<ThongBaoDetailScreen> {
   void initState() {
     super.initState();
     _item = widget.item;
-    // Auto đánh dấu đã đọc nếu chưa đọc
     if (!_item.isRead) _markAsRead();
   }
 

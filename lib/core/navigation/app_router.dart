@@ -14,12 +14,10 @@ import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/reset_password_screen.dart';
 
 import '../../features/home/screens/home_screen.dart';
-
-import '../../features/hoa_don/screens/hoa_don_list_screen.dart';
 import '../../features/phan_anh/screens/phan_anh_list_screen.dart';
-import '../../features/thong_bao/screens/thong_bao_detail_screen.dart';
 
 import '../../features/thong_bao/screens/thong_bao_list_screen.dart';
+import '../../features/thong_bao/screens/thong_bao_detail_screen.dart';
 
 import '../../features/tien_ich/screens/tien_ich_screen.dart';
 import '../../features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart';
@@ -28,7 +26,7 @@ import '../../features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
 
 import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
 import '../../features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
-import '../../features/cu_tru/thanh_vien/screens/thanh_vien_detail_screen.dart';
+import '../../features/hoa_don/screens/hoa_don_list_screen.dart';
 
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/profile_detail_screen.dart';
@@ -90,7 +88,7 @@ class AppRouter {
           GoRoute(
             path: 'reset-password/:username',
             builder: (_, state) => ResetPasswordScreen(
-              username: state.pathParameters['username'] ?? '',
+              username: state.pathParameters['username']!,
             ),
           ),
         ],
@@ -105,13 +103,15 @@ class AppRouter {
           /// ── 0: HOME ──
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/home', builder: (_, _) => const HomeScreen(),
+              GoRoute(
+                path: '/home',
+                builder: (_, _) => const HomeScreen(),
                 routes: [
                   GoRoute(
                     path: 'phan-anh',
                     builder: (_, _) => const PhanAnhListScreen(),
                   ),
-                ]
+                ],
               ),
             ],
           ),
@@ -126,11 +126,9 @@ class AppRouter {
                   GoRoute(
                     path: 'detail',
                     builder: (_, state) {
-                      final extra = state.extra as ThongBaoItem;
+                      final extra = state.extra as ThongBaoDetailArgs;
 
-                      return ThongBaoDetailScreen(
-                        item: extra,
-                      );
+                      return ThongBaoDetailScreen(item: extra.item);
                     },
                   ),
                 ],
@@ -179,25 +177,15 @@ class AppRouter {
                         initialMode: extra.initialMode,
                       );
                     },
-                    routes: [
-                      GoRoute(path: 'thanh-vien-detail', builder: (_, state) {
-                        final extra = state.extra as ThanhVienDetailArgs;
-
-                        return ThanhVienDetailScreen(
-                          thanhVien: extra.thanhVien,
-                          canHoInfo: extra.canHoInfo,
-                        );
-                      }),
-                    ]
                   ),
                   GoRoute(
-                    path: '/hoa-don',
+                    path: 'hoa-don',
                     builder: (_, state) {
-                      final args = state.extra as Map<String, dynamic>;
+                      final args = state.extra as HoaDonListArgs;
 
                       return HoaDonListScreen(
-                        canHoId: args['canHoId'],
-                        tenCanHo: args['tenCanHo'],
+                        canHoId: args.canHoId,
+                        tenCanHo: args.tenCanHo,
                       );
                     },
                   ),

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../models/phan_anh_model.dart';
 import '../services/phan_anh_service.dart';
+
 import 'phan_anh_detail_screen.dart';
 import 'phan_anh_create_screen.dart';
 
@@ -146,16 +147,17 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
   // ── Filter bottom sheet ──────────────────────────────────────────────────
 
   void _showFilterSheet() {
+    int? localSelected = _filterStatus;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
-            int? localSelected = _filterStatus;
-
             void apply(int? value) {
               setSheetState(() {
                 localSelected = value;
@@ -170,152 +172,77 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
               _load(reset: true);
             }
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Lọc theo trạng thái',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  ),
-                ),
 
-                RadioGroup<int?>(
-                  groupValue: localSelected,
-                  onChanged: apply,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _kStatuses.length,
-                    itemBuilder: (_, i) {
-                      final (value, label) = _kStatuses[i];
-
-                      return InkWell(
-                        onTap: () => apply(value),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            children: [
-                              Radio<int?>(value: value),
-
-                              const SizedBox(width: 4),
-
-                              Expanded(child: Text(label)),
-                            ],
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Lọc theo trạng thái',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      ),
+                    ),
 
-                const SizedBox(height: 12),
-              ],
+                    RadioGroup<int?>(
+                      groupValue: localSelected,
+                      onChanged: apply,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _kStatuses.length,
+                        itemBuilder: (_, i) {
+                          final (value, label) = _kStatuses[i];
+
+                          return InkWell(
+                            onTap: () => apply(value),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              child: Row(
+                                children: [
+                                  Radio<int?>(value: value),
+
+                                  const SizedBox(width: 4),
+
+                                  Expanded(child: Text(label)),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
             );
           },
         );
       },
     );
   }
-  // void _showFilterSheet() {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  //     ),
-  //     builder: (sheetCtx) {
-  //       return StatefulBuilder(
-  //         builder: (ctx, setSheetState) {
-  //           int? localSelected = _filterStatus;
-
-  //           void apply(int? value) {
-  //             setSheetState(() => localSelected = value);
-  //             setState(() => _filterStatus = value);
-  //             Navigator.pop(sheetCtx);
-  //             _load(reset: true);
-  //           }
-
-  //           return Column(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               // Handle bar
-  //               Container(
-  //                 margin: const EdgeInsets.symmetric(vertical: 8),
-  //                 width: 40,
-  //                 height: 4,
-  //                 decoration: BoxDecoration(
-  //                   color: Colors.grey[300],
-  //                   borderRadius: BorderRadius.circular(2),
-  //                 ),
-  //               ),
-  //               const Padding(
-  //                 padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-  //                 child: Align(
-  //                   alignment: Alignment.centerLeft,
-  //                   child: Text(
-  //                     'Lọc theo trạng thái',
-  //                     style: TextStyle(
-  //                         fontWeight: FontWeight.bold, fontSize: 16),
-  //                   ),
-  //                 ),
-  //               ),
-  //               // Danh sách option — dùng Radio widget thay RadioListTile
-  //               ListView.builder(
-  //                 shrinkWrap: true,
-  //                 physics: const NeverScrollableScrollPhysics(),
-  //                 itemCount: _kStatuses.length,
-  //                 itemBuilder: (_, i) {
-  //                   final (value, label) = _kStatuses[i];
-  //                   return InkWell(
-  //                     onTap: () => apply(value),
-  //                     child: Padding(
-  //                       padding: const EdgeInsets.symmetric(
-  //                           horizontal: 16, vertical: 4),
-  //                       child: Row(
-  //                         children: [
-  //                           Radio<int?>(
-  //                             value: value,
-  //                             groupValue: localSelected,
-  //                             // onChanged bắt buộc có để Radio không disable
-  //                             onChanged: apply,
-  //                           ),
-  //                           const SizedBox(width: 4),
-  //                           Expanded(child: Text(label)),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   );
-  //                 },
-  //               ),
-  //               const SizedBox(height: 12),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
 
   // ── Build ────────────────────────────────────────────────────────────────
 

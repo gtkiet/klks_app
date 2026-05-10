@@ -3,10 +3,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../models/thong_bao_model.dart';
 import '../services/thong_bao_service.dart';
 import '../services/thong_bao_hub_service.dart';
-import 'thong_bao_detail_screen.dart';
+// import 'thong_bao_detail_screen.dart';
 
 class ThongBaoListScreen extends StatefulWidget {
   const ThongBaoListScreen({super.key});

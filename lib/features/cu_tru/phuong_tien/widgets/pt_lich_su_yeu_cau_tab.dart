@@ -5,6 +5,7 @@
 //   - Hỗ trợ load more (phân trang) + pull-to-refresh
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../models/phuong_tien_model.dart';
 import '../screens/yeu_cau_phuong_tien_detail_screen.dart';
@@ -166,14 +167,21 @@ class _YeuCauCard extends StatelessWidget {
 
     return Card(
       child: ListTile(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => YeuCauPhuongTienDetailScreen(
-              yeuCauId: yeuCau.id,
-              initialData: yeuCau,
-            ),
+        onTap: () => context.push(
+          '/cu-tru/detail/yeu-cau-phuong-tien',
+          extra: YeuCauPhuongTienArgs(
+            yeuCauId: yeuCau.id,
+            initialData: yeuCau,
           ),
         ),
+        // onTap: () => Navigator.of(context).push(
+        //   MaterialPageRoute(
+        //     builder: (_) => YeuCauPhuongTienDetailScreen(
+        //       yeuCauId: yeuCau.id,
+        //       initialData: yeuCau,
+        //     ),
+        //   ),
+        // ),
         leading: CircleAvatar(
           radius: 20,
           backgroundImage: yeuCau.yeuCauHinhAnhPhuongTiens.isNotEmpty

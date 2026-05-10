@@ -1,6 +1,14 @@
 // lib/features/phan_anh/services/phan_anh_service.dart
 
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+
 import '../../../core/network/api_client.dart';
+
+import '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
+import '../../cu_tru/quan_he/services/cu_tru_service.dart';
+
 import '../models/phan_anh_model.dart';
 
 class PhanAnhService {
@@ -8,6 +16,9 @@ class PhanAnhService {
   static final PhanAnhService instance = PhanAnhService._();
 
   static final _client = ApiClient.instance;
+
+  Future<List<QuanHeCuTruModel>> getCanHoList() =>
+      CuTruService.instance.getQuanHeCuTruList();
 
   // ── 1. Danh sách phản ánh ─────────────────────────────────────────────────
 
@@ -46,10 +57,7 @@ class PhanAnhService {
   // ── 2. Chi tiết phản ánh ──────────────────────────────────────────────────
 
   Future<PhanAnhDetailResponse> getById(int id) async {
-    final res = await _client.post(
-      '/api/phan-anh/get-by-id',
-      body: {'id': id},
-    );
+    final res = await _client.post('/api/phan-anh/get-by-id', body: {'id': id});
     return res.item(PhanAnhDetailResponse.fromJson);
   }
 
@@ -106,12 +114,12 @@ class PhanAnhService {
   // ── 5. Thu hồi nhanh ──────────────────────────────────────────────────────
 
   Future<PhanAnhResponse> withdraw(int id) => update(
-        id: id,
-        tieuDe: '',
-        noiDung: '',
-        loaiPhanAnhId: 0,
-        isWithdraw: true,
-      );
+    id: id,
+    tieuDe: '',
+    noiDung: '',
+    loaiPhanAnhId: 0,
+    isWithdraw: true,
+  );
 
   // ── 6. Gửi trả lời ────────────────────────────────────────────────────────
 
@@ -142,5 +150,26 @@ class PhanAnhService {
       },
     );
     return res.item(PhanAnhResponse.fromJson);
+  }
+
+  Future<List<UploadedFileModel>> uploadFiles({
+    required List<File> files,
+    String targetContainer = 'phan-anh',
+  }) async {
+    final formData = FormData()
+      ..fields.add(MapEntry('targetContainer', targetContainer));
+    for (final file in files) {
+      formData.files.add(
+        MapEntry(
+          'files',
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
+        ),
+      );
+    }
+    final res = await _client.postForm('/api/upload-media', formData);
+    return res.list(UploadedFileModel.fromJson);
   }
 }

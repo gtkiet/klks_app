@@ -6,13 +6,13 @@
 //   • YeuCauDetailScreen: chỉ xem, không cần reload
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../quan_he/models/quan_he_cu_tru_model.dart';
 
 import '../../models/thanh_vien_model.dart';
 
 import '../../screens/yeu_cau_cu_tru_form_screen.dart';
-import '../../screens/yeu_cau_detail_screen.dart';
 
 import '../../services/thanh_vien_service.dart';
 
@@ -169,12 +169,13 @@ class LichSuYeuCauThanhVienTabState extends State<LichSuYeuCauThanhVienTab>
   }
 
   void _openDetail(YeuCauCuTruModel yeuCau) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => YeuCauDetailScreen(yeuCauId: yeuCau.id),
-      ),
-    );
+    context.push('/cu-tru/detail/yeu-cau-thanh-vien/${yeuCau.id}');
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => YeuCauThanhVienDetailScreen(yeuCauId: yeuCau.id),
+    //   ),
+    // );
   }
 
   Future<void> _openEditDraft(YeuCauCuTruModel yeuCau) async {

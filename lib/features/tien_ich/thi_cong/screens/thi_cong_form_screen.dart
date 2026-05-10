@@ -6,18 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
-import '../models/thi_cong_model.dart' hide UploadedFileModel;
+import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
+    hide UploadedFileModel;
+import '../models/thi_cong_model.dart';
 import '../services/thi_cong_service.dart';
 
-/// Screen tạo mới hoặc chỉnh sửa Yêu cầu Thi công.
-///
-/// - Tạo mới : [existingDetail] == null
-/// - Chỉnh sửa: [existingDetail] != null
-///
-/// Khi [existingDetail] ở trạng thái Returned:
-///   - Khóa : hangMuc, duKienBatDau, duKienKetThuc
-///   - Cho phép: thêm nhân sự, tệp, sửa nội dung mô tả
 class YeuCauThiCongFormScreen extends StatefulWidget {
   final List<QuanHeCuTruModel> dsCanHo;
   final YeuCauThiCongDetailModel? existingDetail;
@@ -90,13 +83,11 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
       return;
     }
 
-    // Chỉnh sửa: khôi phục từ existingDetail
     _duKienBatDau = d.duKienBatDau;
     _duKienKetThuc = d.duKienKetThuc;
     _danhSachNhanSu = List.from(d.nhanSuThiCongs);
     _existingTepIds = d.danhSachTep.map((e) => e.id).toList();
 
-    // Tìm căn hộ tương ứng trong dsCanHo
     try {
       _selectedCanHo = widget.dsCanHo.firstWhere((c) => c.canHoId == d.canHoId);
     } catch (_) {
@@ -139,7 +130,9 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
     try {
       final files = images.map((x) => File(x.path)).toList();
       final uploaded = await _service.uploadFiles(files: files);
-      setState(() => _uploadedImageIds.addAll(uploaded.map((u) => u.fileId)));
+      setState(() {
+        _uploadedImageIds.addAll(uploaded.map((u) => u.fileId));
+      });
     } on Exception catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

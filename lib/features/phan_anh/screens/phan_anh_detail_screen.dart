@@ -119,7 +119,6 @@ class _PhanAnhDetailScreenState extends State<PhanAnhDetailScreen> {
     }
   }
 
-  /// Mở màn hình chỉnh sửa cho phản ánh đang ở Nháp / Đã thu hồi
   Future<void> _openEdit() async {
     if (_detail == null) return;
     final updated = await Navigator.push<bool>(

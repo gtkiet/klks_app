@@ -141,18 +141,14 @@ class UploadedFileModel {
     required this.fileUrl,
     required this.contentType,
   });
-
-  factory UploadedFileModel.fromJson(Map<String, dynamic> json) {
-    // Server có thể trả 'fileId' hoặc 'id' — đọc cả hai, ưu tiên 'fileId'
-    final fileId = (json['fileId'] as int?) ?? (json['id'] as int?) ?? 0;
-
-    return UploadedFileModel(
-      fileId: fileId,
-      fileName: json['fileName'] as String? ?? '',
-      fileUrl: json['fileUrl'] as String? ?? '',
-      contentType: json['contentType'] as String? ?? '',
-    );
-  }
+  
+  factory UploadedFileModel.fromJson(Map<String, dynamic> json) =>
+      UploadedFileModel(
+        fileId: json['fileId'] as int? ?? 0,
+        fileName: json['fileName'] as String? ?? '',
+        fileUrl: json['fileUrl'] as String? ?? '',
+        contentType: json['contentType'] as String? ?? '',
+      );
 
   Map<String, dynamic> toJson() => {
     'fileId': fileId,
@@ -160,6 +156,36 @@ class UploadedFileModel {
     'fileUrl': fileUrl,
     'contentType': contentType,
   };
+  
+  UploadedFileModel copyWith({
+    int? fileId,
+    String? fileName,
+    String? fileUrl,
+    String? contentType,
+  }) => UploadedFileModel(
+    fileId: fileId ?? this.fileId,
+    fileName: fileName ?? this.fileName,
+    fileUrl: fileUrl ?? this.fileUrl,
+    contentType: contentType ?? this.contentType,
+  );
+
+  // factory UploadedFileModel.fromJson(Map<String, dynamic> json) {
+  //   final fileId = (json['fileId'] as int?) ?? (json['id'] as int?) ?? 0;
+
+  //   return UploadedFileModel(
+  //     fileId: fileId,
+  //     fileName: json['fileName'] as String? ?? '',
+  //     fileUrl: json['fileUrl'] as String? ?? '',
+  //     contentType: json['contentType'] as String? ?? '',
+  //   );
+  // }
+
+  // Map<String, dynamic> toJson() => {
+  //   'fileId': fileId,
+  //   'fileName': fileName,
+  //   'fileUrl': fileUrl,
+  //   'contentType': contentType,
+  // };
 
   bool get isImage => contentType.startsWith('image/');
   bool get isPdf => contentType == 'application/pdf';

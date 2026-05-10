@@ -6,14 +6,17 @@
 //   • YeuCauCuTruFormScreen (create) pop(true) → _loadData()
 
 import 'package:flutter/material.dart';
+// import 'package:go_router/go_router.dart';
 
 import '../../../quan_he/models/quan_he_cu_tru_model.dart';
+
 import '../../models/thanh_vien_model.dart';
-import '../thanh_vien_detail_screen.dart';
-import '../xoa_yeu_cau_thanh_vien_screen.dart';
-import '../yeu_cau_cu_tru_form_screen.dart';
 import '../../services/thanh_vien_service.dart';
 import '../../widgets/tv_shared_widgets.dart';
+
+import '../thanh_vien_detail_screen.dart';
+import '../yeu_cau_cu_tru_form_screen.dart';
+import '../xoa_yeu_cau_thanh_vien_screen.dart';
 
 class ThanhVienListTab extends StatefulWidget {
   final QuanHeCuTruModel item;
@@ -66,8 +69,6 @@ class _ThanhVienListTabState extends State<ThanhVienListTab>
   }
 
   Future<void> _goToSua(ThanhVienCuTruModel member) async {
-    // Tạo yêu cầu sửa — không có thongTinCuDan sẵn từ đây,
-    // form sẽ tự gọi API để load.
     final reload = await Navigator.push<bool>(
       context,
       MaterialPageRoute(

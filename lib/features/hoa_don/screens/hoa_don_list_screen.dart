@@ -6,6 +6,13 @@ import '../services/hoa_don_service.dart';
 import '../utils/hoa_don_utils.dart';
 import 'hoa_don_detail_screen.dart';
 
+class HoaDonListArgs {
+  final int canHoId;
+  final String tenCanHo;
+
+  HoaDonListArgs({required this.canHoId, this.tenCanHo = 'Căn hộ của tôi'});
+}
+
 class HoaDonListScreen extends StatefulWidget {
   final int canHoId;
   final String tenCanHo;
@@ -13,7 +20,7 @@ class HoaDonListScreen extends StatefulWidget {
   const HoaDonListScreen({
     super.key,
     required this.canHoId,
-    this.tenCanHo = 'Căn hộ của tôi',
+    required this.tenCanHo,
   });
 
   @override

@@ -10,10 +10,16 @@ import 'package:flutter/material.dart';
 import '../models/phuong_tien_model.dart';
 import '../services/phuong_tien_service.dart';
 
+class PhuongTienDetailArgs {
+  final int phuongTienId;
+  final PhuongTien? snapshot;
+
+  PhuongTienDetailArgs({required this.phuongTienId, this.snapshot});
+}
+
 class PhuongTienDetailScreen extends StatefulWidget {
   final int phuongTienId;
 
-  /// Snapshot từ list — dùng làm title/header ngay khi chưa có data đầy đủ
   final PhuongTien? snapshot;
 
   const PhuongTienDetailScreen({

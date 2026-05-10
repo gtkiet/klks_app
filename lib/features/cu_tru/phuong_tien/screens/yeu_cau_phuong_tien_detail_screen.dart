@@ -4,6 +4,16 @@ import 'package:flutter/material.dart';
 import '../models/phuong_tien_model.dart';
 import '../services/phuong_tien_service.dart';
 
+class YeuCauPhuongTienArgs {
+  final int yeuCauId;
+  final YeuCauPhuongTien? initialData;
+
+  YeuCauPhuongTienArgs({
+    required this.yeuCauId,
+    this.initialData,
+  });
+}
+
 class YeuCauPhuongTienDetailScreen extends StatefulWidget {
   final int yeuCauId;
 

@@ -7,16 +7,16 @@ import '../models/thanh_vien_model.dart';
 import '../services/thanh_vien_service.dart';
 import '../widgets/tv_shared_widgets.dart';
 
-class YeuCauDetailScreen extends StatefulWidget {
+class YeuCauThanhVienDetailScreen extends StatefulWidget {
   final int yeuCauId;
 
-  const YeuCauDetailScreen({super.key, required this.yeuCauId});
+  const YeuCauThanhVienDetailScreen({super.key, required this.yeuCauId});
 
   @override
-  State<YeuCauDetailScreen> createState() => _YeuCauDetailScreenState();
+  State<YeuCauThanhVienDetailScreen> createState() => _YeuCauThanhVienDetailScreenState();
 }
 
-class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
+class _YeuCauThanhVienDetailScreenState extends State<YeuCauThanhVienDetailScreen> {
   final _service = ThanhVienService.instance;
 
   bool _isLoading = true;

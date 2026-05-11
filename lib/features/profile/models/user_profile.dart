@@ -1,20 +1,4 @@
 // lib/features/profile/models/user_profile.dart
-//
-// UserProfile — thông tin người dùng đầy đủ (không có token).
-//
-// Lưu ý: HomeData (features/home/models/home_data.dart) đã bị xoá vì
-// chỉ wrap 2 field trùng với UserProfile. HomeScreen nên lấy dữ liệu
-// trực tiếp từ UserProfile thay vì HomeData:
-//
-//   // Trước (HomeData):
-//   HomeData(fullName: profile.fullName, anhDaiDienUrl: profile.anhDaiDienUrl)
-//
-//   // Sau (dùng UserProfile trực tiếp):
-//   final profile = ref.watch(userProfileProvider);
-//   Text(profile.fullName);
-//
-// CÁCH DÙNG TRONG SERVICE:
-//   import 'package:your_app/features/profile/models/user_profile.dart';
 
 class UserProfile {
   final String id;

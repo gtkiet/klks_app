@@ -12,9 +12,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = UserSession.instance;
-    final fullName = session.fullName ?? 'Người dùng';
-    final anhDaiDienUrl = session.anhDaiDienUrl;
+    final fullName = UserSession.instance.fullName ?? 'Người dùng';
 
     return Scaffold(
       appBar: AppBar(
@@ -24,7 +22,7 @@ class HomeScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _UserInfo(fullName: fullName, anhDaiDienUrl: anhDaiDienUrl),
+          _UserInfo(fullName: fullName),
           const SizedBox(height: 32),
 
           const _SectionTitle('Tiện ích'),
@@ -51,31 +49,34 @@ class HomeScreen extends StatelessWidget {
 }
 
 // ── User info ─────────────────────────────────────────────────────────────────
+//
+// fullName: đọc sync từ session, không cần lắng nghe (chưa có chức năng đổi tên)
+// avatar:   dùng ValueListenableBuilder vì có chức năng đổi ảnh từ ProfileScreen
 
 class _UserInfo extends StatelessWidget {
   final String fullName;
-  final String? anhDaiDienUrl;
-
-  const _UserInfo({required this.fullName, this.anhDaiDienUrl});
+  const _UserInfo({required this.fullName});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 32,
-          backgroundImage: anhDaiDienUrl != null
-              ? NetworkImage(anhDaiDienUrl!)
-              : null,
-          child: anhDaiDienUrl == null
-              ? const Icon(Icons.person, size: 32)
-              : null,
+        ValueListenableBuilder(
+          valueListenable: UserSession.instance.anhDaiDienUrlNotifier,
+          builder: (context, url, _) => CircleAvatar(
+            radius: 32,
+            backgroundImage: url != null ? NetworkImage(url) : null,
+            child: url == null ? const Icon(Icons.person, size: 32) : null,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Text(
             fullName,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
@@ -108,7 +109,7 @@ class _TienIchGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final color   = Theme.of(context).colorScheme.primary;
     final bgColor = Theme.of(context).colorScheme.primaryContainer;
 
     return GridView.count(
@@ -216,9 +217,9 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    text,
-    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-  );
+        text,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+      );
 }
 
 class _NavButton extends StatelessWidget {

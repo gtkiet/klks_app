@@ -1,8 +1,11 @@
 // lib/features/profile/screens/profile_detail_screen.dart
 
 import 'package:flutter/material.dart';
+
+import '../../../core/storage/user_session.dart';
+import '../../../design/design.dart';
+import '../models/user_profile.dart';
 import '../services/profile_service.dart';
-import '../model/user_profile.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({super.key});
@@ -12,11 +15,9 @@ class ProfileDetailScreen extends StatefulWidget {
 }
 
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
-  final ProfileService _service = ProfileService.instance;
-
   UserProfile? _profile;
   bool _loading = true;
-  String? _error;
+  Object? _error;
 
   @override
   void initState() {
@@ -25,112 +26,137 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   }
 
   Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      setState(() {
-        _loading = true;
-        _error = null;
-      });
-
-      final data = await _service.getProfile();
-
-      setState(() => _profile = data);
+      final data = await ProfileService.instance.getProfile();
+      if (mounted) setState(() => _profile = data);
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = e);
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    return AppScaffold(
+      title: 'Chi tiết hồ sơ',
+      actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_error != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Chi tiết hồ sơ')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_error!),
-              const SizedBox(height: 16),
-              ElevatedButton(onPressed: _load, child: const Text('Thử lại')),
-            ],
-          ),
-        ),
-      );
+      return ErrorDisplay.fullScreen(error: _error, onRetry: _load);
     }
 
     final p = _profile!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chi tiết hồ sơ'),
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Center(
-            child: CircleAvatar(
-              radius: 48,
-              backgroundImage: p.anhDaiDienUrl != null
-                  ? NetworkImage(p.anhDaiDienUrl!)
-                  : null,
-              child: p.anhDaiDienUrl == null
-                  ? const Icon(Icons.person, size: 48)
+    return ListView(
+      padding: AppSpacing.insetAll16,
+      children: [
+        // Avatar — reactive: đổi ảnh từ màn change-avatar cập nhật tại đây luôn
+        Center(
+          child: ValueListenableBuilder(
+            valueListenable: UserSession.instance.anhDaiDienUrlNotifier,
+            builder: (context, url, _) => CircleAvatar(
+              radius: 52,
+              backgroundColor: context.colorScheme.primaryContainer,
+              backgroundImage: url != null ? NetworkImage(url) : null,
+              child: url == null
+                  ? Icon(
+                      Icons.person,
+                      size: 52,
+                      color: context.colorScheme.primary,
+                    )
                   : null,
             ),
           ),
-          const SizedBox(height: 24),
+        ),
+        const SizedBox(height: AppSpacing.xl),
 
-          _InfoTile(label: 'Họ', value: p.lastName),
-          _InfoTile(label: 'Tên', value: p.firstName),
-          _InfoTile(label: 'Tên đăng nhập', value: p.username),
-          _InfoTile(label: 'Email', value: p.email),
-          _InfoTile(label: 'Số điện thoại', value: p.phoneNumber ?? '—'),
-          _InfoTile(label: 'Địa chỉ', value: p.diaChi ?? '—'),
-          _InfoTile(label: 'Giới tính', value: p.gioiTinhName ?? '—'),
-          _InfoTile(
-            label: 'Ngày sinh',
-            value: p.dob != null
-                ? '${p.dob!.day}/${p.dob!.month}/${p.dob!.year}'
-                : '—',
+        AppCard(
+          child: Column(
+            children: [
+              _InfoRow(label: 'Họ', value: p.lastName),
+              _Divider(),
+              _InfoRow(label: 'Tên', value: p.firstName),
+              _Divider(),
+              _InfoRow(label: 'Tên đăng nhập', value: p.username),
+              _Divider(),
+              _InfoRow(label: 'Email', value: p.email),
+              _Divider(),
+              _InfoRow(label: 'Số điện thoại', value: p.phoneNumber ?? '—'),
+              _Divider(),
+              _InfoRow(label: 'Địa chỉ', value: p.diaChi ?? '—'),
+              _Divider(),
+              _InfoRow(label: 'Giới tính', value: p.gioiTinhName ?? '—'),
+              _Divider(),
+              _InfoRow(
+                label: 'Ngày sinh',
+                value: p.dob != null
+                    ? '${p.dob!.day.toString().padLeft(2, '0')}/'
+                          '${p.dob!.month.toString().padLeft(2, '0')}/'
+                          '${p.dob!.year}'
+                    : '—',
+              ),
+              _Divider(),
+              _InfoRow(label: 'Vai trò', value: p.roles.join(', ')),
+            ],
           ),
-          _InfoTile(label: 'Vai trò', value: p.roles.join(', ')),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _InfoTile extends StatelessWidget {
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoTile({required this.label, required this.value});
+  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 130,
             child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              label,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: context.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => const Divider(height: 1);
 }

@@ -38,6 +38,7 @@ export 'components/cards/app_card.dart';
 export 'components/app_bar/app_top_bar.dart';
 export 'components/app_bar/app_scaffold.dart';
 export 'components/feedback/app_feedback.dart';
+export 'components/errors/error_display.dart';
 
 // ── Demo (remove in production builds) ───────────────────────────────────────
 // export 'demo/design_demo_screen.dart';

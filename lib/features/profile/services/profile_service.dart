@@ -1,29 +1,17 @@
 // lib/features/profile/services/profile_service.dart
 
 import 'dart:io';
-
 import 'package:dio/dio.dart';
-
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/user_session.dart';
 import '../../auth/services/auth_service.dart';
-import '../model/user_profile.dart';
+import '../models/user_profile.dart';
 
 class ProfileService {
   ProfileService._();
   static final ProfileService instance = ProfileService._();
 
   static final _client = ApiClient.instance;
-  final _session = UserSession.instance;
-
-  // ── Session profile (local) ───────────────────────────────────────────────
-
-  Future<Map<String, String?>> getSessionProfile() async => {
-    'fullName': _session.fullName,
-    'email': _session.email,
-    'role': _session.role,
-    'anhDaiDienUrl': _session.anhDaiDienUrl,
-  };
 
   // ── Remote profile ────────────────────────────────────────────────────────
 
@@ -33,6 +21,8 @@ class ProfileService {
   }
 
   // ── Change avatar ─────────────────────────────────────────────────────────
+  //
+  // Sau khi upload thành công, gọi updateAvatar() → HomeScreen tự rebuild.
 
   Future<String> changeAvatar(File file) async {
     final formData = FormData.fromMap({
@@ -44,11 +34,13 @@ class ProfileService {
 
     final res = await _client.postForm('/api/profile/change-avatar', formData);
     final url = res.raw<String>();
-    await _session.updateAvatar(url);
+    await UserSession.instance.updateAvatar(url);
     return url;
   }
 
   // ── Change password ───────────────────────────────────────────────────────
+  //
+  // Validate client-side trước khi gọi API để tránh request thừa.
 
   Future<void> changePassword({
     required String oldPassword,
@@ -72,7 +64,7 @@ class ProfileService {
     );
   }
 
-  Future<void> logout() async {
-    AuthService.instance.logout();
-  }
+  // ── Logout ────────────────────────────────────────────────────────────────
+
+  Future<void> logout() => AuthService.instance.logout();
 }

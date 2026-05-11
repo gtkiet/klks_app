@@ -1,8 +1,15 @@
 // lib/features/profile/screens/change_avatar_screen.dart
+//
+// Sau khi upload thành công:
+//   - UserSession.instance.updateAvatar() được gọi trong ProfileService
+//   - HomeScreen và ProfileScreen tự rebuild qua ValueListenableBuilder
+//   - Màn này navigate back, không cần làm gì thêm
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../design/design.dart';
 import '../services/profile_service.dart';
 
 class ChangeAvatarScreen extends StatefulWidget {
@@ -13,60 +20,149 @@ class ChangeAvatarScreen extends StatefulWidget {
 }
 
 class _ChangeAvatarScreenState extends State<ChangeAvatarScreen> {
-  final ProfileService _service = ProfileService.instance;
   File? _file;
   bool _loading = false;
 
-  Future<void> _pick() async {
-    final picker = ImagePicker();
-    final res = await picker.pickImage(source: ImageSource.gallery);
+  // ── Pick ──────────────────────────────────────────────────────────────────
 
-    if (res != null) {
+  Future<void> _pick(ImageSource source) async {
+    final res = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 1024,
+    );
+    if (res != null && mounted) {
       setState(() => _file = File(res.path));
     }
   }
 
+  void _showPickOptions() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.modal),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: AppSpacing.sm),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Chọn từ thư viện'),
+              onTap: () {
+                Navigator.pop(context);
+                _pick(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Chụp ảnh'),
+              onTap: () {
+                Navigator.pop(context);
+                _pick(ImageSource.camera);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Upload ────────────────────────────────────────────────────────────────
+
   Future<void> _upload() async {
     if (_file == null) return;
 
+    setState(() => _loading = true);
     try {
-      setState(() => _loading = true);
-
-      final url = await _service.changeAvatar(_file!);
-
+      await ProfileService.instance.changeAvatar(_file!);
+      // updateAvatar() đã được gọi trong service → HomeScreen tự rebuild
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Uploaded: $url')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật ảnh đại diện thành công')),
+      );
+      Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (!mounted) return;
+      ErrorDisplay.showSnackBar(context, error: e);
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Change Avatar')),
+    return AppScaffold(
+      title: 'Đổi ảnh đại diện',
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.insetAll16,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (_file != null) Image.file(_file!, height: 150),
+            const SizedBox(height: AppSpacing.xl),
 
-            const SizedBox(height: 16),
+            // Preview
+            GestureDetector(
+              onTap: _showPickOptions,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 72,
+                    backgroundColor: context.colorScheme.primaryContainer,
+                    backgroundImage: _file != null ? FileImage(_file!) : null,
+                    child: _file == null
+                        ? Icon(
+                            Icons.person,
+                            size: 72,
+                            color: context.colorScheme.primary,
+                          )
+                        : null,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-            ElevatedButton(onPressed: _pick, child: const Text('Pick Image')),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Nhấn vào ảnh để thay đổi',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
 
-            ElevatedButton(
-              onPressed: _loading ? null : _upload,
-              child: _loading
-                  ? const CircularProgressIndicator()
-                  : const Text('Upload'),
+            const SizedBox(height: AppSpacing.xxl),
+
+            // Nút chọn ảnh
+            AppButton(
+              label: 'Chọn ảnh',
+              variant: AppButtonVariant.outline,
+              leadingIcon: Icons.photo_library_outlined,
+              onPressed: _showPickOptions,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Nút upload — chỉ active khi đã chọn ảnh
+            AppButton(
+              label: _loading ? 'Đang tải lên...' : 'Lưu ảnh đại diện',
+              isLoading: _loading,
+              onPressed: (_file == null || _loading) ? null : _upload,
             ),
           ],
         ),

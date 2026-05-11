@@ -3,165 +3,121 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/storage/user_session.dart';
+import '../../../design/design.dart';
 import '../services/profile_service.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  final ProfileService _service = ProfileService.instance;
-
-  String? _fullName;
-  String? _email;
-  String? _role;
-  String? _anhDaiDienUrl;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFromSession();
-  }
-
-  Future<void> _loadFromSession() async {
-    final data = await _service.getSessionProfile();
-    setState(() {
-      _fullName = data['fullName'];
-      _email = data['email'];
-      _role = data['role'];
-      _anhDaiDienUrl = data['anhDaiDienUrl'];
-      _loading = false;
-    });
-  }
-
-  // ================= NAVIGATION =================
-
-  /// Push 1 screen vào stack của tab Profile (có nút back)
-  void _pushInProfileTab(String route, {Object? extra}) {
-    context.push(route, extra: extra);
-  }
-
-  // Đăng xuất (xóa session) và show snackbar
-  Future<void> _logout() async {
-    await _service.logout();
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Đã đăng xuất')));
-  }
-
-  // ================= BUILD =================
-
-  @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    final session = UserSession.instance;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trang cá nhân'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.info_outline),
-        //     tooltip: 'Xem chi tiết',
-        //     onPressed: () => _pushInProfileTab('/profile/detail'),
-        //   ),
-        // ],
-      ),
+    return AppScaffold(
+      title: 'Trang cá nhân',
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.insetAll16,
         children: [
-          /// AVATAR
-          Center(
-            child: CircleAvatar(
-              radius: 40,
-              backgroundImage: _anhDaiDienUrl != null
-                  ? NetworkImage(_anhDaiDienUrl!)
-                  : null,
-              child: _anhDaiDienUrl == null
-                  ? const Icon(Icons.person, size: 40)
-                  : null,
-            ),
+          // ── Avatar + tên + email ──────────────────────────────────────────
+          _ProfileHeader(
+            fullName: session.fullName ?? '',
+            email: session.email ?? '',
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.xl),
 
-          Text('Họ tên: ${_fullName ?? ''}'),
-          Text('Email: ${_email ?? ''}'),
-          Text('Vai trò: ${_role ?? ''}'),
+          // ── Chức năng ─────────────────────────────────────────────────────
+          Text('Chức năng', style: context.textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.sm),
 
-          const SizedBox(height: 24),
-
-          /// PUSH VÀO STACK CỦA TAB PROFILE (có nút back)
-          _SectionTitle(text: 'Chức năng'),
-          _NavButton(
-            label: 'Xem chi tiết hồ sơ',
-            onPressed: () => _pushInProfileTab('/profile/detail'),
+          AppServiceCard(
+            icon: Icons.person_outline,
+            title: 'Xem chi tiết hồ sơ',
+            onTap: () => context.push('/profile/detail'),
           ),
-          _NavButton(
-            label: 'Đổi mật khẩu',
-            onPressed: () => _pushInProfileTab('/profile/change-password'),
+          const SizedBox(height: AppSpacing.sm),
+          AppServiceCard(
+            icon: Icons.lock_outline,
+            title: 'Đổi mật khẩu',
+            onTap: () => context.push('/profile/change-password'),
           ),
-          _NavButton(
-            label: 'Đổi ảnh đại diện',
-            onPressed: () => _pushInProfileTab('/profile/change-avatar'),
+          const SizedBox(height: AppSpacing.sm),
+          AppServiceCard(
+            icon: Icons.camera_alt_outlined,
+            title: 'Đổi ảnh đại diện',
+            onTap: () => context.push('/profile/change-avatar'),
           ),
+          const SizedBox(height: AppSpacing.xl),
 
-          const SizedBox(height: 16),
-
-          /// ── Đăng xuất ──
-          ElevatedButton.icon(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            label: const Text('Đăng xuất'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade50,
-              foregroundColor: Colors.red,
-              elevation: 0,
-            ),
+          // ── Đăng xuất ─────────────────────────────────────────────────────
+          AppButton(
+            label: 'Đăng xuất',
+            variant: AppButtonVariant.outline,
+            leadingIcon: Icons.logout,
+            onPressed: () => _logout(context),
           ),
         ],
       ),
     );
   }
-}
 
-// ── Shared Widgets ────────────────────────────────────────────────────────────
-
-class _SectionTitle extends StatelessWidget {
-  final String text;
-  const _SectionTitle({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-      ),
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: 'Đăng xuất',
+      message: 'Bạn có chắc muốn đăng xuất không?',
+      confirmLabel: 'Đăng xuất',
+      isDangerous: true,
     );
+    if (confirmed != true || !context.mounted) return;
+
+    await ProfileService.instance.logout();
   }
 }
 
-class _NavButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  
-  const _NavButton({required this.label, required this.onPressed});
+// ── Header: avatar (reactive) + tên + email ───────────────────────────────────
+
+class _ProfileHeader extends StatelessWidget {
+  final String fullName;
+  final String email;
+
+  const _ProfileHeader({required this.fullName, required this.email});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: Text(label),
-      ),
+    return Column(
+      children: [
+        // Avatar — rebuild chỉ khi ảnh thay đổi (updateAvatar từ change-avatar screen)
+        ValueListenableBuilder(
+          valueListenable: UserSession.instance.anhDaiDienUrlNotifier,
+          builder: (context, url, _) => CircleAvatar(
+            radius: 44,
+            backgroundColor: context.colorScheme.primaryContainer,
+            backgroundImage: url != null ? NetworkImage(url) : null,
+            child: url == null
+                ? Icon(
+                    Icons.person,
+                    size: 44,
+                    color: context.colorScheme.primary,
+                  )
+                : null,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+
+        if (fullName.isNotEmpty)
+          Text(fullName, style: context.textTheme.headlineMedium),
+
+        if (email.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            email,
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

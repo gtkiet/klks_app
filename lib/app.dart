@@ -18,11 +18,7 @@ class App extends StatelessWidget {
 
       // ── Apply the design system theme ──────────────────────────────────────
       theme: AppTheme.light,
-      // darkTheme: AppTheme.dark,  // Uncomment when dark mode is implemented.
       themeMode: ThemeMode.light,
-      // theme: ThemeData(
-      //   primarySwatch: Colors.blue,
-      // ),
     );
   }
 }

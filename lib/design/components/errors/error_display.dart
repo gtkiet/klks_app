@@ -18,7 +18,8 @@
 //   ErrorDisplay.showDialog(context, error: state.error!)
 
 import 'package:flutter/material.dart';
-import '../../../core/network/api_client.dart';
+
+import 'package:klks_app/core/network/api_client.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Config (chỉnh một chỗ, ảnh hưởng toàn bộ app)

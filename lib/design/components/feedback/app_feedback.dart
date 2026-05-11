@@ -1,11 +1,11 @@
 // lib/design/components/feedback/app_feedback.dart
 
 import 'package:flutter/material.dart';
-import '../../tokens/colors.dart';
-import '../../tokens/typography.dart';
-import '../../tokens/radius.dart';
-// import '../../tokens/spacing.dart';
-import '../../foundations/constants.dart';
+
+import 'package:klks_app/design/tokens/colors.dart';
+import 'package:klks_app/design/tokens/typography.dart';
+import 'package:klks_app/design/tokens/radius.dart';
+import 'package:klks_app/design/foundations/constants.dart';
 
 /// Badge display variants.
 enum AppBadgeVariant { success, warning, error, info }

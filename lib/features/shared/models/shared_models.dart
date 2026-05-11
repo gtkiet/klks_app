@@ -4,8 +4,8 @@
 //
 // CÁCH DÙNG:
 //   Trong model của feature — re-export những gì feature đó cần:
-//     export 'package:your_app/shared/models/paging_model.dart';
-//     export 'package:your_app/shared/models/file_model.dart';
+//     export 'package:klks_app/shared/models/paging_model.dart';
+//     export 'package:klks_app/shared/models/file_model.dart';
 //
 //   KHÔNG import barrel này trực tiếp trong service —
 //   luôn đi qua model của feature để giữ dependency rõ ràng.

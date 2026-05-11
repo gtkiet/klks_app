@@ -1,11 +1,11 @@
 // lib/design/components/cards/app_card.dart
 
 import 'package:flutter/material.dart';
-import '../../tokens/colors.dart';
-import '../../tokens/radius.dart';
-import '../../tokens/elevation.dart';
-import '../../tokens/spacing.dart';
-import '../../tokens/typography.dart';
+import 'package:klks_app/design/tokens/colors.dart';
+import 'package:klks_app/design/tokens/radius.dart';
+import 'package:klks_app/design/tokens/elevation.dart';
+import 'package:klks_app/design/tokens/spacing.dart';
+import 'package:klks_app/design/tokens/typography.dart';
 
 /// PKK Resident - App Card
 ///

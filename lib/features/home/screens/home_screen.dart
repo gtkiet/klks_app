@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/navigation/app_navigation.dart';
-import '../../../core/storage/user_session.dart';
-import '../../../features/thong_bao/widgets/thong_bao_bell_icon.dart';
+import 'package:klks_app/core/navigation/app_navigation.dart';
+import 'package:klks_app/core/storage/user_session.dart';
+import 'package:klks_app/features/thong_bao/widgets/thong_bao_bell_icon.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

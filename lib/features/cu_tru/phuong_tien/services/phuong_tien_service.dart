@@ -80,9 +80,9 @@ class PhuongTienService {
 
   Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
-    required String targetContainer,
+    String targetContainer = 'tai-lieu-phuong-tien',
   }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
 
   Future<List<SelectorItem>> getLoaiPhuongTienSelector() =>
-      _selector.getLoaiPhuongTienSelector();
+      _selector.getLoaiPhuongTien();
 }

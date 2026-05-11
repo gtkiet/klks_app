@@ -1,5 +1,7 @@
 // lib/features/tien_ich/dich_vu/services/dich_vu_service.dart
 
+import 'package:klks_app/features/shared/services/shared_services.dart';
+
 import '../../../../core/network/api_client.dart';
 
 import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
@@ -17,27 +19,20 @@ class DichVuService {
   Future<List<QuanHeCuTruModel>> getCanHoList() =>
       CuTruService.instance.getQuanHeCuTruList();
 
-  // ── Catalog ───────────────────────────────────────────────────────────────
+  final _selector = SelectorService.instance;
 
-  Future<List<SelectorItem>> getLoaiDichVu() =>
-      _fetchSelector('/api/catalog/loai-dich-vu-for-selector');
+  // ── Catalog ───────────────────────────────────────────────────────────────
+  Future<List<SelectorItem>> getLoaiDichVu() => _selector.getLoaiDichVu();
 
   Future<List<SelectorItem>> getTrangThaiDichVu() =>
-      _fetchSelector('/api/catalog/trang-thai-dich-vu-for-selector');
+      _selector.getTrangThaiDichVu();
 
-  Future<List<SelectorItem>> getLoaiDinhGia() =>
-      _fetchSelector('/api/catalog/loai-dinh-gia-for-selector');
+  Future<List<SelectorItem>> getLoaiDinhGia() => _selector.getLoaiDinhGia();
 
   Future<List<SelectorItem>> getTrangThaiDangKy() =>
-      _fetchSelector('/api/catalog/trang-thai-dang-ky-for-selector');
+      _selector.getTrangThaiDangKy();
 
-  Future<List<SelectorItem>> getNgayTrongTuan() =>
-      _fetchSelector('/api/catalog/ngay-trong-tuan-for-selector');
-
-  Future<List<SelectorItem>> _fetchSelector(String path) async {
-    final res = await _client.post(path);
-    return res.list(SelectorItem.fromJson);
-  }
+  Future<List<SelectorItem>> getNgayTrongTuan() => _selector.getNgayTrongTuan();
 
   // ── Dịch vụ ───────────────────────────────────────────────────────────────
 

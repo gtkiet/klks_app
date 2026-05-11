@@ -15,16 +15,16 @@ class SelectorService {
     return res.list(SelectorItem.fromJson);
   }
 
-  Future<List<SelectorItem>> getGioiTinhSelector() =>
+  Future<List<SelectorItem>> getGioiTinh() =>
       _fetchSelector('/api/catalog/gioi-tinh-for-selector');
 
-  Future<List<SelectorItem>> getLoaiQuanHeCuTruSelector() =>
+  Future<List<SelectorItem>> getLoaiQuanHeCuTru() =>
       _fetchSelector('/api/catalog/loai-quan-he-cu-tru-for-selector');
 
-  Future<List<SelectorItem>> getLoaiGiayToSelector() =>
+  Future<List<SelectorItem>> getLoaiGiayTo() =>
       _fetchSelector('/api/catalog/loai-giay-to-for-selector');
 
-  Future<List<SelectorItem>> getLoaiPhuongTienSelector() =>
+  Future<List<SelectorItem>> getLoaiPhuongTien() =>
       _fetchSelector('/api/catalog/loai-phuong-tien-for-selector');
 
   Future<List<SelectorItem>> getLoaiDichVu() =>
@@ -54,6 +54,6 @@ class SelectorService {
   Future<List<SelectorItem>> getPhamViSuaChua() =>
       _fetchSelector('/api/catalog/pham-vi-sua-chua-for-selector');
 
-  Future<List<SelectorItem>> getTrangThaiThiCongList() =>
+  Future<List<SelectorItem>> getTrangThaiThiCong() =>
       _fetchSelector('/api/catalog/trang-thai-thi-cong-for-selector');
 }

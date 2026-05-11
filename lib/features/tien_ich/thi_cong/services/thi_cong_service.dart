@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:dio/dio.dart';
+import 'package:klks_app/features/shared/services/shared_services.dart';
 
 import '../../../../core/network/api_client.dart';
 
@@ -22,13 +22,9 @@ class YeuCauThiCongService {
       CuTruService.instance.getQuanHeCuTruList();
 
   // ── 1. Catalog ────────────────────────────────────────────────────────────
-
-  Future<List<SelectorItem>> getTrangThaiThiCongList() async {
-    final res = await _client.post(
-      '/api/catalog/trang-thai-thi-cong-for-selector',
-    );
-    return res.list(SelectorItem.fromJson);
-  }
+  final _selector = SelectorService.instance;
+  Future<List<SelectorItem>> getTrangThaiThiCongList() =>
+      _selector.getTrangThaiThiCong();
 
   // ── 2. Danh sách (phân trang + lọc) ──────────────────────────────────────
 
@@ -168,25 +164,10 @@ class YeuCauThiCongService {
   );
 
   // ── 7. Upload file ────────────────────────────────────────────────────────
+  final _upload = UploadService.instance;
 
-  Future<List<UploadedFile>> uploadFiles({
+  Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
-    String targetContainer = 'tai-lieu-nhan-vien',
-  }) async {
-    final formData = FormData()
-      ..fields.add(MapEntry('targetContainer', targetContainer));
-    for (final file in files) {
-      formData.files.add(
-        MapEntry(
-          'files',
-          await MultipartFile.fromFile(
-            file.path,
-            filename: file.path.split('/').last,
-          ),
-        ),
-      );
-    }
-    final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFile.fromJson);
-  }
+    String targetContainer = 'yeu-cau-thi-cong',
+  }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
 }

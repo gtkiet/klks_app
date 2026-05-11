@@ -6,32 +6,32 @@ import 'package:go_router/go_router.dart';
 import '../guards/auth_guard.dart';
 import 'main_screen.dart';
 
-import '../../features/splash/screens/splash_screen.dart';
+import 'package:klks_app/features/splash/screens/splash_screen.dart';
 
-import '../../features/auth/screens/login_screen.dart';
-import '../../features/auth/screens/register_screen.dart';
-import '../../features/auth/screens/forgot_password_screen.dart';
-import '../../features/auth/screens/reset_password_screen.dart';
+import 'package:klks_app/features/auth/screens/login_screen.dart';
+import 'package:klks_app/features/auth/screens/register_screen.dart';
+import 'package:klks_app/features/auth/screens/forgot_password_screen.dart';
+import 'package:klks_app/features/auth/screens/reset_password_screen.dart';
 
-import '../../features/home/screens/home_screen.dart';
-import '../../features/phan_anh/screens/phan_anh_list_screen.dart';
+import 'package:klks_app/features/home/screens/home_screen.dart';
+import 'package:klks_app/features/phan_anh/screens/phan_anh_list_screen.dart';
 
-import '../../features/thong_bao/screens/thong_bao_list_screen.dart';
-import '../../features/thong_bao/screens/thong_bao_detail_screen.dart';
+import 'package:klks_app/features/thong_bao/screens/thong_bao_list_screen.dart';
+import 'package:klks_app/features/thong_bao/screens/thong_bao_detail_screen.dart';
 
-import '../../features/tien_ich/screens/tien_ich_screen.dart';
-import '../../features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart';
-import '../../features/tien_ich/sua_chua/screens/sua_chua_list_screen.dart';
-import '../../features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
+import 'package:klks_app/features/tien_ich/screens/tien_ich_screen.dart';
+import 'package:klks_app/features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart';
+import 'package:klks_app/features/tien_ich/sua_chua/screens/sua_chua_list_screen.dart';
+import 'package:klks_app/features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
 
-import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
-import '../../features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
-import '../../features/cu_tru/hoa_don/screens/hoa_don_list_screen.dart';
+import 'package:klks_app/features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
+import 'package:klks_app/features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
+import 'package:klks_app/features/cu_tru/hoa_don/screens/hoa_don_list_screen.dart';
 
-import '../../features/profile/screens/profile_screen.dart';
-import '../../features/profile/screens/profile_detail_screen.dart';
-import '../../features/profile/screens/change_password_screen.dart';
-import '../../features/profile/screens/change_avatar_screen.dart';
+import 'package:klks_app/features/profile/screens/profile_screen.dart';
+import 'package:klks_app/features/profile/screens/profile_detail_screen.dart';
+import 'package:klks_app/features/profile/screens/change_password_screen.dart';
+import 'package:klks_app/features/profile/screens/change_avatar_screen.dart';
 
 class AppRouter {
   AppRouter._();

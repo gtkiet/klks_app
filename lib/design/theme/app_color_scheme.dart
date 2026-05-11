@@ -1,7 +1,7 @@
 // lib/design/theme/app_color_scheme.dart
 
 import 'package:flutter/material.dart';
-import '../tokens/colors.dart';
+import 'package:klks_app/design/tokens/colors.dart';
 
 /// PKK Resident - Color Scheme
 ///

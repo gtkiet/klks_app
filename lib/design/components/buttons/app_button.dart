@@ -1,9 +1,10 @@
 // lib/design/components/buttons/app_button.dart
 
 import 'package:flutter/material.dart';
-import '../../tokens/colors.dart';
-import '../../tokens/typography.dart';
-import '../../foundations/constants.dart';
+
+import 'package:klks_app/design/tokens/colors.dart';
+import 'package:klks_app/design/tokens/typography.dart';
+import 'package:klks_app/design/foundations/constants.dart';
 
 /// Button variants matching TDS specification.
 enum AppButtonVariant { primary, secondary, outline }

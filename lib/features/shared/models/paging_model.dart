@@ -3,10 +3,10 @@
 // Dùng chung toàn app — thay thế mọi PagingInfo / PagedResult định nghĩa cục bộ.
 //
 // CÁCH DÙNG TRONG MODEL CỦA FEATURE:
-//   export 'package:your_app/shared/models/paging_model.dart';   // re-export
+//   export 'package:klks_app/shared/models/paging_model.dart';   // re-export
 //
 // CÁCH DÙNG TRONG SERVICE (chỉ import model của feature, không import shared trực tiếp):
-//   import 'package:your_app/features/hoa_don/models/hoa_don_model.dart';
+//   import 'package:klks_app/features/hoa_don/models/hoa_don_model.dart';
 //   // => PagingInfo, PagedResult đã có sẵn qua re-export
 
 class PagingInfo {

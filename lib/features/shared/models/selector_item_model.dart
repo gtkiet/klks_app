@@ -4,10 +4,10 @@
 // và SelectorItem (dich_vu).
 //
 // CÁCH DÙNG TRONG MODEL CỦA FEATURE:
-//   export 'package:your_app/shared/models/selector_item_model.dart';
+//   export 'package:klks_app/shared/models/selector_item_model.dart';
 //
 // CÁCH DÙNG TRONG SERVICE (qua re-export của feature model):
-//   import 'package:your_app/features/cu_tru/models/quan_he_cu_tru_model.dart';
+//   import 'package:klks_app/features/cu_tru/models/quan_he_cu_tru_model.dart';
 //   // => SelectorItem đã có sẵn
 
 class SelectorItem {

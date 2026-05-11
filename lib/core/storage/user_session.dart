@@ -18,7 +18,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../features/auth/models/user_model.dart';
+import 'package:klks_app/features/auth/models/user_model.dart';
 
 abstract class _K {
   static const accessToken = 'accessToken';

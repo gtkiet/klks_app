@@ -145,8 +145,7 @@ class _YeuCauCreateScreenState extends State<YeuCauCreateScreen> {
   Future<void> _uploadImages(List<XFile> images) async {
     setState(() => _isUploading = true);
     try {
-      final paths = images.map((x) => x.path).toList();
-      final uploaded = await _service.uploadMedia(paths);
+      final uploaded = await _service.uploadMedia(files: images.map((x) => File(x.path)).toList());
       setState(() {
         _uploadedFileIds.addAll(uploaded.map((u) => u.fileId));
       });

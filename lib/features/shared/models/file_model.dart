@@ -5,10 +5,10 @@
 // HinhAnhYeuCau, HinhAnhPhuongTien, UploadedFileModel.
 //
 // CÁCH DÙNG TRONG MODEL CỦA FEATURE:
-//   export 'package:your_app/shared/models/file_model.dart';
+//   export 'package:klks_app/shared/models/file_model.dart';
 //
 // CÁCH DÙNG TRONG SERVICE (qua re-export của feature model, không import trực tiếp):
-//   import 'package:your_app/features/thi_cong/models/thi_cong_model.dart';
+//   import 'package:klks_app/features/thi_cong/models/thi_cong_model.dart';
 //   // => FileAttachment, UploadedFile đã có sẵn
 
 /// File đã upload lên server — kết quả từ /api/upload-media.

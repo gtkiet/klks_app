@@ -3,8 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/thong_bao/services/thong_bao_hub_service.dart';
-import '../../features/thong_bao/widgets/thong_bao_nav_icon.dart';
+import 'package:klks_app/features/thong_bao/services/thong_bao_hub_service.dart';
+import 'package:klks_app/features/thong_bao/widgets/thong_bao_nav_icon.dart';
+
 import 'app_navigation.dart';
 
 class MainScreen extends StatelessWidget {

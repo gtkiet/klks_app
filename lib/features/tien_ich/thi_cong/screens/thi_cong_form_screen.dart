@@ -127,7 +127,7 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
     setState(() => _isUploading = true);
     try {
       final files = images.map((x) => File(x.path)).toList();
-      final uploaded = await _service.uploadFiles(files: files);
+      final uploaded = await _service.uploadMedia(files: files);
       setState(() {
         _uploadedImageIds.addAll(uploaded.map((u) => u.fileId));
       });
@@ -150,7 +150,7 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
     });
   }
 
-  // ── File upload (hồ sơ) ───────────────────────────────────────────────────
+  // ── File upload ───────────────────────────────────────────────────
 
   Future<void> _pickAndUploadFile() async {
     final picked = await _picker.pickMultiImage();
@@ -159,13 +159,8 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
     setState(() => _isUploading = true);
     try {
       final files = picked.map((e) => File(e.path)).toList();
-      final uploaded = await _service.uploadFiles(
-        files: files,
-        targetContainer: 'tai-lieu-nhan-vien',
-      );
-      setState(
-        () => _uploadedFiles.addAll(uploaded as Iterable<UploadedFile>),
-      );
+      final uploaded = await _service.uploadMedia(files: files);
+      setState(() => _uploadedFiles.addAll(uploaded as Iterable<UploadedFile>));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

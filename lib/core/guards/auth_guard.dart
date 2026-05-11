@@ -1,7 +1,8 @@
 // lib/core/guards/auth_guard.dart
 import 'package:flutter/material.dart';
-import '../../features/auth/services/auth_service.dart';
-import '../storage/user_session.dart';
+
+import 'package:klks_app/features/auth/services/auth_service.dart';
+import 'package:klks_app/core/storage/user_session.dart';
 
 class AuthGuard extends ChangeNotifier {
   AuthGuard._();

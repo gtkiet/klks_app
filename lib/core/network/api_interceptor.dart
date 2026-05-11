@@ -1,9 +1,9 @@
 // lib/core/network/api_interceptor.dart
 import 'dart:async';
 import 'package:dio/dio.dart';
-import '../guards/auth_guard.dart';
-import '../storage/user_session.dart';
-import '../../features/auth/services/auth_service.dart';
+import 'package:klks_app/core/guards/auth_guard.dart';
+import 'package:klks_app/core/storage/user_session.dart';
+import 'package:klks_app/features/auth/services/auth_service.dart';
 
 class ApiInterceptor extends Interceptor {
   final Dio dio;

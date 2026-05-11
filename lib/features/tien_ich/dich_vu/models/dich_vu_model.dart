@@ -1,11 +1,11 @@
 // lib/features/tien_ich/dich_vu/models/dich_vu_model.dart
 //
 // CÁCH DÙNG TRONG SERVICE:
-//   import 'package:your_app/features/tien_ich/dich_vu/models/dich_vu_model.dart';
+//   import 'package:klks_app/features/tien_ich/dich_vu/models/dich_vu_model.dart';
 //   // SelectorItem, PagingInfo, QuanHeCuTruModel có sẵn qua re-export
 
-export '../../../shared/models/shared_models.dart';
-export '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
+export 'package:klks_app/features/shared/models/shared_models.dart';
+export 'package:klks_app/features/cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
     show QuanHeCuTruModel;
 
 // ── Dịch vụ (list item) ───────────────────────────────────────────────────────

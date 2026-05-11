@@ -3,7 +3,7 @@
 import 'package:dio/dio.dart';
 import 'api_interceptor.dart';
 
-import '../../features/shared/models/shared_models.dart';
+import 'package:klks_app/features/shared/models/shared_models.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ERROR LAYER

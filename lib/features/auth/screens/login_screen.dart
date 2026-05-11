@@ -3,13 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/guards/auth_guard.dart';
-import '../services/auth_service.dart';
-import '../models/user_model.dart';
-// import 'register_screen.dart';
-// import 'forgot_password_screen.dart';
+import 'package:klks_app/core/guards/auth_guard.dart';
+import 'package:klks_app/design/design.dart';
 
-import '../../../design/design.dart';
+import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

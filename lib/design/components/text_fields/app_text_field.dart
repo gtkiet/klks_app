@@ -2,8 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../tokens/colors.dart';
-import '../../tokens/typography.dart';
+
+import 'package:klks_app/design/tokens/colors.dart';
+import 'package:klks_app/design/tokens/typography.dart';
 
 /// PKK Resident - App Text Field
 ///

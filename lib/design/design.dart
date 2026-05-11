@@ -4,7 +4,7 @@
 //
 // Usage:
 // ```dart
-// import 'package:pkk_resident/design/design.dart';
+// import 'package:klks_app/design/design.dart';
 // ```
 //
 // Then use any token or component directly:

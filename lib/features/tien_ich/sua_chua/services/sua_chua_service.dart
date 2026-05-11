@@ -1,6 +1,8 @@
 // lib/features/tien_ich/sua_chua/services/sua_chua_service.dart
 
-import 'package:dio/dio.dart';
+import 'dart:io';
+
+import 'package:klks_app/features/shared/services/shared_services.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../models/sua_chua_model.dart';
@@ -12,46 +14,25 @@ class YeuCauSuaChuaService {
   static final _client = ApiClient.instance;
 
   // ── Catalog ───────────────────────────────────────────────────────────────
+  final _selector = SelectorService.instance;
 
-  Future<List<SelectorItem>> getTrangThaiYeuCau() async {
-    final res = await _client.post(
-      '/api/catalog/trang-thai-yeu-cau-for-selector',
-    );
-    return res.list(SelectorItem.fromJson);
-  }
+  Future<List<SelectorItem>> getTrangThaiYeuCau() =>
+      _selector.getTrangThaiYeuCau();
 
-  Future<List<SelectorItem>> getTrangThaiSuaChua() async {
-    final res = await _client.post(
-      '/api/catalog/trang-thai-sua-chua-for-selector',
-    );
-    return res.list(SelectorItem.fromJson);
-  }
+  Future<List<SelectorItem>> getTrangThaiSuaChua() =>
+      _selector.getTrangThaiSuaChua();
 
-  Future<List<SelectorItem>> getLoaiSuCo() async {
-    final res = await _client.post(
-      '/api/catalog/loai-su-co-ky-thuat-for-selector',
-    );
-    return res.list(SelectorItem.fromJson);
-  }
+  Future<List<SelectorItem>> getLoaiSuCo() => _selector.getLoaiSuCo();
 
-  Future<List<SelectorItem>> getPhamViSuaChua() async {
-    final res = await _client.post(
-      '/api/catalog/pham-vi-sua-chua-for-selector',
-    );
-    return res.list(SelectorItem.fromJson);
-  }
+  Future<List<SelectorItem>> getPhamViSuaChua() => _selector.getPhamViSuaChua();
 
   // ── Upload ────────────────────────────────────────────────────────────────
+  final _upload = UploadService.instance;
 
-  Future<List<UploadedFile>> uploadMedia(List<String> filePaths) async {
-    final formData = FormData()
-      ..fields.add(const MapEntry('targetContainer', 'tai-lieu-cu-tru'));
-    for (final path in filePaths) {
-      formData.files.add(MapEntry('files', await MultipartFile.fromFile(path)));
-    }
-    final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFile.fromJson);
-  }
+  Future<List<UploadedFile>> uploadMedia({
+    required List<File> files,
+    String targetContainer = 'yeu-cau-sua-chua',
+  }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
 

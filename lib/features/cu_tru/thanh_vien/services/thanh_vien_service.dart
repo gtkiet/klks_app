@@ -71,15 +71,14 @@ class ThanhVienService {
 
   Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
-    required String targetContainer,
+    String targetContainer = 'tai-lieu-cu-tru',
   }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
 
-  Future<List<SelectorItem>> getGioiTinhSelector() =>
-      _selector.getGioiTinhSelector();
+  Future<List<SelectorItem>> getGioiTinhSelector() => _selector.getGioiTinh();
 
   Future<List<SelectorItem>> getLoaiQuanHeCuTruSelector() =>
-      _selector.getLoaiQuanHeCuTruSelector();
+      _selector.getLoaiQuanHeCuTru();
 
   Future<List<SelectorItem>> getLoaiGiayToSelector() =>
-      _selector.getLoaiGiayToSelector();
+      _selector.getLoaiGiayTo();
 }

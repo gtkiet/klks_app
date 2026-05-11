@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../quan_he/widgets/shared_widget.dart';
 
-import '../../quan_he/widgets/file_upload_field.dart';
-import '../../quan_he/widgets/selector_field.dart';
+import '../../../shared/widgets/shared_widgets.dart';
 
 import '../models/thanh_vien_model.dart';
 import '../services/thanh_vien_service.dart';
@@ -247,7 +246,7 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
             // ── Loại giấy tờ ──────────────────────────────────────────────
             // FIX: truyền selectedItems từ entry.loaiGiayTo (đã resolve)
             // thay vì luôn để rỗng.
-            AppSelectorField.future(
+            SelectorField.future(
               label: 'Loại giấy tờ',
               future: widget.loaiGiayToFuture,
               selectedItems: entry.loaiGiayTo != null

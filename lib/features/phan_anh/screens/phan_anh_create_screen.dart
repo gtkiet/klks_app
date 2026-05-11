@@ -103,7 +103,7 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
     setState(() => _isUploading = true);
     try {
       final files = images.map((x) => File(x.path)).toList();
-      final uploaded = await _service.uploadFiles(files: files);
+      final uploaded = await _service.uploadMedia(files: files, targetContainer: 'yeu-cau-phan-anh');
       setState(() {
         _uploadedImageIds.addAll(uploaded.map((u) => u.fileId));
       });

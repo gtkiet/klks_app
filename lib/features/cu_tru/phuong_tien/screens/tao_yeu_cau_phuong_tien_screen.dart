@@ -11,8 +11,8 @@
 import 'package:flutter/material.dart';
 
 import '../../quan_he/widgets/shared_widget.dart';
-import '../../quan_he/widgets/selector_field.dart';
-import '../../quan_he/widgets/file_upload_field.dart';
+
+import '../../../shared/widgets/shared_widgets.dart';
 
 import '../models/phuong_tien_model.dart';
 
@@ -125,7 +125,7 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
                   SectionLabel('Thông tin phương tiện'),
 
                   // Loại phương tiện — load từ API catalog
-                  AppSelectorField.future(
+                  SelectorField.future(
                     label: 'Loại phương tiện *',
                     future: _ptService.getLoaiPhuongTienSelector(),
                     selectedItems: _loaiPhuongTien != null

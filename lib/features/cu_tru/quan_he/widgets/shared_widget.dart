@@ -128,9 +128,6 @@ class DatePickerField extends StatelessWidget {
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
-// ── Reuse _Field với hint ─────────────────────────────────────────────────
-// Extend _Field từ tao_yeu_cau_thanh_vien_screen để thêm hint
-// ignore: unused_element — _Field đã export từ file kia, override local để thêm hint
 class Field extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -167,36 +164,3 @@ class Field extends StatelessWidget {
     );
   }
 }
-
-// class _Field extends StatelessWidget {
-//   final TextEditingController controller;
-//   final String label;
-//   final TextInputType? keyboardType;
-//   final TextCapitalization textCapitalization;
-//   final int maxLines;
-//   final String? Function(String?)? validator;
-
-//   const _Field({
-//     required this.controller,
-//     required this.label,
-//     this.keyboardType,
-//     this.textCapitalization = TextCapitalization.none,
-//     this.maxLines = 1,
-//     this.validator,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return TextFormField(
-//       controller: controller,
-//       keyboardType: keyboardType,
-//       textCapitalization: textCapitalization,
-//       maxLines: maxLines,
-//       validator: validator,
-//       decoration: InputDecoration(
-//         labelText: label,
-//         border: const OutlineInputBorder(),
-//       ),
-//     );
-//   }
-// }

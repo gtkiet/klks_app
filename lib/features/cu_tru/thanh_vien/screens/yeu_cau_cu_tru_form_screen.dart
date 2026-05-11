@@ -11,7 +11,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../quan_he/widgets/selector_field.dart';
+import '../../../shared/widgets/selector_field.dart';
 import '../../quan_he/widgets/shared_widget.dart';
 
 import '../models/thanh_vien_model.dart';
@@ -471,7 +471,7 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
           DatePickerField(label: 'Ngày sinh *', value: _dob, onTap: _pickDob),
           const SizedBox(height: 12),
 
-          AppSelectorField.future(
+          SelectorField.future(
             label: 'Giới tính *',
             future: _gioiTinhFuture,
             selectedItems: _gioiTinh != null ? [_gioiTinh!] : [],
@@ -480,7 +480,7 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
           ),
           const SizedBox(height: 12),
 
-          AppSelectorField.future(
+          SelectorField.future(
             label: 'Loại quan hệ *',
             future: _loaiQuanHeFuture,
             selectedItems: _loaiQuanHe != null ? [_loaiQuanHe!] : [],

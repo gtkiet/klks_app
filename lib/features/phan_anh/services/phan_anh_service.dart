@@ -2,12 +2,11 @@
 
 import 'dart:io';
 
-import 'package:dio/dio.dart';
-
 import '../../../core/network/api_client.dart';
 
 import '../../cu_tru/quan_he/services/cu_tru_service.dart';
 
+import '../../shared/services/shared_services.dart';
 import '../models/phan_anh_model.dart';
 
 class PhanAnhService {
@@ -15,6 +14,8 @@ class PhanAnhService {
   static final PhanAnhService instance = PhanAnhService._();
 
   static final _client = ApiClient.instance;
+
+  static final _upload = UploadService.instance;
 
   Future<List<QuanHeCuTruModel>> getCanHoList() =>
       CuTruService.instance.getQuanHeCuTruList();
@@ -151,24 +152,9 @@ class PhanAnhService {
     return res.item(PhanAnhResponse.fromJson);
   }
 
-  Future<List<UploadedFile>> uploadFiles({
+  Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
-    String targetContainer = 'yeu-cau-phan-anh',
-  }) async {
-    final formData = FormData()
-      ..fields.add(MapEntry('targetContainer', targetContainer));
-    for (final file in files) {
-      formData.files.add(
-        MapEntry(
-          'files',
-          await MultipartFile.fromFile(
-            file.path,
-            filename: file.path.split('/').last,
-          ),
-        ),
-      );
-    }
-    final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFile.fromJson);
-  }
+    required String targetContainer,
+  }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
+
 }

@@ -2,10 +2,9 @@
 
 import 'dart:io';
 
-import 'package:dio/dio.dart';
-
 import '../../../../core/network/api_client.dart';
 
+import '../../../shared/services/shared_services.dart';
 import '../models/phuong_tien_model.dart';
 
 class PhuongTienService {
@@ -13,6 +12,10 @@ class PhuongTienService {
   static final instance = PhuongTienService._();
 
   static final _client = ApiClient.instance;
+
+  static final _upload = UploadService.instance;
+
+  static final _selector = SelectorService.instance;
 
   Future<PagedResult<PhuongTien>> getListPhuongTien(
     GetListPhuongTienRequest request,
@@ -75,33 +78,11 @@ class PhuongTienService {
     );
   }
 
-  // TODO: tạo shared service để upload file dùng chung cho tất cả các module
   Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
     required String targetContainer,
-  }) async {
-    final formData = FormData()
-      ..fields.add(MapEntry('targetContainer', targetContainer));
-    for (final file in files) {
-      formData.files.add(
-        MapEntry(
-          'files',
-          await MultipartFile.fromFile(
-            file.path,
-            filename: file.path.split('/').last,
-          ),
-        ),
-      );
-    }
-    final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFile.fromJson);
-  }
+  }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
 
   Future<List<SelectorItem>> getLoaiPhuongTienSelector() =>
-      _fetchSelector('/api/catalog/loai-phuong-tien-for-selector');
-
-  Future<List<SelectorItem>> _fetchSelector(String path) async {
-    final res = await _client.post(path);
-    return res.list(SelectorItem.fromJson);
-  }
+      _selector.getLoaiPhuongTienSelector();
 }

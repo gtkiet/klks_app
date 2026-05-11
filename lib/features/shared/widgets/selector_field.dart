@@ -1,10 +1,10 @@
-// lib/features/cu_tru/widgets/selector_field.dart
+// lib/features/shared/widgets/selector_field.dart
 
 import 'package:flutter/material.dart';
 
-import '../models/quan_he_cu_tru_model.dart';
+import '../models/selector_item_model.dart';
 
-class AppSelectorField extends StatefulWidget {
+class SelectorField extends StatefulWidget {
   final String label;
   final String? hint;
 
@@ -29,7 +29,7 @@ class AppSelectorField extends StatefulWidget {
   final bool isRequired;
   final bool enabled;
 
-  const AppSelectorField({
+  const SelectorField({
     super.key,
     required this.label,
     this.hint,
@@ -47,7 +47,7 @@ class AppSelectorField extends StatefulWidget {
        );
 
   /// Constructor tiện khi dùng Future.
-  const AppSelectorField.future({
+  const SelectorField.future({
     super.key,
     required this.label,
     this.hint,
@@ -62,10 +62,10 @@ class AppSelectorField extends StatefulWidget {
        itemsFuture = future;
 
   @override
-  State<AppSelectorField> createState() => _AppSelectorFieldState();
+  State<SelectorField> createState() => _SelectorFieldState();
 }
 
-class _AppSelectorFieldState extends State<AppSelectorField> {
+class _SelectorFieldState extends State<SelectorField> {
   List<SelectorItem> _allItems = [];
   List<SelectorItem> _selected = [];
   bool _loading = false;
@@ -82,7 +82,7 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
   }
 
   @override
-  void didUpdateWidget(AppSelectorField old) {
+  void didUpdateWidget(SelectorField old) {
     super.didUpdateWidget(old);
     if (widget.items != null && widget.items != old.items) {
       setState(() => _allItems = widget.items!);

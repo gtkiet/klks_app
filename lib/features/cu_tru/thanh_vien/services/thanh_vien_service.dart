@@ -1,10 +1,10 @@
 // lib/features/cu_tru/thanh_vien/services/thanh_vien_service.dart
-import 'dart:io';
 
-import 'package:dio/dio.dart';
+import 'dart:io';
 
 import '../../../../core/network/api_client.dart';
 
+import '../../../shared/services/shared_services.dart';
 import '../models/thanh_vien_model.dart';
 
 class ThanhVienService {
@@ -12,6 +12,10 @@ class ThanhVienService {
   static final ThanhVienService instance = ThanhVienService._();
 
   static final _client = ApiClient.instance;
+
+  static final _upload = UploadService.instance;
+
+  static final _selector = SelectorService.instance;
 
   Future<List<ThanhVienCuTruModel>> getThanhVienCuTru(int canHoId) async {
     final res = await _client.post(
@@ -65,39 +69,17 @@ class ThanhVienService {
     return res.item(YeuCauCuTruModel.fromJson);
   }
 
-  // TODO: tạo service upload file dùng chung cho cả app
   Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
     required String targetContainer,
-  }) async {
-    final formData = FormData()
-      ..fields.add(MapEntry('targetContainer', targetContainer));
-    for (final file in files) {
-      formData.files.add(
-        MapEntry(
-          'files',
-          await MultipartFile.fromFile(
-            file.path,
-            filename: file.path.split('/').last,
-          ),
-        ),
-      );
-    }
-    final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFile.fromJson);
-  }
+  }) => _upload.uploadMedia(files: files, targetContainer: targetContainer);
 
   Future<List<SelectorItem>> getGioiTinhSelector() =>
-      _fetchSelector('/api/catalog/gioi-tinh-for-selector');
+      _selector.getGioiTinhSelector();
 
   Future<List<SelectorItem>> getLoaiQuanHeCuTruSelector() =>
-      _fetchSelector('/api/catalog/loai-quan-he-cu-tru-for-selector');
+      _selector.getLoaiQuanHeCuTruSelector();
 
   Future<List<SelectorItem>> getLoaiGiayToSelector() =>
-      _fetchSelector('/api/catalog/loai-giay-to-for-selector');
-
-  Future<List<SelectorItem>> _fetchSelector(String path) async {
-    final res = await _client.post(path);
-    return res.list(SelectorItem.fromJson);
-  }
+      _selector.getLoaiGiayToSelector();
 }

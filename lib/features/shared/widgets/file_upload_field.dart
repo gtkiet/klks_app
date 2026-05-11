@@ -1,4 +1,4 @@
-// lib/features/cu_tru/widgets/file_upload_field.dart
+// lib/features/shared/widgets/file_upload_field.dart
 //
 // Widget upload file đa năng:
 //   - Chọn từ thư viện / camera / file manager
@@ -16,7 +16,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../models/quan_he_cu_tru_model.dart';
+import '../models/file_model.dart';
 
 typedef UploadFn =
     Future<List<UploadedFile>> Function({

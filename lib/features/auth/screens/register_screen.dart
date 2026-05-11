@@ -1,5 +1,8 @@
 // lib/features/auth/screens/register_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 
@@ -29,6 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Register success: ${user.fullName}')),
         );
+        context.go('/auth/login');
       }
     } catch (e) {
       if (mounted) {

@@ -1,11 +1,4 @@
 // lib/features/auth/models/user_model.dart
-//
-// UserModel chứa thông tin sau khi đăng nhập thành công (bao gồm token).
-// Để lấy thông tin profile đầy đủ (không có token), dùng UserProfile trong
-// features/profile/models/user_profile.dart
-//
-// CÁCH DÙNG TRONG SERVICE:
-//   import 'package:your_app/features/auth/models/user_model.dart';
 
 class UserModel {
   final int userId;

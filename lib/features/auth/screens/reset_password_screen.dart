@@ -1,6 +1,7 @@
 // lib/features/auth/screens/reset_password_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../services/auth_service.dart';
 
@@ -65,8 +66,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         SnackBar(content: Text('Password reset success: $result')),
       );
 
-      // 👉 Quay về màn trước hoặc login
-      Navigator.pop(context);
+      context.go('/auth/login');
     } catch (e) {
       if (!mounted) return;
 

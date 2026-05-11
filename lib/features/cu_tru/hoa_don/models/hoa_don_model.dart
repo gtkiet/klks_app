@@ -4,7 +4,7 @@
 //   import 'package:your_app/features/hoa_don/models/hoa_don_model.dart';
 //   // PagingInfo, PagedResult có sẵn qua re-export
 
-export '../../shared/models/shared_models.dart';
+export '../../../shared/models/shared_models.dart';
 
 // ── Hóa đơn (list item) ───────────────────────────────────────────────────────
 

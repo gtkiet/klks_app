@@ -26,7 +26,7 @@ import '../../features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
 
 import '../../features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
 import '../../features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
-import '../../features/hoa_don/screens/hoa_don_list_screen.dart';
+import '../../features/cu_tru/hoa_don/screens/hoa_don_list_screen.dart';
 
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/profile_detail_screen.dart';
@@ -45,7 +45,6 @@ class AppRouter {
       final status = AuthGuard.instance.status;
       final location = state.matchedLocation;
 
-      // final isLogin = location == '/login';
       final isAuthRoute = location.startsWith('/auth');
       final isSplash = location == '/splash';
 
@@ -53,16 +52,10 @@ class AppRouter {
         return isSplash ? null : '/splash';
       }
 
-      // if (status == AuthStatus.unauthenticated) {
-      //   return isLogin ? null : '/login';
-      // }
       if (status == AuthStatus.unauthenticated) {
         return isAuthRoute ? null : '/auth/login';
       }
 
-      // if (status == AuthStatus.authenticated) {
-      //   if (isLogin || isSplash) return '/home';
-      // }
       if (status == AuthStatus.authenticated) {
         if (isAuthRoute || isSplash) return '/home';
       }
@@ -222,7 +215,9 @@ class AppRouter {
     ],
 
     /// ================= ERROR =================
-    errorBuilder: (context, state) =>
-        Scaffold(body: Center(child: Text('Không tìm thấy: ${state.uri}'))),
+    errorBuilder: (context, state) => Scaffold(
+      appBar: AppBar(automaticallyImplyLeading: true, title: Text('Lỗi')),
+      body: Center(child: Text('Không tìm thấy: ${state.uri}')),
+    ),
   );
 }

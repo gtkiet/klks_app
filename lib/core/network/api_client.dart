@@ -1,16 +1,4 @@
 // lib/core/network/api_client.dart
-//
-// Barrel duy nhất cho toàn bộ network layer:
-//   import 'package:your_app/core/network/api_client.dart';
-//
-// Export ra ngoài: AppException · ErrorType · ErrorParser · ApiClient · ApiResponse
-// PagingInfo và PagedResult KHÔNG export từ đây — lấy qua model của feature.
-//
-// Dùng trong service:
-//   final result = await ApiClient.instance.post('/api/...', body: {...});
-//   final list   = result.list((e) => MyModel.fromJson(e));
-//   final item   = result.item(MyModel.fromJson);
-//   final paged  = result.pagedResult(MyModel.fromJson); // trả PagedResult<T> từ shared
 
 import 'package:dio/dio.dart';
 import 'api_interceptor.dart';
@@ -178,14 +166,6 @@ class ApiResponse {
     return raw.map((e) => fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  /// Parse `result` thành [PagedResult<T>] từ shared models.
-  /// Dùng cho các API get-list có phân trang (result có `items` + `pagingInfo`).
-  ///
-  /// Ví dụ:
-  ///   final paged = result.pagedResult(HoaDon.fromJson);
-  ///   paged.items        // List< HoaDon >
-  ///   paged.hasNextPage  // bool
-  ///   paged.totalItems   // int
   PagedResult<T> pagedResult<T>(T Function(Map<String, dynamic>) fromJson) {
     final map = _result as Map<String, dynamic>;
     return PagedResult.fromJson(map, fromJson);
@@ -221,12 +201,12 @@ class ApiClient {
   Dio _createPlainDio() => Dio(_baseOptions());
 
   BaseOptions _baseOptions() => BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        sendTimeout: const Duration(seconds: 30),
-        headers: {'Content-Type': 'application/json'},
-      );
+    baseUrl: baseUrl,
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    sendTimeout: const Duration(seconds: 30),
+    headers: {'Content-Type': 'application/json'},
+  );
 
   // ── Request helpers ───────────────────────────────────────────────────────
 
@@ -235,8 +215,8 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) => _execute(
-        () => dio.get(path, queryParameters: queryParameters, options: options),
-      );
+    () => dio.get(path, queryParameters: queryParameters, options: options),
+  );
 
   Future<ApiResponse> post(
     String path, {
@@ -259,12 +239,12 @@ class ApiClient {
   /// Upload multipart/form-data.
   /// Caller tự build [FormData], method này chỉ wrap error handling.
   Future<ApiResponse> postForm(String path, FormData formData) => _execute(
-        () => dio.post(
-          path,
-          data: formData,
-          options: Options(contentType: 'multipart/form-data'),
-        ),
-      );
+    () => dio.post(
+      path,
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    ),
+  );
 
   // ── Core executor ─────────────────────────────────────────────────────────
 
@@ -325,19 +305,19 @@ class ApiClient {
   }
 
   String _dioMessage(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.sendTimeout ||
-        DioExceptionType.receiveTimeout =>
-          'Kết nối quá thời gian, vui lòng thử lại',
-        DioExceptionType.connectionError => 'Không có kết nối mạng',
-        _ => e.message ?? 'Có lỗi xảy ra',
-      };
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout =>
+      'Kết nối quá thời gian, vui lòng thử lại',
+    DioExceptionType.connectionError => 'Không có kết nối mạng',
+    _ => e.message ?? 'Có lỗi xảy ra',
+  };
 
   ErrorType _dioType(DioException e) => switch (e.type) {
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.sendTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.connectionError => ErrorType.network,
-        _ => ErrorType.unknown,
-      };
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.connectionError => ErrorType.network,
+    _ => ErrorType.unknown,
+  };
 }

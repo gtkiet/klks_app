@@ -13,6 +13,7 @@ class AuthService {
   static final AuthService instance = AuthService._();
 
   static final _client = ApiClient.instance;
+
   final _session = UserSession.instance;
 
   // ── LOGIN ─────────────────────────────────────────────────────────────────
@@ -70,7 +71,6 @@ class AuthService {
 
   Future<void> logout() async {
     try {
-      // Dùng plainDio trực tiếp — tránh interceptor gắn token cũ đã expired
       await ApiClient.instance.plainDio.post(
         '/api/auth/logout',
         options: Options(

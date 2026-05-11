@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/auth_service.dart';
-// import 'reset_password_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -46,14 +45,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Reset code sent: $result')));
 
-      context.push('/auth/reset-password/$username');
-
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (_) => ResetPasswordScreen(username: username),
-      //   ),
-      // );
+      context.pushNamed('/auth/reset-password/$username');
     } catch (e) {
       if (!mounted) return;
 

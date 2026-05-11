@@ -49,22 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _goToRegister() {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    // );
-    context.push('/auth/register');
-  }
-
-  void _goToForgotPassword() {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-    // );
-    context.push('/auth/forgot-password');
-  }
-
   @override
   void dispose() {
     _usernameController.dispose();
@@ -150,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: _goToForgotPassword,
+                  onPressed: () => context.push('/auth/forgot-password'),
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,
@@ -187,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _goToRegister,
+                    onTap: () => context.push('/auth/register'),
                     child: Text(
                       'Đăng ký ngay',
                       style: AppTypography.bodyMedium.copyWith(

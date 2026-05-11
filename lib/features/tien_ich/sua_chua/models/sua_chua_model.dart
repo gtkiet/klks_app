@@ -1,76 +1,43 @@
 // lib/features/tien_ich/sua_chua/models/sua_chua_model.dart
+//
+// CÁCH DÙNG TRONG SERVICE:
+//   import 'package:your_app/features/tien_ich/sua_chua/models/sua_chua_model.dart';
+//   // FileAttachment, PagingInfo, QuanHeCuTruModel đều có sẵn qua re-export
 
-// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+export '../../../shared/models/shared_models.dart';
+export '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
+    show QuanHeCuTruModel;
 
-// ─────────────────────────────────────────────────────────────
-// CONSTANTS
-// ─────────────────────────────────────────────────────────────
+import '../../../shared/models/shared_models.dart';
 
-class TrangThaiYeuCau {
-  static const int pending = 1; // Đang chờ duyệt
-  static const int approved = 2; // Đã duyệt
-  static const int rejected = 3; // Từ chối
-  static const int saved = 4; // Đã lưu (nháp)
-  static const int withdrawn = 5; // Đã thu hồi
-  static const int expired = 6; // Hết hiệu lực
-  static const int completed = 7; // Hoàn tất
-  static const int cancelled = 8; // Đã hủy
-  static const int returned = 9; // Yêu cầu bổ sung
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+/// Trạng thái yêu cầu chung — dùng lại ở thi_cong, sua_chua.
+/// Nếu cần dùng ở thi_cong_model, import file này rồi re-export:
+///   export '...sua_chua_model.dart' show TrangThaiYeuCau;
+abstract class TrangThaiYeuCau {
+  static const int pending = 1;
+  static const int approved = 2;
+  static const int rejected = 3;
+  static const int saved = 4;
+  static const int withdrawn = 5;
+  static const int expired = 6;
+  static const int completed = 7;
+  static const int cancelled = 8;
+  static const int returned = 9;
+
+  static const Set<int> coTheChinhSua = {saved, returned};
+  static const Set<int> coTheThuHoi = {saved, pending};
 }
 
-class TrangThaiSuaChua {
-  static const int daDieuPhoi = 1; // Đã điều phối
-  static const int choBaoGia = 2; // Chờ báo giá
-  static const int daDuyetBaoGia = 3; // Đã duyệt báo giá
-  static const int daHenLich = 4; // Đã hẹn lịch
+abstract class TrangThaiSuaChua {
+  static const int daDieuPhoi = 1;
+  static const int choBaoGia = 2;
+  static const int daDuyetBaoGia = 3;
+  static const int daHenLich = 4;
 }
 
-// ─────────────────────────────────────────────────────────────
-// CATALOG MODEL – dùng chung cho loaiSuCo / phamVi / trangThai
-// ─────────────────────────────────────────────────────────────
-
-class CatalogItem {
-  final int id;
-  final String code;
-  final String name;
-
-  const CatalogItem({required this.id, required this.code, required this.name});
-
-  factory CatalogItem.fromJson(Map<String, dynamic> json) => CatalogItem(
-    id: json['id'] as int,
-    code: json['code'] as String? ?? '',
-    name: json['name'] as String? ?? '',
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// UPLOAD RESULT
-// ─────────────────────────────────────────────────────────────
-
-class UploadedFile {
-  final int fileId;
-  final String fileName;
-  final String fileUrl;
-  final String contentType;
-
-  const UploadedFile({
-    required this.fileId,
-    required this.fileName,
-    required this.fileUrl,
-    required this.contentType,
-  });
-
-  factory UploadedFile.fromJson(Map<String, dynamic> json) => UploadedFile(
-    fileId: json['fileId'] as int,
-    fileName: json['fileName'] as String? ?? '',
-    fileUrl: json['fileUrl'] as String? ?? '',
-    contentType: json['contentType'] as String? ?? '',
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// SUB-MODELS
-// ─────────────────────────────────────────────────────────────
+// ── Sub-models ────────────────────────────────────────────────────────────────
 
 class NhanSuSuaChua {
   final int id;
@@ -81,7 +48,6 @@ class NhanSuSuaChua {
   final String vaiTro;
   final String? ghiChu;
 
-  /// Derived: ưu tiên hoTen, fallback "Nhân viên #id"
   String get displayName =>
       hoTen?.isNotEmpty == true ? hoTen! : 'Nhân viên #$id';
 
@@ -96,57 +62,27 @@ class NhanSuSuaChua {
   });
 
   factory NhanSuSuaChua.fromJson(Map<String, dynamic> json) => NhanSuSuaChua(
-    id: json['id'] as int,
-    nhanVienId: json['nhanVienId'] as int?,
-    hoTen: json['hoTen'] as String?,
-    soCCCD: json['soCCCD'] as String?,
-    soDienThoai: json['soDienThoai'] as String?,
-    vaiTro: json['vaiTro'] as String? ?? '',
-    ghiChu: json['ghiChu'] as String?,
-  );
+        id: json['id'] as int,
+        nhanVienId: json['nhanVienId'] as int?,
+        hoTen: json['hoTen'] as String?,
+        soCCCD: json['soCCCD'] as String?,
+        soDienThoai: json['soDienThoai'] as String?,
+        vaiTro: json['vaiTro'] as String? ?? '',
+        ghiChu: json['ghiChu'] as String?,
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'nhanVienId': nhanVienId,
-    'hoTen': hoTen,
-    'soCCCD': soCCCD,
-    'soDienThoai': soDienThoai,
-    'vaiTro': vaiTro,
-    'ghiChu': ghiChu,
-  };
+        'id': id,
+        'nhanVienId': nhanVienId,
+        'hoTen': hoTen,
+        'soCCCD': soCCCD,
+        'soDienThoai': soDienThoai,
+        'vaiTro': vaiTro,
+        'ghiChu': ghiChu,
+      };
 }
 
-class DanhSachTep {
-  final int id;
-  final String fileUrl;
-  final String? fileName;
-  final String? contentType;
-
-  const DanhSachTep({
-    required this.id,
-    required this.fileUrl,
-    this.fileName,
-    this.contentType,
-  });
-
-  factory DanhSachTep.fromJson(Map<String, dynamic> json) => DanhSachTep(
-    id: json['id'] as int,
-    fileUrl: json['fileUrl'] as String? ?? '',
-    fileName: json['fileName'] as String?,
-    contentType: json['contentType'] as String?,
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'fileUrl': fileUrl,
-    'fileName': fileName,
-    'contentType': contentType,
-  };
-}
-
-// ─────────────────────────────────────────────────────────────
-// MAIN MODEL – map 1:1 với API response
-// ─────────────────────────────────────────────────────────────
+// ── Main model ────────────────────────────────────────────────────────────────
 
 class YeuCauSuaChua {
   final int id;
@@ -167,7 +103,7 @@ class YeuCauSuaChua {
   final int? createdBy;
   final String? tenNguoiGui;
 
-  // Detail-only fields (get-by-id)
+  // Detail-only
   final String? lyDo;
   final int? nguoiXuLyId;
   final String? tenNguoiXuLy;
@@ -186,71 +122,9 @@ class YeuCauSuaChua {
   final int? hopDongDoiTacId;
   final String? tenDoiTac;
   final List<NhanSuSuaChua> nhanSuSuaChuas;
-  final List<DanhSachTep> danhSachTep;
 
-  // ── Derived getters ──────────────────────────────────────────
-
-  String get diaChiDayDu {
-    final parts = [
-      tenToaNha,
-      tenTang,
-      tenCanHo,
-    ].where((s) => s != null && s.isNotEmpty).toList();
-    return parts.isNotEmpty ? parts.join(' - ') : 'Căn hộ #$canHoId';
-  }
-
-  String get trangThaiLabel {
-    switch (trangThaiYeuCauId) {
-      case TrangThaiYeuCau.saved:
-        return 'Nháp';
-      case TrangThaiYeuCau.pending:
-        return 'Đang chờ duyệt';
-      case TrangThaiYeuCau.approved:
-        return _subStatusLabel;
-      case TrangThaiYeuCau.returned:
-        return 'Cần bổ sung';
-      case TrangThaiYeuCau.rejected:
-        return 'Từ chối';
-      case TrangThaiYeuCau.withdrawn:
-        return 'Đã thu hồi';
-      case TrangThaiYeuCau.completed:
-        return 'Hoàn tất';
-      case TrangThaiYeuCau.cancelled:
-        return 'Đã hủy';
-      case TrangThaiYeuCau.expired:
-        return 'Hết hiệu lực';
-      default:
-        return trangThaiYeuCauTen ?? 'Không rõ';
-    }
-  }
-
-  String get _subStatusLabel {
-    switch (trangThaiSuaChuaId) {
-      case TrangThaiSuaChua.daDieuPhoi:
-        return 'Đã điều phối';
-      case TrangThaiSuaChua.choBaoGia:
-        return 'Chờ báo giá';
-      case TrangThaiSuaChua.daDuyetBaoGia:
-        return 'Đã duyệt báo giá';
-      case TrangThaiSuaChua.daHenLich:
-        return 'Đã hẹn lịch';
-      default:
-        return trangThaiSuaChuaTen ?? 'Đã duyệt';
-    }
-  }
-
-  bool get coTheChinhSua =>
-      trangThaiYeuCauId == TrangThaiYeuCau.saved ||
-      trangThaiYeuCauId == TrangThaiYeuCau.returned;
-
-  bool get daKetThuc =>
-      trangThaiYeuCauId == TrangThaiYeuCau.completed ||
-      trangThaiYeuCauId == TrangThaiYeuCau.cancelled ||
-      trangThaiYeuCauId == TrangThaiYeuCau.withdrawn ||
-      trangThaiYeuCauId == TrangThaiYeuCau.rejected ||
-      trangThaiYeuCauId == TrangThaiYeuCau.expired;
-
-  bool get coNhanSu => nhanSuSuaChuas.isNotEmpty;
+  /// File đính kèm — dùng [FileAttachment] từ shared
+  final List<FileAttachment> danhSachTep;
 
   const YeuCauSuaChua({
     required this.id,
@@ -291,86 +165,105 @@ class YeuCauSuaChua {
     this.danhSachTep = const [],
   });
 
+  String get diaChiDayDu {
+    final parts = [tenToaNha, tenTang, tenCanHo]
+        .where((s) => s != null && s.isNotEmpty)
+        .toList();
+    return parts.isNotEmpty ? parts.join(' - ') : 'Căn hộ #$canHoId';
+  }
+
+  bool get coTheChinhSua =>
+      TrangThaiYeuCau.coTheChinhSua.contains(trangThaiYeuCauId);
+  bool get coTheThuHoi =>
+      TrangThaiYeuCau.coTheThuHoi.contains(trangThaiYeuCauId);
+  bool get daKetThuc => {
+        TrangThaiYeuCau.completed,
+        TrangThaiYeuCau.cancelled,
+        TrangThaiYeuCau.withdrawn,
+        TrangThaiYeuCau.rejected,
+        TrangThaiYeuCau.expired,
+      }.contains(trangThaiYeuCauId);
+
   factory YeuCauSuaChua.fromJson(Map<String, dynamic> json) => YeuCauSuaChua(
-    id: json['id'] as int,
-    canHoId: json['canHoId'] as int,
-    tenCanHo: json['tenCanHo'] as String?,
-    tenTang: json['tenTang'] as String?,
-    tenToaNha: json['tenToaNha'] as String?,
-    loaiYeuCauCuDanId: json['loaiYeuCauCuDanId'] as int?,
-    loaiYeuCauCuDanTen: json['loaiYeuCauCuDanTen'] as String?,
-    trangThaiYeuCauId: json['trangThaiYeuCauId'] as int,
-    trangThaiYeuCauTen: json['trangThaiYeuCauTen'] as String?,
-    noiDung: json['noiDung'] as String? ?? '',
-    loaiSuCoId: json['loaiSuCoId'] as int?,
-    loaiSuCoTen: json['loaiSuCoTen'] as String?,
-    trangThaiSuaChuaId: json['trangThaiSuaChuaId'] as int?,
-    trangThaiSuaChuaTen: json['trangThaiSuaChuaTen'] as String?,
-    createdAt: json['createdAt'] != null
-        ? DateTime.tryParse(json['createdAt'] as String)
-        : null,
-    createdBy: json['createdBy'] as int?,
-    tenNguoiGui: json['tenNguoiGui'] as String?,
-    lyDo: json['lyDo'] as String?,
-    nguoiXuLyId: json['nguoiXuLyId'] as int?,
-    tenNguoiXuLy: json['tenNguoiXuLy'] as String?,
-    ngayXuLy: json['ngayXuLy'] != null
-        ? DateTime.tryParse(json['ngayXuLy'] as String)
-        : null,
-    phamViId: json['phamViId'] as int?,
-    phamViTen: json['phamViTen'] as String?,
-    moTaViTri: json['moTaViTri'] as String?,
-    henTu: json['henTu'] != null
-        ? DateTime.tryParse(json['henTu'] as String)
-        : null,
-    henDen: json['henDen'] != null
-        ? DateTime.tryParse(json['henDen'] as String)
-        : null,
-    chiPhiDuKien: (json['chiPhiDuKien'] as num?)?.toDouble(),
-    chiPhiThucTe: (json['chiPhiThucTe'] as num?)?.toDouble(),
-    isMienPhi: json['isMienPhi'] as bool?,
-    ghiChuBaoGia: json['ghiChuBaoGia'] as String?,
-    ketQuaXuLy: json['ketQuaXuLy'] as String?,
-    lyDoHuy: json['lyDoHuy'] as String?,
-    hopDongDoiTacId: json['hopDongDoiTacId'] as int?,
-    tenDoiTac: json['tenDoiTac'] as String?,
-    nhanSuSuaChuas: (json['nhanSuSuaChuas'] as List<dynamic>? ?? [])
-        .map((e) => NhanSuSuaChua.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    danhSachTep: (json['danhSachTep'] as List<dynamic>? ?? [])
-        .map((e) => DanhSachTep.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
+        id: json['id'] as int,
+        canHoId: json['canHoId'] as int,
+        tenCanHo: json['tenCanHo'] as String?,
+        tenTang: json['tenTang'] as String?,
+        tenToaNha: json['tenToaNha'] as String?,
+        loaiYeuCauCuDanId: json['loaiYeuCauCuDanId'] as int?,
+        loaiYeuCauCuDanTen: json['loaiYeuCauCuDanTen'] as String?,
+        trangThaiYeuCauId: json['trangThaiYeuCauId'] as int,
+        trangThaiYeuCauTen: json['trangThaiYeuCauTen'] as String?,
+        noiDung: json['noiDung'] as String? ?? '',
+        loaiSuCoId: json['loaiSuCoId'] as int?,
+        loaiSuCoTen: json['loaiSuCoTen'] as String?,
+        trangThaiSuaChuaId: json['trangThaiSuaChuaId'] as int?,
+        trangThaiSuaChuaTen: json['trangThaiSuaChuaTen'] as String?,
+        createdAt: json['createdAt'] != null
+            ? DateTime.tryParse(json['createdAt'] as String)
+            : null,
+        createdBy: json['createdBy'] as int?,
+        tenNguoiGui: json['tenNguoiGui'] as String?,
+        lyDo: json['lyDo'] as String?,
+        nguoiXuLyId: json['nguoiXuLyId'] as int?,
+        tenNguoiXuLy: json['tenNguoiXuLy'] as String?,
+        ngayXuLy: json['ngayXuLy'] != null
+            ? DateTime.tryParse(json['ngayXuLy'] as String)
+            : null,
+        phamViId: json['phamViId'] as int?,
+        phamViTen: json['phamViTen'] as String?,
+        moTaViTri: json['moTaViTri'] as String?,
+        henTu: json['henTu'] != null
+            ? DateTime.tryParse(json['henTu'] as String)
+            : null,
+        henDen: json['henDen'] != null
+            ? DateTime.tryParse(json['henDen'] as String)
+            : null,
+        chiPhiDuKien: (json['chiPhiDuKien'] as num?)?.toDouble(),
+        chiPhiThucTe: (json['chiPhiThucTe'] as num?)?.toDouble(),
+        isMienPhi: json['isMienPhi'] as bool?,
+        ghiChuBaoGia: json['ghiChuBaoGia'] as String?,
+        ketQuaXuLy: json['ketQuaXuLy'] as String?,
+        lyDoHuy: json['lyDoHuy'] as String?,
+        hopDongDoiTacId: json['hopDongDoiTacId'] as int?,
+        tenDoiTac: json['tenDoiTac'] as String?,
+        nhanSuSuaChuas: (json['nhanSuSuaChuas'] as List<dynamic>? ?? [])
+            .map((e) => NhanSuSuaChua.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        danhSachTep: (json['danhSachTep'] as List<dynamic>? ?? [])
+            .map((e) => FileAttachment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'canHoId': canHoId,
-    'tenCanHo': tenCanHo,
-    'tenTang': tenTang,
-    'tenToaNha': tenToaNha,
-    'trangThaiYeuCauId': trangThaiYeuCauId,
-    'trangThaiYeuCauTen': trangThaiYeuCauTen,
-    'noiDung': noiDung,
-    'loaiSuCoId': loaiSuCoId,
-    'loaiSuCoTen': loaiSuCoTen,
-    'trangThaiSuaChuaId': trangThaiSuaChuaId,
-    'trangThaiSuaChuaTen': trangThaiSuaChuaTen,
-    'createdAt': createdAt?.toIso8601String(),
-    'tenNguoiGui': tenNguoiGui,
-    'phamViId': phamViId,
-    'phamViTen': phamViTen,
-    'moTaViTri': moTaViTri,
-    'henTu': henTu?.toIso8601String(),
-    'henDen': henDen?.toIso8601String(),
-    'chiPhiDuKien': chiPhiDuKien,
-    'chiPhiThucTe': chiPhiThucTe,
-    'isMienPhi': isMienPhi,
-    'ghiChuBaoGia': ghiChuBaoGia,
-    'ketQuaXuLy': ketQuaXuLy,
-    'lyDoHuy': lyDoHuy,
-    'nhanSuSuaChuas': nhanSuSuaChuas.map((e) => e.toJson()).toList(),
-    'danhSachTep': danhSachTep.map((e) => e.toJson()).toList(),
-  };
+        'id': id,
+        'canHoId': canHoId,
+        'tenCanHo': tenCanHo,
+        'tenTang': tenTang,
+        'tenToaNha': tenToaNha,
+        'trangThaiYeuCauId': trangThaiYeuCauId,
+        'trangThaiYeuCauTen': trangThaiYeuCauTen,
+        'noiDung': noiDung,
+        'loaiSuCoId': loaiSuCoId,
+        'loaiSuCoTen': loaiSuCoTen,
+        'trangThaiSuaChuaId': trangThaiSuaChuaId,
+        'trangThaiSuaChuaTen': trangThaiSuaChuaTen,
+        'createdAt': createdAt?.toIso8601String(),
+        'tenNguoiGui': tenNguoiGui,
+        'phamViId': phamViId,
+        'phamViTen': phamViTen,
+        'moTaViTri': moTaViTri,
+        'henTu': henTu?.toIso8601String(),
+        'henDen': henDen?.toIso8601String(),
+        'chiPhiDuKien': chiPhiDuKien,
+        'chiPhiThucTe': chiPhiThucTe,
+        'isMienPhi': isMienPhi,
+        'ghiChuBaoGia': ghiChuBaoGia,
+        'ketQuaXuLy': ketQuaXuLy,
+        'lyDoHuy': lyDoHuy,
+        'nhanSuSuaChuas': nhanSuSuaChuas.map((e) => e.toJson()).toList(),
+        'danhSachTep': danhSachTep.map((e) => e.toJson()).toList(),
+      };
 
   YeuCauSuaChua copyWith({
     int? id,
@@ -401,39 +294,41 @@ class YeuCauSuaChua {
     String? lyDoHuy,
     String? tenDoiTac,
     List<NhanSuSuaChua>? nhanSuSuaChuas,
-    List<DanhSachTep>? danhSachTep,
+    List<FileAttachment>? danhSachTep,
   }) => YeuCauSuaChua(
-    id: id ?? this.id,
-    canHoId: canHoId ?? this.canHoId,
-    tenCanHo: tenCanHo ?? this.tenCanHo,
-    tenTang: tenTang ?? this.tenTang,
-    tenToaNha: tenToaNha ?? this.tenToaNha,
-    trangThaiYeuCauId: trangThaiYeuCauId ?? this.trangThaiYeuCauId,
-    trangThaiYeuCauTen: trangThaiYeuCauTen ?? this.trangThaiYeuCauTen,
-    noiDung: noiDung ?? this.noiDung,
-    loaiSuCoId: loaiSuCoId ?? this.loaiSuCoId,
-    loaiSuCoTen: loaiSuCoTen ?? this.loaiSuCoTen,
-    trangThaiSuaChuaId: trangThaiSuaChuaId ?? this.trangThaiSuaChuaId,
-    trangThaiSuaChuaTen: trangThaiSuaChuaTen ?? this.trangThaiSuaChuaTen,
-    createdAt: createdAt ?? this.createdAt,
-    tenNguoiGui: tenNguoiGui ?? this.tenNguoiGui,
-    lyDo: lyDo ?? this.lyDo,
-    phamViId: phamViId ?? this.phamViId,
-    phamViTen: phamViTen ?? this.phamViTen,
-    moTaViTri: moTaViTri ?? this.moTaViTri,
-    henTu: henTu ?? this.henTu,
-    henDen: henDen ?? this.henDen,
-    chiPhiDuKien: chiPhiDuKien ?? this.chiPhiDuKien,
-    chiPhiThucTe: chiPhiThucTe ?? this.chiPhiThucTe,
-    isMienPhi: isMienPhi ?? this.isMienPhi,
-    ghiChuBaoGia: ghiChuBaoGia ?? this.ghiChuBaoGia,
-    ketQuaXuLy: ketQuaXuLy ?? this.ketQuaXuLy,
-    lyDoHuy: lyDoHuy ?? this.lyDoHuy,
-    tenDoiTac: tenDoiTac ?? this.tenDoiTac,
-    nhanSuSuaChuas: nhanSuSuaChuas ?? this.nhanSuSuaChuas,
-    danhSachTep: danhSachTep ?? this.danhSachTep,
-  );
+        id: id ?? this.id,
+        canHoId: canHoId ?? this.canHoId,
+        tenCanHo: tenCanHo ?? this.tenCanHo,
+        tenTang: tenTang ?? this.tenTang,
+        tenToaNha: tenToaNha ?? this.tenToaNha,
+        trangThaiYeuCauId: trangThaiYeuCauId ?? this.trangThaiYeuCauId,
+        trangThaiYeuCauTen: trangThaiYeuCauTen ?? this.trangThaiYeuCauTen,
+        noiDung: noiDung ?? this.noiDung,
+        loaiSuCoId: loaiSuCoId ?? this.loaiSuCoId,
+        loaiSuCoTen: loaiSuCoTen ?? this.loaiSuCoTen,
+        trangThaiSuaChuaId: trangThaiSuaChuaId ?? this.trangThaiSuaChuaId,
+        trangThaiSuaChuaTen: trangThaiSuaChuaTen ?? this.trangThaiSuaChuaTen,
+        createdAt: createdAt ?? this.createdAt,
+        tenNguoiGui: tenNguoiGui ?? this.tenNguoiGui,
+        lyDo: lyDo ?? this.lyDo,
+        phamViId: phamViId ?? this.phamViId,
+        phamViTen: phamViTen ?? this.phamViTen,
+        moTaViTri: moTaViTri ?? this.moTaViTri,
+        henTu: henTu ?? this.henTu,
+        henDen: henDen ?? this.henDen,
+        chiPhiDuKien: chiPhiDuKien ?? this.chiPhiDuKien,
+        chiPhiThucTe: chiPhiThucTe ?? this.chiPhiThucTe,
+        isMienPhi: isMienPhi ?? this.isMienPhi,
+        ghiChuBaoGia: ghiChuBaoGia ?? this.ghiChuBaoGia,
+        ketQuaXuLy: ketQuaXuLy ?? this.ketQuaXuLy,
+        lyDoHuy: lyDoHuy ?? this.lyDoHuy,
+        tenDoiTac: tenDoiTac ?? this.tenDoiTac,
+        nhanSuSuaChuas: nhanSuSuaChuas ?? this.nhanSuSuaChuas,
+        danhSachTep: danhSachTep ?? this.danhSachTep,
+      );
 }
+
+// ── Request models ────────────────────────────────────────────────────────────
 
 class GetListYeuCauRequest {
   final int pageNumber;
@@ -461,17 +356,19 @@ class GetListYeuCauRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'pageNumber': pageNumber,
-    'pageSize': pageSize,
-    'sortCol': sortCol,
-    'isAsc': isAsc,
-    'canHoId': canHoId,
-    'trangThaiYeuCauId': trangThaiYeuCauId,
-    'trangThaiSuaChuaId': trangThaiSuaChuaId,
-    'loaiSuCoId': loaiSuCoId,
-    'ngayTaoTu': ngayTaoTu?.toUtc().toIso8601String(),
-    'ngayTaoDen': ngayTaoDen?.toUtc().toIso8601String(),
-  };
+        'pageNumber': pageNumber,
+        'pageSize': pageSize,
+        'sortCol': sortCol,
+        'isAsc': isAsc,
+        if (canHoId != null) 'canHoId': canHoId,
+        if (trangThaiYeuCauId != null) 'trangThaiYeuCauId': trangThaiYeuCauId,
+        if (trangThaiSuaChuaId != null)
+          'trangThaiSuaChuaId': trangThaiSuaChuaId,
+        if (loaiSuCoId != null) 'loaiSuCoId': loaiSuCoId,
+        if (ngayTaoTu != null) 'ngayTaoTu': ngayTaoTu!.toUtc().toIso8601String(),
+        if (ngayTaoDen != null)
+          'ngayTaoDen': ngayTaoDen!.toUtc().toIso8601String(),
+      };
 }
 
 class TaoYeuCauRequest {
@@ -494,14 +391,14 @@ class TaoYeuCauRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'canHoId': canHoId,
-    'phamViId': phamViId,
-    'loaiSuCoId': loaiSuCoId,
-    'noiDung': noiDung,
-    'moTaViTri': moTaViTri,
-    'danhSachTepIds': danhSachTepIds,
-    'isSubmit': isSubmit,
-  };
+        'canHoId': canHoId,
+        'phamViId': phamViId,
+        'loaiSuCoId': loaiSuCoId,
+        'noiDung': noiDung,
+        'moTaViTri': moTaViTri,
+        'danhSachTepIds': danhSachTepIds,
+        'isSubmit': isSubmit,
+      };
 }
 
 class CapNhatYeuCauRequest {
@@ -526,13 +423,13 @@ class CapNhatYeuCauRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'phamViId': phamViId,
-    'loaiSuCoId': loaiSuCoId,
-    'noiDung': noiDung,
-    'moTaViTri': moTaViTri,
-    'danhSachTepIds': danhSachTepIds,
-    'isSubmit': isSubmit,
-    'isWithdraw': isWithdraw,
-  };
+        'id': id,
+        'phamViId': phamViId,
+        'loaiSuCoId': loaiSuCoId,
+        'noiDung': noiDung,
+        'moTaViTri': moTaViTri,
+        'danhSachTepIds': danhSachTepIds,
+        'isSubmit': isSubmit,
+        'isWithdraw': isWithdraw,
+      };
 }

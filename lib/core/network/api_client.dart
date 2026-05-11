@@ -4,16 +4,21 @@
 //   import 'package:your_app/core/network/api_client.dart';
 //
 // Export ra ngoài: AppException · ErrorType · ErrorParser · ApiClient · ApiResponse
+// PagingInfo và PagedResult KHÔNG export từ đây — lấy qua model của feature.
+//
 // Dùng trong service:
 //   final result = await ApiClient.instance.post('/api/...', body: {...});
 //   final list   = result.list((e) => MyModel.fromJson(e));
 //   final item   = result.item(MyModel.fromJson);
+//   final paged  = result.pagedResult(MyModel.fromJson); // trả PagedResult<T> từ shared
 
 import 'package:dio/dio.dart';
 import 'api_interceptor.dart';
 
+import '../../features/shared/models/shared_models.dart';
+
 // ─────────────────────────────────────────────────────────────────────────────
-// ERROR LAYER  (thay thế thư mục errors/)
+// ERROR LAYER
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum ErrorType { network, unauthorized, validation, server, unknown }
@@ -109,7 +114,6 @@ class ErrorParser {
         }
       }
 
-      // 4. generic fallback
       return AppException(
         'Có lỗi xảy ra',
         type: _mapType(statusCode),
@@ -137,11 +141,10 @@ class ErrorParser {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API RESPONSE WRAPPER
-// Mọi service dùng chung một cách unwrap, không tự parse lại.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Bọc response đã kiểm tra `isOk` thành công.
-/// Service chỉ cần gọi `.item(...)` hoặc `.list(...)` để lấy dữ liệu.
+/// Service chỉ cần gọi `.item(...)`, `.list(...)`, hoặc `.pagedResult(...)`.
 class ApiResponse {
   final dynamic _result;
   final int? statusCode;
@@ -150,8 +153,7 @@ class ApiResponse {
 
   // ── Lấy một object ────────────────────────────────────────────────────────
 
-  /// Parse `result` thành một object.
-  /// Ném [AppException] nếu result null.
+  /// Parse `result` thành một object. Ném [AppException] nếu result null.
   T item<T>(T Function(Map<String, dynamic>) fromJson) {
     if (_result == null) {
       throw const AppException(
@@ -170,81 +172,27 @@ class ApiResponse {
 
   // ── Lấy danh sách ────────────────────────────────────────────────────────
 
-  /// Parse `result` (là một List) thành List< T >.
+  /// Parse `result` (là một List) thành `List<T>`.
   List<T> list<T>(T Function(Map<String, dynamic>) fromJson) {
     final raw = _result as List<dynamic>? ?? [];
     return raw.map((e) => fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  /// Parse `result.items` + `result.pagingInfo` thành PagedResult< T >.
-  /// Dùng cho các API get-list có phân trang.
+  /// Parse `result` thành [PagedResult<T>] từ shared models.
+  /// Dùng cho các API get-list có phân trang (result có `items` + `pagingInfo`).
+  ///
+  /// Ví dụ:
+  ///   final paged = result.pagedResult(HoaDon.fromJson);
+  ///   paged.items        // List< HoaDon >
+  ///   paged.hasNextPage  // bool
+  ///   paged.totalItems   // int
   PagedResult<T> pagedResult<T>(T Function(Map<String, dynamic>) fromJson) {
     final map = _result as Map<String, dynamic>;
     return PagedResult.fromJson(map, fromJson);
   }
 
-  /// Lấy raw result (khi kiểu dữ liệu không phải Map, ví dụ int / String).
+  /// Lấy raw result khi kiểu dữ liệu không phải Map (ví dụ: int / String / bool).
   T raw<T>() => _result as T;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGED RESULT  (dùng chung, không cần định nghĩa lại trong từng service)
-// ─────────────────────────────────────────────────────────────────────────────
-
-class PagingInfo {
-  final int pageNumber;
-  final int pageSize;
-  final int totalItems;
-
-  /// Có thể null nếu server không trả về (tính từ totalItems + pageSize).
-  final int? totalPages;
-
-  const PagingInfo({
-    required this.pageNumber,
-    required this.pageSize,
-    required this.totalItems,
-    this.totalPages,
-  });
-
-  factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-    pageNumber: json['pageNumber'] as int? ?? 1,
-    pageSize: json['pageSize'] as int? ?? 10,
-    totalItems: json['totalItems'] as int? ?? 0,
-    totalPages: json['totalPages'] as int?,
-  );
-
-  int get _effectiveTotalPages =>
-      totalPages ?? (pageSize > 0 ? (totalItems / pageSize).ceil() : 0);
-
-  /// Còn trang tiếp theo không (dùng khi server trả về totalPages).
-  bool get hasNextPage => pageNumber < _effectiveTotalPages;
-
-  /// Còn item chưa load không (dùng khi server không trả về totalPages).
-  bool get hasMore => pageNumber * pageSize < totalItems;
-}
-
-class PagedResult<T> {
-  final List<T> items;
-  final PagingInfo pagingInfo;
-
-  const PagedResult({required this.items, required this.pagingInfo});
-
-  factory PagedResult.fromJson(
-    Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
-    final rawItems = json['items'] as List<dynamic>? ?? [];
-    return PagedResult(
-      items: rawItems.map((e) => fromJson(e as Map<String, dynamic>)).toList(),
-      pagingInfo: PagingInfo.fromJson(
-        json['pagingInfo'] as Map<String, dynamic>? ?? {},
-      ),
-    );
-  }
-
-  bool get hasNextPage => pagingInfo.hasNextPage;
-  bool get hasMore => pagingInfo.hasMore;
-  int get totalItems => pagingInfo.totalItems;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -273,17 +221,22 @@ class ApiClient {
   Dio _createPlainDio() => Dio(_baseOptions());
 
   BaseOptions _baseOptions() => BaseOptions(
-    baseUrl: baseUrl,
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 30),
-    sendTimeout: const Duration(seconds: 30),
-    headers: {'Content-Type': 'application/json'},
-  );
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
+        headers: {'Content-Type': 'application/json'},
+      );
 
-  // ── Unified request helpers ───────────────────────────────────────────────
-  //
-  // Tất cả service dùng các method này thay vì tự gọi dio trực tiếp.
-  // Xử lý toàn bộ: DioException → AppException, isOk check, unwrap result.
+  // ── Request helpers ───────────────────────────────────────────────────────
+
+  Future<ApiResponse> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) => _execute(
+        () => dio.get(path, queryParameters: queryParameters, options: options),
+      );
 
   Future<ApiResponse> post(
     String path, {
@@ -306,12 +259,12 @@ class ApiClient {
   /// Upload multipart/form-data.
   /// Caller tự build [FormData], method này chỉ wrap error handling.
   Future<ApiResponse> postForm(String path, FormData formData) => _execute(
-    () => dio.post(
-      path,
-      data: formData,
-      options: Options(contentType: 'multipart/form-data'),
-    ),
-  );
+        () => dio.post(
+          path,
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        ),
+      );
 
   // ── Core executor ─────────────────────────────────────────────────────────
 
@@ -348,7 +301,7 @@ class ApiClient {
     }
 
     final map = data as Map<String, dynamic>;
-    final isOk = map['isOk'] as bool? ?? true; // nếu không có isOk → coi là ok
+    final isOk = map['isOk'] as bool? ?? true;
 
     if (!isOk) {
       throw ErrorParser.parse(map, statusCode: response.statusCode);
@@ -372,19 +325,19 @@ class ApiClient {
   }
 
   String _dioMessage(DioException e) => switch (e.type) {
-    DioExceptionType.connectionTimeout ||
-    DioExceptionType.sendTimeout ||
-    DioExceptionType.receiveTimeout =>
-      'Kết nối quá thời gian, vui lòng thử lại',
-    DioExceptionType.connectionError => 'Không có kết nối mạng',
-    _ => e.message ?? 'Có lỗi xảy ra',
-  };
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout =>
+          'Kết nối quá thời gian, vui lòng thử lại',
+        DioExceptionType.connectionError => 'Không có kết nối mạng',
+        _ => e.message ?? 'Có lỗi xảy ra',
+      };
 
   ErrorType _dioType(DioException e) => switch (e.type) {
-    DioExceptionType.connectionTimeout ||
-    DioExceptionType.sendTimeout ||
-    DioExceptionType.receiveTimeout ||
-    DioExceptionType.connectionError => ErrorType.network,
-    _ => ErrorType.unknown,
-  };
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout ||
+        DioExceptionType.connectionError => ErrorType.network,
+        _ => ErrorType.unknown,
+      };
 }

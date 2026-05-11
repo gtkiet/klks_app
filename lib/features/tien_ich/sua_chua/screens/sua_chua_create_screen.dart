@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../models/sua_chua_model.dart';
 import '../services/sua_chua_service.dart';
 
@@ -29,12 +28,12 @@ class _YeuCauCreateScreenState extends State<YeuCauCreateScreen> {
 
   // Form values
   QuanHeCuTruModel? _selectedCanHo;
-  CatalogItem? _selectedPhamVi;
-  CatalogItem? _selectedLoaiSuCo;
+  SelectorItem? _selectedPhamVi;
+  SelectorItem? _selectedLoaiSuCo;
 
   // Catalog data (load từ API)
-  List<CatalogItem> _dsPhamVi = [];
-  List<CatalogItem> _dsLoaiSuCo = [];
+  List<SelectorItem> _dsPhamVi = [];
+  List<SelectorItem> _dsLoaiSuCo = [];
 
   // Upload state
   // List<XFile> _selectedImages = [];
@@ -63,9 +62,9 @@ class _YeuCauCreateScreenState extends State<YeuCauCreateScreen> {
       ]);
 
       setState(() {
-        // _dsPhamVi = results[0] as List<CatalogItem>;
+        // _dsPhamVi = results[0] as List<SelectorItem>;
         _dsPhamVi = results[0];
-        // _dsLoaiSuCo = results[1] as List<CatalogItem>;
+        // _dsLoaiSuCo = results[1] as List<SelectorItem>;
         _dsLoaiSuCo = results[1];
         _isCatalogLoading = false;
       });
@@ -324,7 +323,7 @@ class _YeuCauCreateScreenState extends State<YeuCauCreateScreen> {
           const SizedBox(height: 16),
 
           // ── Phạm vi (từ catalog API) ───────────────────────────────────────
-          DropdownButtonFormField<CatalogItem>(
+          DropdownButtonFormField<SelectorItem>(
             initialValue: _selectedPhamVi,
             decoration: const InputDecoration(
               labelText: 'Phạm vi sửa chữa *',
@@ -339,7 +338,7 @@ class _YeuCauCreateScreenState extends State<YeuCauCreateScreen> {
           const SizedBox(height: 16),
 
           // ── Loại sự cố (từ catalog API) ───────────────────────────────────
-          DropdownButtonFormField<CatalogItem>(
+          DropdownButtonFormField<SelectorItem>(
             initialValue: _selectedLoaiSuCo,
             decoration: const InputDecoration(
               labelText: 'Loại sự cố *',

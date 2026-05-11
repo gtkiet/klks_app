@@ -1,6 +1,20 @@
 // lib/features/phan_anh/models/phan_anh_model.dart
+//
+// CÁCH DÙNG TRONG SERVICE:
+//   import 'package:your_app/features/phan_anh/models/phan_anh_model.dart';
+//   // FileAttachment, PagingInfo có sẵn qua re-export
 
-// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+export '../../shared/models/shared_models.dart';
+
+// Re-export QuanHeCuTruModel để service có thể lấy địa chỉ đầy đủ
+// thay vì chỉ dùng tenCanHo/tenTang/tenToaNha riêng lẻ.
+//
+// CÁCH DÙNG:
+//   final diaChi = quanHe.diaChiDayDu; // "$tenToaNha - $tenTang - $tenCanHo"
+export '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
+    show QuanHeCuTruModel;
+
+import '../../shared/models/shared_models.dart';
 
 class PhanAnhResponse {
   final int id;
@@ -33,42 +47,39 @@ class PhanAnhResponse {
     required this.tenNguoiGui,
   });
 
-  /// Label trạng thái rút gọn cho badge UI
   String get statusLabel => trangThaiPhanAnhTen;
 
-  factory PhanAnhResponse.fromJson(Map<String, dynamic> json) {
-    return PhanAnhResponse(
-      id: json['id'] as int,
-      canHoId: json['canHoId'] as int,
-      tenCanHo: json['tenCanHo'] as String? ?? '',
-      tieuDe: json['tieuDe'] as String? ?? '',
-      loaiPhanAnhId: json['loaiPhanAnhId'] as int,
-      loaiPhanAnhTen: json['loaiPhanAnhTen'] as String? ?? '',
-      trangThaiPhanAnhId: json['trangThaiPhanAnhId'] as int,
-      trangThaiPhanAnhTen: json['trangThaiPhanAnhTen'] as String? ?? '',
-      nguoiXuLyId: json['nguoiXuLyId'] as int?,
-      tenNguoiXuLy: json['tenNguoiXuLy'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      createdBy: json['createdBy'] as int,
-      tenNguoiGui: json['tenNguoiGui'] as String? ?? '',
-    );
-  }
+  factory PhanAnhResponse.fromJson(Map<String, dynamic> json) => PhanAnhResponse(
+        id: json['id'] as int,
+        canHoId: json['canHoId'] as int,
+        tenCanHo: json['tenCanHo'] as String? ?? '',
+        tieuDe: json['tieuDe'] as String? ?? '',
+        loaiPhanAnhId: json['loaiPhanAnhId'] as int,
+        loaiPhanAnhTen: json['loaiPhanAnhTen'] as String? ?? '',
+        trangThaiPhanAnhId: json['trangThaiPhanAnhId'] as int,
+        trangThaiPhanAnhTen: json['trangThaiPhanAnhTen'] as String? ?? '',
+        nguoiXuLyId: json['nguoiXuLyId'] as int?,
+        tenNguoiXuLy: json['tenNguoiXuLy'] as String?,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        createdBy: json['createdBy'] as int,
+        tenNguoiGui: json['tenNguoiGui'] as String? ?? '',
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'canHoId': canHoId,
-    'tenCanHo': tenCanHo,
-    'tieuDe': tieuDe,
-    'loaiPhanAnhId': loaiPhanAnhId,
-    'loaiPhanAnhTen': loaiPhanAnhTen,
-    'trangThaiPhanAnhId': trangThaiPhanAnhId,
-    'trangThaiPhanAnhTen': trangThaiPhanAnhTen,
-    'nguoiXuLyId': nguoiXuLyId,
-    'tenNguoiXuLy': tenNguoiXuLy,
-    'createdAt': createdAt.toIso8601String(),
-    'createdBy': createdBy,
-    'tenNguoiGui': tenNguoiGui,
-  };
+        'id': id,
+        'canHoId': canHoId,
+        'tenCanHo': tenCanHo,
+        'tieuDe': tieuDe,
+        'loaiPhanAnhId': loaiPhanAnhId,
+        'loaiPhanAnhTen': loaiPhanAnhTen,
+        'trangThaiPhanAnhId': trangThaiPhanAnhId,
+        'trangThaiPhanAnhTen': trangThaiPhanAnhTen,
+        'nguoiXuLyId': nguoiXuLyId,
+        'tenNguoiXuLy': tenNguoiXuLy,
+        'createdAt': createdAt.toIso8601String(),
+        'createdBy': createdBy,
+        'tenNguoiGui': tenNguoiGui,
+      };
 
   PhanAnhResponse copyWith({
     int? id,
@@ -84,26 +95,22 @@ class PhanAnhResponse {
     DateTime? createdAt,
     int? createdBy,
     String? tenNguoiGui,
-  }) {
-    return PhanAnhResponse(
-      id: id ?? this.id,
-      canHoId: canHoId ?? this.canHoId,
-      tenCanHo: tenCanHo ?? this.tenCanHo,
-      tieuDe: tieuDe ?? this.tieuDe,
-      loaiPhanAnhId: loaiPhanAnhId ?? this.loaiPhanAnhId,
-      loaiPhanAnhTen: loaiPhanAnhTen ?? this.loaiPhanAnhTen,
-      trangThaiPhanAnhId: trangThaiPhanAnhId ?? this.trangThaiPhanAnhId,
-      trangThaiPhanAnhTen: trangThaiPhanAnhTen ?? this.trangThaiPhanAnhTen,
-      nguoiXuLyId: nguoiXuLyId ?? this.nguoiXuLyId,
-      tenNguoiXuLy: tenNguoiXuLy ?? this.tenNguoiXuLy,
-      createdAt: createdAt ?? this.createdAt,
-      createdBy: createdBy ?? this.createdBy,
-      tenNguoiGui: tenNguoiGui ?? this.tenNguoiGui,
-    );
-  }
+  }) => PhanAnhResponse(
+        id: id ?? this.id,
+        canHoId: canHoId ?? this.canHoId,
+        tenCanHo: tenCanHo ?? this.tenCanHo,
+        tieuDe: tieuDe ?? this.tieuDe,
+        loaiPhanAnhId: loaiPhanAnhId ?? this.loaiPhanAnhId,
+        loaiPhanAnhTen: loaiPhanAnhTen ?? this.loaiPhanAnhTen,
+        trangThaiPhanAnhId: trangThaiPhanAnhId ?? this.trangThaiPhanAnhId,
+        trangThaiPhanAnhTen: trangThaiPhanAnhTen ?? this.trangThaiPhanAnhTen,
+        nguoiXuLyId: nguoiXuLyId ?? this.nguoiXuLyId,
+        tenNguoiXuLy: tenNguoiXuLy ?? this.tenNguoiXuLy,
+        createdAt: createdAt ?? this.createdAt,
+        createdBy: createdBy ?? this.createdBy,
+        tenNguoiGui: tenNguoiGui ?? this.tenNguoiGui,
+      );
 }
-
-// ---------------------------------------------------------------------------
 
 class TraLoiPhanAnh {
   final int id;
@@ -123,55 +130,23 @@ class TraLoiPhanAnh {
   });
 
   factory TraLoiPhanAnh.fromJson(Map<String, dynamic> json) => TraLoiPhanAnh(
-    id: json['id'] as int,
-    noiDung: json['noiDung'] as String? ?? '',
-    isNhanVien: json['isNhanVien'] as bool? ?? false,
-    createdBy: json['createdBy'] as int,
-    tenNguoiGui: json['tenNguoiGui'] as String? ?? '',
-    createdAt: DateTime.parse(json['createdAt'] as String),
-  );
+        id: json['id'] as int,
+        noiDung: json['noiDung'] as String? ?? '',
+        isNhanVien: json['isNhanVien'] as bool? ?? false,
+        createdBy: json['createdBy'] as int,
+        tenNguoiGui: json['tenNguoiGui'] as String? ?? '',
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'noiDung': noiDung,
-    'isNhanVien': isNhanVien,
-    'createdBy': createdBy,
-    'tenNguoiGui': tenNguoiGui,
-    'createdAt': createdAt.toIso8601String(),
-  };
+        'id': id,
+        'noiDung': noiDung,
+        'isNhanVien': isNhanVien,
+        'createdBy': createdBy,
+        'tenNguoiGui': tenNguoiGui,
+        'createdAt': createdAt.toIso8601String(),
+      };
 }
-
-// ---------------------------------------------------------------------------
-
-class TepDinhKem {
-  final int id;
-  final String fileUrl;
-  final String fileName;
-  final String? contentType;
-
-  const TepDinhKem({
-    required this.id,
-    required this.fileUrl,
-    required this.fileName,
-    this.contentType,
-  });
-
-  factory TepDinhKem.fromJson(Map<String, dynamic> json) => TepDinhKem(
-    id: json['id'] as int,
-    fileUrl: json['fileUrl'] as String? ?? '',
-    fileName: json['fileName'] as String? ?? '',
-    contentType: json['contentType'] as String?,
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'fileUrl': fileUrl,
-    'fileName': fileName,
-    'contentType': contentType,
-  };
-}
-
-// ---------------------------------------------------------------------------
 
 class PhanAnhDetailResponse extends PhanAnhResponse {
   final String? noiDung;
@@ -179,7 +154,9 @@ class PhanAnhDetailResponse extends PhanAnhResponse {
   final String? nhanXetDanhGia;
   final DateTime? ngayDanhGia;
   final List<TraLoiPhanAnh> traLoiPhanAnhs;
-  final List<TepDinhKem> danhSachTep;
+
+  /// File đính kèm — dùng [FileAttachment] từ shared
+  final List<FileAttachment> danhSachTep;
 
   const PhanAnhDetailResponse({
     required super.id,
@@ -203,60 +180,32 @@ class PhanAnhDetailResponse extends PhanAnhResponse {
     required this.danhSachTep,
   });
 
-  factory PhanAnhDetailResponse.fromJson(Map<String, dynamic> json) {
-    return PhanAnhDetailResponse(
-      id: json['id'] as int,
-      canHoId: json['canHoId'] as int,
-      tenCanHo: json['tenCanHo'] as String? ?? '',
-      tieuDe: json['tieuDe'] as String? ?? '',
-      loaiPhanAnhId: json['loaiPhanAnhId'] as int,
-      loaiPhanAnhTen: json['loaiPhanAnhTen'] as String? ?? '',
-      trangThaiPhanAnhId: json['trangThaiPhanAnhId'] as int,
-      trangThaiPhanAnhTen: json['trangThaiPhanAnhTen'] as String? ?? '',
-      nguoiXuLyId: json['nguoiXuLyId'] as int?,
-      tenNguoiXuLy: json['tenNguoiXuLy'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      createdBy: json['createdBy'] as int,
-      tenNguoiGui: json['tenNguoiGui'] as String? ?? '',
-      noiDung: json['noiDung'] as String?,
-      diemDanhGia: json['diemDanhGia'] as int?,
-      nhanXetDanhGia: json['nhanXetDanhGia'] as String?,
-      ngayDanhGia: json['ngayDanhGia'] != null
-          ? DateTime.parse(json['ngayDanhGia'] as String)
-          : null,
-      traLoiPhanAnhs: (json['traLoiPhanAnhs'] as List<dynamic>? ?? [])
-          .map((e) => TraLoiPhanAnh.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      danhSachTep: (json['danhSachTep'] as List<dynamic>? ?? [])
-          .map((e) => TepDinhKem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-  }
+  factory PhanAnhDetailResponse.fromJson(Map<String, dynamic> json) =>
+      PhanAnhDetailResponse(
+        id: json['id'] as int,
+        canHoId: json['canHoId'] as int,
+        tenCanHo: json['tenCanHo'] as String? ?? '',
+        tieuDe: json['tieuDe'] as String? ?? '',
+        loaiPhanAnhId: json['loaiPhanAnhId'] as int,
+        loaiPhanAnhTen: json['loaiPhanAnhTen'] as String? ?? '',
+        trangThaiPhanAnhId: json['trangThaiPhanAnhId'] as int,
+        trangThaiPhanAnhTen: json['trangThaiPhanAnhTen'] as String? ?? '',
+        nguoiXuLyId: json['nguoiXuLyId'] as int?,
+        tenNguoiXuLy: json['tenNguoiXuLy'] as String?,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        createdBy: json['createdBy'] as int,
+        tenNguoiGui: json['tenNguoiGui'] as String? ?? '',
+        noiDung: json['noiDung'] as String?,
+        diemDanhGia: json['diemDanhGia'] as int?,
+        nhanXetDanhGia: json['nhanXetDanhGia'] as String?,
+        ngayDanhGia: json['ngayDanhGia'] != null
+            ? DateTime.parse(json['ngayDanhGia'] as String)
+            : null,
+        traLoiPhanAnhs: (json['traLoiPhanAnhs'] as List<dynamic>? ?? [])
+            .map((e) => TraLoiPhanAnh.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        danhSachTep: (json['danhSachTep'] as List<dynamic>? ?? [])
+            .map((e) => FileAttachment.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 }
-
-// ---------------------------------------------------------------------------
-
-// class PagingInfo {
-//   final int pageSize;
-//   final int pageNumber;
-//   final int totalItems;
-
-//   const PagingInfo({
-//     required this.pageSize,
-//     required this.pageNumber,
-//     required this.totalItems,
-//   });
-
-//   factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-//     pageSize: json['pageSize'] as int,
-//     pageNumber: json['pageNumber'] as int,
-//     totalItems: json['totalItems'] as int,
-//   );
-// }
-
-// class PagedResult<T> {
-//   final List<T> items;
-//   final PagingInfo pagingInfo;
-
-//   const PagedResult({required this.items, required this.pagingInfo});
-// }

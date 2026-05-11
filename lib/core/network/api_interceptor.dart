@@ -7,7 +7,7 @@ import '../../features/auth/services/auth_service.dart';
 
 class ApiInterceptor extends Interceptor {
   final Dio dio;
-  final UserSession _session = UserSession();
+  final UserSession _session = UserSession.instance;
 
   ApiInterceptor(this.dio);
 
@@ -20,7 +20,7 @@ class ApiInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     if (options.extra['skipAuth'] == true) return handler.next(options);
-    final token = await _session.getAccessToken();
+    final token = _session.accessToken;
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -84,7 +84,7 @@ class ApiInterceptor extends Interceptor {
   }
 
   Future<Response> _retry(RequestOptions request) async {
-    final token = await _session.getAccessToken();
+    final token = _session.accessToken;
     return dio.request(
       request.path,
       data: request.data,

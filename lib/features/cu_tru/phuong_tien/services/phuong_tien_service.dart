@@ -6,8 +6,6 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_client.dart';
 
-import '../../quan_he/models/quan_he_cu_tru_model.dart';
-
 import '../models/phuong_tien_model.dart';
 
 class PhuongTienService {
@@ -52,9 +50,7 @@ class PhuongTienService {
     return res.item(YeuCauPhuongTien.fromJson);
   }
 
-  Future<YeuCauPhuongTien> taoYeuCau(
-    TaoYeuCauPhuongTienRequest request,
-  ) async {
+  Future<YeuCauPhuongTien> taoYeuCau(TaoYeuCauPhuongTienRequest request) async {
     final res = await _client.post(
       '/api/phuong-tien/yeu-cau',
       body: request.toJson(),
@@ -79,30 +75,33 @@ class PhuongTienService {
     );
   }
 
-  Future<List<UploadedFileModel>> uploadMedia({
+  // TODO: tạo shared service để upload file dùng chung cho tất cả các module
+  Future<List<UploadedFile>> uploadMedia({
     required List<File> files,
     required String targetContainer,
   }) async {
     final formData = FormData()
       ..fields.add(MapEntry('targetContainer', targetContainer));
     for (final file in files) {
-      formData.files.add(MapEntry(
-        'files',
-        await MultipartFile.fromFile(
-          file.path,
-          filename: file.path.split('/').last,
+      formData.files.add(
+        MapEntry(
+          'files',
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
         ),
-      ));
+      );
     }
     final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFileModel.fromJson);
+    return res.list(UploadedFile.fromJson);
   }
 
-  Future<List<SelectorItemModel>> getLoaiPhuongTienSelector() =>
+  Future<List<SelectorItem>> getLoaiPhuongTienSelector() =>
       _fetchSelector('/api/catalog/loai-phuong-tien-for-selector');
 
-  Future<List<SelectorItemModel>> _fetchSelector(String path) async {
+  Future<List<SelectorItem>> _fetchSelector(String path) async {
     final res = await _client.post(path);
-    return res.list(SelectorItemModel.fromJson);
+    return res.list(SelectorItem.fromJson);
   }
 }

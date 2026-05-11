@@ -11,7 +11,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../../quan_he/widgets/selector_field.dart';
 import '../../quan_he/widgets/shared_widget.dart';
 
@@ -90,8 +89,8 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
   final _noiDungCtrl = TextEditingController();
 
   DateTime? _dob;
-  SelectorItemModel? _gioiTinh;
-  SelectorItemModel? _loaiQuanHe;
+  SelectorItem? _gioiTinh;
+  SelectorItem? _loaiQuanHe;
 
   // ── Tài liệu ────────────────────────────────────────────────────────────
   final _taiLieuNotifier = ValueNotifier<List<TaiLieuCuTruRequest>>([]);
@@ -100,9 +99,9 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
   bool _isSubmitting = false;
 
   // ── Catalog futures ─────────────────────────────────────────────────────
-  late final Future<List<SelectorItemModel>> _gioiTinhFuture = _thanhVienSvc
+  late final Future<List<SelectorItem>> _gioiTinhFuture = _thanhVienSvc
       .getGioiTinhSelector();
-  late final Future<List<SelectorItemModel>> _loaiQuanHeFuture = _thanhVienSvc
+  late final Future<List<SelectorItem>> _loaiQuanHeFuture = _thanhVienSvc
       .getLoaiQuanHeCuTruSelector();
 
   // ── Computed helpers ────────────────────────────────────────────────────
@@ -206,10 +205,10 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
       _prefillFromCuDan(cuDan);
       setState(() {
         _cuDan = cuDan;
-        _gioiTinh = (results[1] as List<SelectorItemModel>)
+        _gioiTinh = (results[1] as List<SelectorItem>)
             .where((e) => e.id == cuDan.gioiTinhId)
             .firstOrNull;
-        _loaiQuanHe = (results[2] as List<SelectorItemModel>)
+        _loaiQuanHe = (results[2] as List<SelectorItem>)
             .where((e) => e.id == cuDan.loaiQuanHeCuTruId)
             .firstOrNull;
       });
@@ -231,10 +230,10 @@ class _YeuCauCuTruFormScreenState extends State<YeuCauCuTruFormScreen> {
       _prefillFromDraft(d);
       setState(() {
         _draftYeuCau = d;
-        _gioiTinh = (results[1] as List<SelectorItemModel>)
+        _gioiTinh = (results[1] as List<SelectorItem>)
             .where((e) => e.id == d.yeuCauGioiTinhId)
             .firstOrNull;
-        _loaiQuanHe = (results[2] as List<SelectorItemModel>)
+        _loaiQuanHe = (results[2] as List<SelectorItem>)
             .where((e) => e.id == d.yeuCauLoaiQuanHeId)
             .firstOrNull;
       });

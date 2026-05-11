@@ -1,4 +1,30 @@
 // lib/features/cu_tru/models/quan_he_cu_tru_model.dart
+//
+// Model quan hệ cư trú — dùng chung cho nhiều feature trong phạm vi cu_tru.
+//
+// ═══════════════════════════════════════════════════════════════════════
+// HƯỚNG DẪN SỬ DỤNG CROSS-FEATURE
+// ═══════════════════════════════════════════════════════════════════════
+//
+// File này re-export shared models để các service của feature cu_tru
+// không cần import thêm gì khác ngoài file này.
+//
+// Các feature NGOÀI cu_tru cần QuanHeCuTruModel:
+//   → KHÔNG import file này trực tiếp trong service.
+//   → Thêm re-export vào model của feature đó:
+//
+//     // Trong phuong_tien_model.dart:
+//     export '../../quan_he/models/quan_he_cu_tru_model.dart'
+//         show QuanHeCuTruModel;
+//
+//     // Sau đó service chỉ cần:
+//     import '../../phuong_tien/models/phuong_tien_model.dart';
+//     // QuanHeCuTruModel đã có qua re-export
+//
+// ═══════════════════════════════════════════════════════════════════════
+
+// Re-export shared models — service của feature cu_tru không cần import thêm.
+export '../../../shared/models/shared_models.dart';
 
 class QuanHeCuTruModel {
   final int quanHeCuTruId;
@@ -56,21 +82,21 @@ class QuanHeCuTruModel {
       );
 
   Map<String, dynamic> toJson() => {
-    'quanHeCuTruId': quanHeCuTruId,
-    'loaiQuanHeCuTruId': loaiQuanHeCuTruId,
-    'loaiQuanHeTen': loaiQuanHeTen,
-    'ngayBatDau': ngayBatDau?.toIso8601String(),
-    'toaNhaId': toaNhaId,
-    'maToaNha': maToaNha,
-    'tenToaNha': tenToaNha,
-    'tangId': tangId,
-    'maTang': maTang,
-    'tenTang': tenTang,
-    'canHoId': canHoId,
-    'maCanHo': maCanHo,
-    'tenCanHo': tenCanHo,
-    'tongCuDan': tongCuDan,
-  };
+        'quanHeCuTruId': quanHeCuTruId,
+        'loaiQuanHeCuTruId': loaiQuanHeCuTruId,
+        'loaiQuanHeTen': loaiQuanHeTen,
+        'ngayBatDau': ngayBatDau?.toIso8601String(),
+        'toaNhaId': toaNhaId,
+        'maToaNha': maToaNha,
+        'tenToaNha': tenToaNha,
+        'tangId': tangId,
+        'maTang': maTang,
+        'tenTang': tenTang,
+        'canHoId': canHoId,
+        'maCanHo': maCanHo,
+        'tenCanHo': tenCanHo,
+        'tongCuDan': tongCuDan,
+      };
 
   QuanHeCuTruModel copyWith({
     int? quanHeCuTruId,
@@ -88,105 +114,19 @@ class QuanHeCuTruModel {
     String? tenCanHo,
     int? tongCuDan,
   }) => QuanHeCuTruModel(
-    quanHeCuTruId: quanHeCuTruId ?? this.quanHeCuTruId,
-    loaiQuanHeCuTruId: loaiQuanHeCuTruId ?? this.loaiQuanHeCuTruId,
-    loaiQuanHeTen: loaiQuanHeTen ?? this.loaiQuanHeTen,
-    ngayBatDau: ngayBatDau ?? this.ngayBatDau,
-    toaNhaId: toaNhaId ?? this.toaNhaId,
-    maToaNha: maToaNha ?? this.maToaNha,
-    tenToaNha: tenToaNha ?? this.tenToaNha,
-    tangId: tangId ?? this.tangId,
-    maTang: maTang ?? this.maTang,
-    tenTang: tenTang ?? this.tenTang,
-    canHoId: canHoId ?? this.canHoId,
-    maCanHo: maCanHo ?? this.maCanHo,
-    tenCanHo: tenCanHo ?? this.tenCanHo,
-    tongCuDan: tongCuDan ?? this.tongCuDan,
-  );
-}
-
-
-class SelectorItemModel {
-  final int id;
-  final String name;
-
-  const SelectorItemModel({required this.id, required this.name});
-
-  factory SelectorItemModel.fromJson(Map<String, dynamic> json) =>
-      SelectorItemModel(
-        id: json['id'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
+        quanHeCuTruId: quanHeCuTruId ?? this.quanHeCuTruId,
+        loaiQuanHeCuTruId: loaiQuanHeCuTruId ?? this.loaiQuanHeCuTruId,
+        loaiQuanHeTen: loaiQuanHeTen ?? this.loaiQuanHeTen,
+        ngayBatDau: ngayBatDau ?? this.ngayBatDau,
+        toaNhaId: toaNhaId ?? this.toaNhaId,
+        maToaNha: maToaNha ?? this.maToaNha,
+        tenToaNha: tenToaNha ?? this.tenToaNha,
+        tangId: tangId ?? this.tangId,
+        maTang: maTang ?? this.maTang,
+        tenTang: tenTang ?? this.tenTang,
+        canHoId: canHoId ?? this.canHoId,
+        maCanHo: maCanHo ?? this.maCanHo,
+        tenCanHo: tenCanHo ?? this.tenCanHo,
+        tongCuDan: tongCuDan ?? this.tongCuDan,
       );
-
-  Map<String, dynamic> toJson() => {'id': id, 'name': name};
-
-  @override
-  bool operator ==(Object other) =>
-      other is SelectorItemModel && other.id == id;
-
-  @override
-  int get hashCode => id.hashCode;
-}
-
-
-class UploadedFileModel {
-  final int fileId;
-  final String fileName;
-  final String fileUrl;
-  final String contentType;
-
-  const UploadedFileModel({
-    required this.fileId,
-    required this.fileName,
-    required this.fileUrl,
-    required this.contentType,
-  });
-  
-  factory UploadedFileModel.fromJson(Map<String, dynamic> json) =>
-      UploadedFileModel(
-        fileId: json['fileId'] as int? ?? 0,
-        fileName: json['fileName'] as String? ?? '',
-        fileUrl: json['fileUrl'] as String? ?? '',
-        contentType: json['contentType'] as String? ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {
-    'fileId': fileId,
-    'fileName': fileName,
-    'fileUrl': fileUrl,
-    'contentType': contentType,
-  };
-  
-  UploadedFileModel copyWith({
-    int? fileId,
-    String? fileName,
-    String? fileUrl,
-    String? contentType,
-  }) => UploadedFileModel(
-    fileId: fileId ?? this.fileId,
-    fileName: fileName ?? this.fileName,
-    fileUrl: fileUrl ?? this.fileUrl,
-    contentType: contentType ?? this.contentType,
-  );
-
-  // factory UploadedFileModel.fromJson(Map<String, dynamic> json) {
-  //   final fileId = (json['fileId'] as int?) ?? (json['id'] as int?) ?? 0;
-
-  //   return UploadedFileModel(
-  //     fileId: fileId,
-  //     fileName: json['fileName'] as String? ?? '',
-  //     fileUrl: json['fileUrl'] as String? ?? '',
-  //     contentType: json['contentType'] as String? ?? '',
-  //   );
-  // }
-
-  // Map<String, dynamic> toJson() => {
-  //   'fileId': fileId,
-  //   'fileName': fileName,
-  //   'fileUrl': fileUrl,
-  //   'contentType': contentType,
-  // };
-
-  bool get isImage => contentType.startsWith('image/');
-  bool get isPdf => contentType == 'application/pdf';
 }

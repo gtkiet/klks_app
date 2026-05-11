@@ -1,29 +1,12 @@
 // lib/features/hoa_don/models/hoa_don_model.dart
+//
+// CÁCH DÙNG TRONG SERVICE:
+//   import 'package:your_app/features/hoa_don/models/hoa_don_model.dart';
+//   // PagingInfo, PagedResult có sẵn qua re-export
 
-// ─── PAGING ───────────────────────────────────────────────────────────────────
+export '../../shared/models/shared_models.dart';
 
-class PagingInfo {
-  final int pageSize;
-  final int pageNumber;
-  final int totalItems;
-
-  const PagingInfo({
-    required this.pageSize,
-    required this.pageNumber,
-    required this.totalItems,
-  });
-
-  factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-    pageSize: json['pageSize'] ?? 0,
-    pageNumber: json['pageNumber'] ?? 0,
-    totalItems: json['totalItems'] ?? 0,
-  );
-
-  int get totalPages => pageSize == 0 ? 0 : (totalItems / pageSize).ceil();
-  bool get hasNextPage => pageNumber < totalPages;
-}
-
-// ─── HOA DON (LIST ITEM) ──────────────────────────────────────────────────────
+// ── Hóa đơn (list item) ───────────────────────────────────────────────────────
 
 class HoaDon {
   final int id;
@@ -51,24 +34,26 @@ class HoaDon {
   });
 
   factory HoaDon.fromJson(Map<String, dynamic> json) => HoaDon(
-    id: json['id'] ?? 0,
-    canHoId: json['canHoId'] ?? 0,
-    maHoaDon: json['maHoaDon'] ?? '',
-    thang: json['thang'] ?? 0,
-    nam: json['nam'] ?? 0,
-    ngayLap: DateTime.tryParse(json['ngayLap'] ?? '') ?? DateTime.now(),
-    ngayHanThanhToan:
-        DateTime.tryParse(json['ngayHanThanhToan'] ?? '') ?? DateTime.now(),
-    tongTien: (json['tongTien'] ?? 0).toDouble(),
-    trangThaiHoaDonId: json['trangThaiHoaDonId'] ?? 0,
-    trangThaiHoaDonTen: json['trangThaiHoaDonTen'] ?? '',
-  );
+        id: json['id'] as int? ?? 0,
+        canHoId: json['canHoId'] as int? ?? 0,
+        maHoaDon: json['maHoaDon'] as String? ?? '',
+        thang: json['thang'] as int? ?? 0,
+        nam: json['nam'] as int? ?? 0,
+        ngayLap:
+            DateTime.tryParse(json['ngayLap'] as String? ?? '') ?? DateTime.now(),
+        ngayHanThanhToan:
+            DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
+                DateTime.now(),
+        tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
+        trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
+        trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
+      );
 
-  // Getters tiện ích
   bool get laDaThanhToan => trangThaiHoaDonId == 3;
   bool get laQuaHan => trangThaiHoaDonId == 4;
   bool get laChuaThanhToan => trangThaiHoaDonId == 2;
-  bool get laCoTheThanhToan => trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
+  bool get laCoTheThanhToan =>
+      trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
 
   bool get sapHetHan {
     final soNgayConLai = ngayHanThanhToan.difference(DateTime.now()).inDays;
@@ -78,24 +63,7 @@ class HoaDon {
   String get kyThanhToan => 'Tháng $thang/$nam';
 }
 
-class HoaDonListResult {
-  final List<HoaDon> items;
-  final PagingInfo pagingInfo;
-
-  const HoaDonListResult({required this.items, required this.pagingInfo});
-
-  factory HoaDonListResult.fromJson(Map<String, dynamic> json) =>
-      HoaDonListResult(
-        items: (json['items'] as List<dynamic>? ?? [])
-            .map((e) => HoaDon.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        pagingInfo: PagingInfo.fromJson(
-          json['pagingInfo'] as Map<String, dynamic>? ?? {},
-        ),
-      );
-}
-
-// ─── CHI TIET HOA DON (LINE ITEM) ────────────────────────────────────────────
+// ── Chi tiết hóa đơn ─────────────────────────────────────────────────────────
 
 class ChiTietHoaDon {
   final int id;
@@ -123,17 +91,17 @@ class ChiTietHoaDon {
   });
 
   factory ChiTietHoaDon.fromJson(Map<String, dynamic> json) => ChiTietHoaDon(
-    id: json['id'] ?? 0,
-    loaiChiTietHoaDonId: json['loaiChiTietHoaDonId'] ?? 0,
-    loaiChiTietHoaDonTen: json['loaiChiTietHoaDonTen'] ?? '',
-    tenMucPhi: json['tenMucPhi'] ?? '',
-    soLuong: (json['soLuong'] ?? 0).toDouble(),
-    donGia: (json['donGia'] ?? 0).toDouble(),
-    thanhTien: (json['thanhTien'] ?? 0).toDouble(),
-    loaiDinhGiaId: json['loaiDinhGiaId'] ?? 0,
-    loaiDinhGiaTen: json['loaiDinhGiaTen'] ?? '',
-    ghiChu: json['ghiChu'] ?? '',
-  );
+        id: json['id'] as int? ?? 0,
+        loaiChiTietHoaDonId: json['loaiChiTietHoaDonId'] as int? ?? 0,
+        loaiChiTietHoaDonTen: json['loaiChiTietHoaDonTen'] as String? ?? '',
+        tenMucPhi: json['tenMucPhi'] as String? ?? '',
+        soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
+        donGia: (json['donGia'] as num? ?? 0).toDouble(),
+        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+        loaiDinhGiaId: json['loaiDinhGiaId'] as int? ?? 0,
+        loaiDinhGiaTen: json['loaiDinhGiaTen'] as String? ?? '',
+        ghiChu: json['ghiChu'] as String? ?? '',
+      );
 
   // loaiDinhGiaId: 1=Cố định, 2=Lũy tiến, 3=Diện tích, 4=Khung giờ
   bool get laLuyTien => loaiDinhGiaId == 2;
@@ -141,8 +109,6 @@ class ChiTietHoaDon {
   bool get laDienTich => loaiDinhGiaId == 3;
   bool get laKhungGio => loaiDinhGiaId == 4;
 }
-
-// ─── HOA DON DETAIL ───────────────────────────────────────────────────────────
 
 class HoaDonDetail {
   final int id;
@@ -174,29 +140,32 @@ class HoaDonDetail {
   });
 
   factory HoaDonDetail.fromJson(Map<String, dynamic> json) => HoaDonDetail(
-    id: json['id'] ?? 0,
-    canHoId: json['canHoId'] ?? 0,
-    maHoaDon: json['maHoaDon'] ?? '',
-    thang: json['thang'] ?? 0,
-    nam: json['nam'] ?? 0,
-    ngayLap: DateTime.tryParse(json['ngayLap'] ?? '') ?? DateTime.now(),
-    ngayHanThanhToan:
-        DateTime.tryParse(json['ngayHanThanhToan'] ?? '') ?? DateTime.now(),
-    tongTien: (json['tongTien'] ?? 0).toDouble(),
-    trangThaiHoaDonId: json['trangThaiHoaDonId'] ?? 0,
-    trangThaiHoaDonTen: json['trangThaiHoaDonTen'] ?? '',
-    ghiChu: json['ghiChu'] ?? '',
-    chiTietHoaDons: (json['chiTietHoaDons'] as List<dynamic>? ?? [])
-        .map((e) => ChiTietHoaDon.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
+        id: json['id'] as int? ?? 0,
+        canHoId: json['canHoId'] as int? ?? 0,
+        maHoaDon: json['maHoaDon'] as String? ?? '',
+        thang: json['thang'] as int? ?? 0,
+        nam: json['nam'] as int? ?? 0,
+        ngayLap:
+            DateTime.tryParse(json['ngayLap'] as String? ?? '') ?? DateTime.now(),
+        ngayHanThanhToan:
+            DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
+                DateTime.now(),
+        tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
+        trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
+        trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
+        ghiChu: json['ghiChu'] as String? ?? '',
+        chiTietHoaDons: (json['chiTietHoaDons'] as List<dynamic>? ?? [])
+            .map((e) => ChiTietHoaDon.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 
-  bool get laCoTheThanhToan => trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
+  bool get laCoTheThanhToan =>
+      trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
   bool get laDaThanhToan => trangThaiHoaDonId == 3;
   String get kyThanhToan => 'Tháng $thang/$nam';
 }
 
-// ─── CHI TIET CO DINH ─────────────────────────────────────────────────────────
+// ── Chi tiết cố định ──────────────────────────────────────────────────────────
 
 class ChiTietCoDinh {
   final int id;
@@ -216,16 +185,16 @@ class ChiTietCoDinh {
   });
 
   factory ChiTietCoDinh.fromJson(Map<String, dynamic> json) => ChiTietCoDinh(
-    id: json['id'] ?? 0,
-    tenMucPhi: json['tenMucPhi'] ?? '',
-    soLuong: (json['soLuong'] ?? 0).toDouble(),
-    donGia: (json['donGia'] ?? 0).toDouble(),
-    thanhTien: (json['thanhTien'] ?? 0).toDouble(),
-    ghiChu: json['ghiChu'] ?? '',
-  );
+        id: json['id'] as int? ?? 0,
+        tenMucPhi: json['tenMucPhi'] as String? ?? '',
+        soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
+        donGia: (json['donGia'] as num? ?? 0).toDouble(),
+        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+        ghiChu: json['ghiChu'] as String? ?? '',
+      );
 }
 
-// ─── CHI TIET LUY TIEN ────────────────────────────────────────────────────────
+// ── Chi tiết lũy tiến ────────────────────────────────────────────────────────
 
 class BacThang {
   final String tenBac;
@@ -245,13 +214,13 @@ class BacThang {
   });
 
   factory BacThang.fromJson(Map<String, dynamic> json) => BacThang(
-    tenBac: json['tenBac'] ?? '',
-    tuSo: (json['tuSo'] ?? 0).toDouble(),
-    denSo: (json['denSo'] ?? 0).toDouble(),
-    soLuong: (json['soLuong'] ?? 0).toDouble(),
-    donGia: (json['donGia'] ?? 0).toDouble(),
-    thanhTien: (json['thanhTien'] ?? 0).toDouble(),
-  );
+        tenBac: json['tenBac'] as String? ?? '',
+        tuSo: (json['tuSo'] as num? ?? 0).toDouble(),
+        denSo: (json['denSo'] as num? ?? 0).toDouble(),
+        soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
+        donGia: (json['donGia'] as num? ?? 0).toDouble(),
+        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+      );
 }
 
 class ChiTietLuyTien {
@@ -276,20 +245,20 @@ class ChiTietLuyTien {
   });
 
   factory ChiTietLuyTien.fromJson(Map<String, dynamic> json) => ChiTietLuyTien(
-    id: json['id'] ?? 0,
-    tenMucPhi: json['tenMucPhi'] ?? '',
-    chiSoCu: (json['chiSoCu'] ?? 0).toDouble(),
-    chiSoMoi: (json['chiSoMoi'] ?? 0).toDouble(),
-    soLuongTieuThu: (json['soLuongTieuThu'] ?? 0).toDouble(),
-    thanhTien: (json['thanhTien'] ?? 0).toDouble(),
-    anhDongHoUrl: json['anhDongHoUrl'] ?? '',
-    bacThang: (json['bacThang'] as List<dynamic>? ?? [])
-        .map((e) => BacThang.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
+        id: json['id'] as int? ?? 0,
+        tenMucPhi: json['tenMucPhi'] as String? ?? '',
+        chiSoCu: (json['chiSoCu'] as num? ?? 0).toDouble(),
+        chiSoMoi: (json['chiSoMoi'] as num? ?? 0).toDouble(),
+        soLuongTieuThu: (json['soLuongTieuThu'] as num? ?? 0).toDouble(),
+        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+        anhDongHoUrl: json['anhDongHoUrl'] as String? ?? '',
+        bacThang: (json['bacThang'] as List<dynamic>? ?? [])
+            .map((e) => BacThang.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 }
 
-// ─── CHI TIET DIEN TICH ───────────────────────────────────────────────────────
+// ── Chi tiết diện tích ────────────────────────────────────────────────────────
 
 class ChiTietDienTich {
   final int id;
@@ -310,43 +279,43 @@ class ChiTietDienTich {
 
   factory ChiTietDienTich.fromJson(Map<String, dynamic> json) =>
       ChiTietDienTich(
-        id: json['id'] ?? 0,
-        tenMucPhi: json['tenMucPhi'] ?? '',
-        tenLoaiCanHo: json['tenLoaiCanHo'] ?? '',
-        dienTich: (json['dienTich'] ?? 0).toDouble(),
-        donGia: (json['donGia'] ?? 0).toDouble(),
-        thanhTien: (json['thanhTien'] ?? 0).toDouble(),
+        id: json['id'] as int? ?? 0,
+        tenMucPhi: json['tenMucPhi'] as String? ?? '',
+        tenLoaiCanHo: json['tenLoaiCanHo'] as String? ?? '',
+        dienTich: (json['dienTich'] as num? ?? 0).toDouble(),
+        donGia: (json['donGia'] as num? ?? 0).toDouble(),
+        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
       );
 }
 
-// ─── CHI TIET KHUNG GIO ───────────────────────────────────────────────────────
+// ── Chi tiết khung giờ ────────────────────────────────────────────────────────
 
-class KhungGio {
+class KhungGioHoaDon {
   final String tenKhungGio;
   final String gioBatDau;
   final String gioKetThuc;
   final double donGia;
 
-  const KhungGio({
+  const KhungGioHoaDon({
     required this.tenKhungGio,
     required this.gioBatDau,
     required this.gioKetThuc,
     required this.donGia,
   });
 
-  factory KhungGio.fromJson(Map<String, dynamic> json) => KhungGio(
-    tenKhungGio: json['tenKhungGio'] ?? '',
-    gioBatDau: json['gioBatDau'] ?? '',
-    gioKetThuc: json['gioKetThuc'] ?? '',
-    donGia: (json['donGia'] ?? 0).toDouble(),
-  );
+  factory KhungGioHoaDon.fromJson(Map<String, dynamic> json) => KhungGioHoaDon(
+        tenKhungGio: json['tenKhungGio'] as String? ?? '',
+        gioBatDau: json['gioBatDau'] as String? ?? '',
+        gioKetThuc: json['gioKetThuc'] as String? ?? '',
+        donGia: (json['donGia'] as num? ?? 0).toDouble(),
+      );
 }
 
 class ChiTietKhungGio {
   final int id;
   final String tenMucPhi;
   final double thanhTien;
-  final List<KhungGio> khungGios;
+  final List<KhungGioHoaDon> khungGios;
 
   const ChiTietKhungGio({
     required this.id,
@@ -357,16 +326,16 @@ class ChiTietKhungGio {
 
   factory ChiTietKhungGio.fromJson(Map<String, dynamic> json) =>
       ChiTietKhungGio(
-        id: json['id'] ?? 0,
-        tenMucPhi: json['tenMucPhi'] ?? '',
-        thanhTien: (json['thanhTien'] ?? 0).toDouble(),
+        id: json['id'] as int? ?? 0,
+        tenMucPhi: json['tenMucPhi'] as String? ?? '',
+        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
         khungGios: (json['khungGios'] as List<dynamic>? ?? [])
-            .map((e) => KhungGio.fromJson(e as Map<String, dynamic>))
+            .map((e) => KhungGioHoaDon.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 }
 
-// ─── THANH TOAN ───────────────────────────────────────────────────────────────
+// ── Thanh toán ────────────────────────────────────────────────────────────────
 
 class PhienThanhToan {
   final String maThanhToan;
@@ -380,8 +349,8 @@ class PhienThanhToan {
   });
 
   factory PhienThanhToan.fromJson(Map<String, dynamic> json) => PhienThanhToan(
-    maThanhToan: json['maThanhToan'] ?? '',
-    soTien: (json['soTien'] ?? 0).toDouble(),
-    vietQrUrl: json['vietQrUrl'] ?? '',
-  );
+        maThanhToan: json['maThanhToan'] as String? ?? '',
+        soTien: (json['soTien'] as num? ?? 0).toDouble(),
+        vietQrUrl: json['vietQrUrl'] as String? ?? '',
+      );
 }

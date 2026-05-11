@@ -17,7 +17,7 @@ import '../models/sua_chua_model.dart';
 /// );
 /// ```
 class FullScreenImageViewer extends StatefulWidget {
-  final List<DanhSachTep> files;
+  final List<FileAttachment> files;
   final int initialIndex;
 
   const FullScreenImageViewer({
@@ -29,7 +29,7 @@ class FullScreenImageViewer extends StatefulWidget {
   /// Convenience: push route
   static void show(
     BuildContext context, {
-    required List<DanhSachTep> files,
+    required List<FileAttachment> files,
     int initialIndex = 0,
   }) {
     Navigator.of(context).push(
@@ -127,7 +127,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                file.fileName ?? 'Ảnh ${_currentIndex + 1}',
+                                file.fileName,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,

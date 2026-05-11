@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 
 import '../services/phuong_tien_service.dart';
 
-import '../../quan_he/models/quan_he_cu_tru_model.dart';
 
 import '../models/phuong_tien_model.dart';
 

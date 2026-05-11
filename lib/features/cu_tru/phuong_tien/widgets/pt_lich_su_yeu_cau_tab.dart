@@ -10,7 +10,6 @@ import 'package:go_router/go_router.dart';
 import '../models/phuong_tien_model.dart';
 import '../screens/yeu_cau_phuong_tien_detail_screen.dart';
 
-import '../../quan_he/models/quan_he_cu_tru_model.dart';
 import '../services/phuong_tien_service.dart';
 
 class LichSuYeuCauPhuongTienTab extends StatefulWidget {

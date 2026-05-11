@@ -24,7 +24,7 @@ class _YeuCauThiCongDetailScreenState extends State<YeuCauThiCongDetailScreen> {
   final _service = YeuCauThiCongService.instance;
   final _cuTruService = CuTruService.instance;
 
-  YeuCauThiCongDetailModel? _detail;
+  YeuCauThiCongDetail? _detail;
   bool _isLoading = false;
   bool _isActioning = false;
   String? _errorMessage;
@@ -312,7 +312,7 @@ class _YeuCauThiCongDetailScreenState extends State<YeuCauThiCongDetailScreen> {
     );
   }
 
-  Widget _buildNhanSuRow(NhanSuThiCongModel ns) {
+  Widget _buildNhanSuRow(NhanSuThiCong ns) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -361,33 +361,33 @@ class _YeuCauThiCongDetailScreenState extends State<YeuCauThiCongDetailScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _StatusBanner extends StatelessWidget {
-  final YeuCauThiCongDetailModel detail;
+  final YeuCauThiCongDetail detail;
   const _StatusBanner({required this.detail});
 
   _StatusStyle get _style {
     switch (detail.trangThaiYeuCauId) {
-      case TrangThaiYeuCauConst.daLuu:
+      case TrangThaiYeuCau.saved:
         return _StatusStyle(color: Colors.grey, icon: Icons.drafts_outlined);
-      case TrangThaiYeuCauConst.dangChoDuyet:
+      case TrangThaiYeuCau.pending:
         return _StatusStyle(color: Colors.orange, icon: Icons.hourglass_top);
-      case TrangThaiYeuCauConst.daDuyet:
+      case TrangThaiYeuCau.approved:
         return _StatusStyle(
           color: Colors.blue,
           icon: Icons.check_circle_outline,
         );
-      case TrangThaiYeuCauConst.yeuCauBoSung:
+      case TrangThaiYeuCau.returned:
         return _StatusStyle(
           color: Colors.amber.shade700,
           icon: Icons.assignment_return_outlined,
           hint: 'Vui lòng bổ sung thông tin và gửi lại',
         );
-      case TrangThaiYeuCauConst.hoanTat:
+      case TrangThaiYeuCau.completed:
         return _StatusStyle(color: Colors.green, icon: Icons.task_alt);
-      case TrangThaiYeuCauConst.daThuHoi:
-      case TrangThaiYeuCauConst.hetHieuLuc:
+      case TrangThaiYeuCau.withdrawn:
+      case TrangThaiYeuCau.expired:
         return _StatusStyle(color: Colors.grey, icon: Icons.undo);
-      case TrangThaiYeuCauConst.tuChoi:
-      case TrangThaiYeuCauConst.daHuy:
+      case TrangThaiYeuCau.rejected:
+      case TrangThaiYeuCau.cancelled:
         return _StatusStyle(color: Colors.red, icon: Icons.cancel_outlined);
       default:
         return _StatusStyle(color: Colors.grey, icon: Icons.help_outline);
@@ -506,7 +506,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _TepTile extends StatelessWidget {
-  final TepDinhKemModel tep;
+  final FileAttachment tep;
   const _TepTile({required this.tep});
 
   @override

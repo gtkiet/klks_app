@@ -13,7 +13,7 @@ class AuthService {
   static final AuthService instance = AuthService._();
 
   static final _client = ApiClient.instance;
-  final _session = UserSession();
+  final _session = UserSession.instance;
 
   // ── LOGIN ─────────────────────────────────────────────────────────────────
 
@@ -21,8 +21,12 @@ class AuthService {
     required String username,
     required String password,
   }) async {
-    if (username.trim().isEmpty) throw const AppException('Vui lòng nhập username');
-    if (password.trim().isEmpty) throw const AppException('Vui lòng nhập password');
+    if (username.trim().isEmpty) {
+      throw const AppException('Vui lòng nhập username');
+    }
+    if (password.trim().isEmpty) {
+      throw const AppException('Vui lòng nhập password');
+    }
 
     final res = await _client.post(
       '/api/auth/login',
@@ -34,20 +38,10 @@ class AuthService {
       throw const AppException('Token không hợp lệ');
     }
 
-    await _session.saveTokens(
-      accessToken: user.accessToken,
-      refreshToken: user.refreshToken,
-    );
-    await _session.saveProfile(
-      userId: user.userId.toString(),
-      accountId: user.accountId.toString(),
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      anhDaiDienUrl: user.anhDaiDienUrl,
-    );
+    await _session.save(user);
+
     unawaited(ThongBaoHubService.instance.connect());
+
     return user;
   }
 
@@ -66,11 +60,9 @@ class AuthService {
         'confirmPassword': confirmPassword.trim(),
       },
     );
+
     final user = res.item(UserModel.fromJson);
-    await _session.saveTokens(
-      accessToken: user.accessToken,
-      refreshToken: user.refreshToken,
-    );
+
     return user;
   }
 
@@ -82,15 +74,13 @@ class AuthService {
       await ApiClient.instance.plainDio.post(
         '/api/auth/logout',
         options: Options(
-          headers: {
-            'Authorization': 'Bearer ${await _session.getAccessToken() ?? ''}',
-          },
+          headers: {'Authorization': 'Bearer ${_session.accessToken ?? ''}'},
         ),
       );
     } catch (_) {
       // Bỏ qua lỗi logout — luôn xoá session
     } finally {
-      await _session.clearSession();
+      await _session.clear();
       await ThongBaoHubService.instance.disconnect();
     }
   }
@@ -98,7 +88,9 @@ class AuthService {
   // ── FORGOT PASSWORD ───────────────────────────────────────────────────────
 
   Future<String> forgotPassword({required String username}) async {
-    if (username.trim().isEmpty) throw const AppException('Vui lòng nhập username');
+    if (username.trim().isEmpty) {
+      throw const AppException('Vui lòng nhập username');
+    }
 
     final res = await _client.post(
       '/api/auth/forgot-password',
@@ -135,7 +127,7 @@ class AuthService {
 
   Future<String?> refreshToken({String? refreshToken}) async {
     try {
-      final token = refreshToken ?? await _session.getRefreshToken();
+      final token = refreshToken ?? _session.refreshToken;
       if (token == null || token.isEmpty) return null;
 
       // plainDio — không qua interceptor để tránh vòng lặp 401
@@ -143,22 +135,18 @@ class AuthService {
         '/api/auth/refresh-token',
         data: {'refreshToken': token},
       );
-      final data = response.data as Map<String, dynamic>?;
-      if (data == null || data['isOk'] != true || data['result'] == null) {
-        return null;
+
+      final user = response.data(UserModel.fromJson);
+
+      if (user.accessToken.isEmpty || user.refreshToken.isEmpty) {
+        throw const AppException('Token không hợp lệ');
       }
 
-      final result = data['result'] as Map<String, dynamic>;
-      final newAccess = result['accessToken'] as String?;
-      final newRefresh = result['refreshToken'] as String?;
-      if (newAccess == null || newRefresh == null) return null;
+      await _session.save(user);
 
-      await _session.saveTokens(
-        accessToken: newAccess,
-        refreshToken: newRefresh,
-      );
       unawaited(ThongBaoHubService.instance.connect());
-      return newAccess;
+
+      return user;
     } catch (_) {
       return null;
     }

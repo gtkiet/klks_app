@@ -253,7 +253,7 @@ class _DocumentItem extends StatelessWidget {
 }
 
 class _FileChip extends StatelessWidget {
-  final TaiLieuFileModel file;
+  final FileAttachment file;
   const _FileChip({required this.file});
 
   Future<void> _openFile(BuildContext context) async {

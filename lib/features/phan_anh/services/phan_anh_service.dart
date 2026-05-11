@@ -6,7 +6,6 @@ import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
 
-import '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../../cu_tru/quan_he/services/cu_tru_service.dart';
 
 import '../models/phan_anh_model.dart';
@@ -152,7 +151,7 @@ class PhanAnhService {
     return res.item(PhanAnhResponse.fromJson);
   }
 
-  Future<List<UploadedFileModel>> uploadFiles({
+  Future<List<UploadedFile>> uploadFiles({
     required List<File> files,
     String targetContainer = 'yeu-cau-phan-anh',
   }) async {
@@ -170,6 +169,6 @@ class PhanAnhService {
       );
     }
     final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFileModel.fromJson);
+    return res.list(UploadedFile.fromJson);
   }
 }

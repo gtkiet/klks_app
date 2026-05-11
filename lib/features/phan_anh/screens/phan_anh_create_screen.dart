@@ -5,8 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
-
 import '../models/phan_anh_model.dart';
 import '../services/phan_anh_service.dart';
 
@@ -44,7 +42,7 @@ class _PhanAnhCreateScreenState extends State<PhanAnhCreateScreen> {
 
   late int _selectedLoaiId;
 
-  final List<UploadedFileModel> _uploadedFiles = [];
+  final List<UploadedFile> _uploadedFiles = [];
   List<int> existingTepIds = [];
 
   // Image upload (ảnh hiện trường)

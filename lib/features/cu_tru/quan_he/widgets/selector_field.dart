@@ -9,22 +9,22 @@ class AppSelectorField extends StatefulWidget {
   final String? hint;
 
   /// Truyền trực tiếp nếu data đã có sẵn.
-  final List<SelectorItemModel>? items;
+  final List<SelectorItem>? items;
 
   /// Truyền Future nếu widget cần tự load từ API.
-  final Future<List<SelectorItemModel>>? itemsFuture;
+  final Future<List<SelectorItem>>? itemsFuture;
 
   /// Danh sách item đang được chọn (controlled từ bên ngoài).
-  final List<SelectorItemModel> selectedItems;
+  final List<SelectorItem> selectedItems;
 
   /// true = cho phép chọn nhiều.
   final bool isMultiple;
 
   /// Callback khi có thay đổi — trả toàn bộ list đang chọn.
-  final void Function(List<SelectorItemModel> selected)? onChanged;
+  final void Function(List<SelectorItem> selected)? onChanged;
 
   /// Callback tiện cho single-select — trả item hoặc null khi bỏ chọn.
-  final void Function(SelectorItemModel? item)? onChangedSingle;
+  final void Function(SelectorItem? item)? onChangedSingle;
 
   final bool isRequired;
   final bool enabled;
@@ -51,7 +51,7 @@ class AppSelectorField extends StatefulWidget {
     super.key,
     required this.label,
     this.hint,
-    required Future<List<SelectorItemModel>> future,
+    required Future<List<SelectorItem>> future,
     this.selectedItems = const [],
     this.isMultiple = false,
     this.onChanged,
@@ -66,8 +66,8 @@ class AppSelectorField extends StatefulWidget {
 }
 
 class _AppSelectorFieldState extends State<AppSelectorField> {
-  List<SelectorItemModel> _allItems = [];
-  List<SelectorItemModel> _selected = [];
+  List<SelectorItem> _allItems = [];
+  List<SelectorItem> _selected = [];
   bool _loading = false;
 
   @override
@@ -116,7 +116,7 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
   Future<void> _openPicker() async {
     if (!widget.enabled) return;
 
-    final result = await showModalBottomSheet<List<SelectorItemModel>>(
+    final result = await showModalBottomSheet<List<SelectorItem>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -235,8 +235,8 @@ class _AppSelectorFieldState extends State<AppSelectorField> {
 
 class _SelectorSheet extends StatefulWidget {
   final String label;
-  final List<SelectorItemModel> allItems;
-  final List<SelectorItemModel> selected;
+  final List<SelectorItem> allItems;
+  final List<SelectorItem> selected;
   final bool isMultiple;
 
   const _SelectorSheet({
@@ -251,8 +251,8 @@ class _SelectorSheet extends StatefulWidget {
 }
 
 class _SelectorSheetState extends State<_SelectorSheet> {
-  late List<SelectorItemModel> _selected;
-  late List<SelectorItemModel> _filtered;
+  late List<SelectorItem> _selected;
+  late List<SelectorItem> _filtered;
   final _searchController = TextEditingController();
 
   @override
@@ -278,7 +278,7 @@ class _SelectorSheetState extends State<_SelectorSheet> {
     });
   }
 
-  void _toggle(SelectorItemModel item) {
+  void _toggle(SelectorItem item) {
     if (widget.isMultiple) {
       setState(() {
         if (_selected.contains(item)) {

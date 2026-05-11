@@ -1,4 +1,12 @@
 // lib/features/auth/models/user_model.dart
+//
+// UserModel chứa thông tin sau khi đăng nhập thành công (bao gồm token).
+// Để lấy thông tin profile đầy đủ (không có token), dùng UserProfile trong
+// features/profile/models/user_profile.dart
+//
+// CÁCH DÙNG TRONG SERVICE:
+//   import 'package:your_app/features/auth/models/user_model.dart';
+
 class UserModel {
   final int userId;
   final int accountId;
@@ -10,7 +18,7 @@ class UserModel {
   final String accessToken;
   final String refreshToken;
 
-  UserModel({
+  const UserModel({
     required this.userId,
     required this.accountId,
     required this.username,
@@ -22,33 +30,29 @@ class UserModel {
     required this.refreshToken,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      userId: json['userId'] ?? 0,
-      accountId: json['accountId'] ?? 0,
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
-      anhDaiDienUrl: json['anhDaiDienUrl'] ?? '',
-      role: json['role'] ?? '',
-      fullName: json['fullName'] ?? '',
-      accessToken: json['accessToken'] ?? '',
-      refreshToken: json['refreshToken'] ?? '',
-    );
-  }
+  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
+    userId: json['userId'] as int? ?? 0,
+    accountId: json['accountId'] as int? ?? 0,
+    username: json['username'] as String? ?? '',
+    email: json['email'] as String? ?? '',
+    anhDaiDienUrl: json['anhDaiDienUrl'] as String? ?? '',
+    role: json['role'] as String? ?? '',
+    fullName: json['fullName'] as String? ?? '',
+    accessToken: json['accessToken'] as String? ?? '',
+    refreshToken: json['refreshToken'] as String? ?? '',
+  );
 
-  Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'accountId': accountId,
-      'username': username,
-      'email': email,
-      'anhDaiDienUrl': anhDaiDienUrl,
-      'role': role,
-      'fullName': fullName,
-      'accessToken': accessToken,
-      'refreshToken': refreshToken,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'userId': userId,
+    'accountId': accountId,
+    'username': username,
+    'email': email,
+    'anhDaiDienUrl': anhDaiDienUrl,
+    'role': role,
+    'fullName': fullName,
+    'accessToken': accessToken,
+    'refreshToken': refreshToken,
+  };
 
   UserModel copyWith({
     int? userId,
@@ -60,17 +64,15 @@ class UserModel {
     String? fullName,
     String? accessToken,
     String? refreshToken,
-  }) {
-    return UserModel(
-      userId: userId ?? this.userId,
-      accountId: accountId ?? this.accountId,
-      username: username ?? this.username,
-      email: email ?? this.email,
-      anhDaiDienUrl: anhDaiDienUrl ?? this.anhDaiDienUrl,
-      role: role ?? this.role,
-      fullName: fullName ?? this.fullName,
-      accessToken: accessToken ?? this.accessToken,
-      refreshToken: refreshToken ?? this.refreshToken,
-    );
-  }
+  }) => UserModel(
+    userId: userId ?? this.userId,
+    accountId: accountId ?? this.accountId,
+    username: username ?? this.username,
+    email: email ?? this.email,
+    anhDaiDienUrl: anhDaiDienUrl ?? this.anhDaiDienUrl,
+    role: role ?? this.role,
+    fullName: fullName ?? this.fullName,
+    accessToken: accessToken ?? this.accessToken,
+    refreshToken: refreshToken ?? this.refreshToken,
+  );
 }

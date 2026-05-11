@@ -10,15 +10,13 @@
 
 import 'package:flutter/material.dart';
 
-import '../../quan_he/models/quan_he_cu_tru_model.dart';
-
 import '../../quan_he/widgets/shared_widget.dart';
 import '../../quan_he/widgets/selector_field.dart';
 import '../../quan_he/widgets/file_upload_field.dart';
 
 import '../models/phuong_tien_model.dart';
-import '../services/phuong_tien_service.dart';
 
+import '../services/phuong_tien_service.dart';
 
 class TaoYeuCauPhuongTienScreen extends StatefulWidget {
   final QuanHeCuTruModel canHoInfo;
@@ -46,10 +44,10 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
   final _noiDungCtrl = TextEditingController();
 
   // ── Selector state ─────────────────────────────────────────────────────
-  SelectorItemModel? _loaiPhuongTien;
+  SelectorItem? _loaiPhuongTien;
 
   // ── Upload state ───────────────────────────────────────────────────────
-  final List<UploadedFileModel> _uploadedFiles = [];
+  final List<UploadedFile> _uploadedFiles = [];
 
   // ── Submit state ───────────────────────────────────────────────────────
   bool _isSubmitting = false;
@@ -134,7 +132,8 @@ class _TaoYeuCauPhuongTienScreenState extends State<TaoYeuCauPhuongTienScreen> {
                         ? [_loaiPhuongTien!]
                         : [],
                     isRequired: true,
-                    onChangedSingle: (v) => setState(() => _loaiPhuongTien = v),
+                    onChangedSingle: (v) =>
+                        setState(() => _loaiPhuongTien = v as SelectorItem),
                   ),
                   const SizedBox(height: 12),
 

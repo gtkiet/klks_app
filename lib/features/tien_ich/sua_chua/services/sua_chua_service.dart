@@ -13,32 +13,32 @@ class YeuCauSuaChuaService {
 
   // ── Catalog ───────────────────────────────────────────────────────────────
 
-  Future<List<CatalogItem>> getTrangThaiYeuCau() async {
+  Future<List<SelectorItem>> getTrangThaiYeuCau() async {
     final res = await _client.post(
       '/api/catalog/trang-thai-yeu-cau-for-selector',
     );
-    return res.list(CatalogItem.fromJson);
+    return res.list(SelectorItem.fromJson);
   }
 
-  Future<List<CatalogItem>> getTrangThaiSuaChua() async {
+  Future<List<SelectorItem>> getTrangThaiSuaChua() async {
     final res = await _client.post(
       '/api/catalog/trang-thai-sua-chua-for-selector',
     );
-    return res.list(CatalogItem.fromJson);
+    return res.list(SelectorItem.fromJson);
   }
 
-  Future<List<CatalogItem>> getLoaiSuCo() async {
+  Future<List<SelectorItem>> getLoaiSuCo() async {
     final res = await _client.post(
       '/api/catalog/loai-su-co-ky-thuat-for-selector',
     );
-    return res.list(CatalogItem.fromJson);
+    return res.list(SelectorItem.fromJson);
   }
 
-  Future<List<CatalogItem>> getPhamViSuaChua() async {
+  Future<List<SelectorItem>> getPhamViSuaChua() async {
     final res = await _client.post(
       '/api/catalog/pham-vi-sua-chua-for-selector',
     );
-    return res.list(CatalogItem.fromJson);
+    return res.list(SelectorItem.fromJson);
   }
 
   // ── Upload ────────────────────────────────────────────────────────────────

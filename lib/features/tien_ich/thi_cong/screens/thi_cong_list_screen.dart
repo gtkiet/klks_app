@@ -3,9 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
-import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
-
 import '../models/thi_cong_model.dart';
 import '../services/thi_cong_service.dart';
 
@@ -22,11 +19,10 @@ class YeuCauThiCongListScreen extends StatefulWidget {
 
 class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
   final _service = YeuCauThiCongService.instance;
-  final _cuTruService = CuTruService.instance;
 
   // Data
-  List<YeuCauThiCongListItemModel> _items = [];
-  List<TrangThaiThiCongModel> _dsTrangThai = [];
+  List<YeuCauThiCongListItem> _items = [];
+  List<SelectorItem> _dsTrangThai = [];
   List<QuanHeCuTruModel> _dsCanHo = [];
 
   // Selection state
@@ -54,13 +50,8 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
     });
 
     try {
-      final results = await Future.wait([
-        _cuTruService.getQuanHeCuTruList(),
-        _service.getTrangThaiThiCongList(),
-      ]);
-
-      final dsCanHo = results[0] as List<QuanHeCuTruModel>;
-      final dsTrangThai = results[1] as List<TrangThaiThiCongModel>;
+      final dsCanHo = await _service.getCanHoList();
+      final dsTrangThai = await _service.getTrangThaiThiCongList();
 
       setState(() {
         _dsCanHo = dsCanHo;
@@ -125,7 +116,7 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
     if (created == true) _loadList();
   }
 
-  void _navigateToDetail(YeuCauThiCongListItemModel item) async {
+  void _navigateToDetail(YeuCauThiCongListItem item) async {
     final changed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => YeuCauThiCongDetailScreen(id: item.id)),
@@ -523,25 +514,26 @@ class _CanHoDropdown extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _YeuCauCard extends StatelessWidget {
-  final YeuCauThiCongListItemModel item;
+  final YeuCauThiCongListItem item;
   final VoidCallback onTap;
 
   const _YeuCauCard({required this.item, required this.onTap});
 
   Color get _statusColor {
     switch (item.trangThaiYeuCauId) {
-      case TrangThaiYeuCauConst.daLuu:
+      case TrangThaiYeuCau.saved:
         return Colors.grey;
-      case TrangThaiYeuCauConst.dangChoDuyet:
+      case TrangThaiYeuCau.pending:
         return Colors.orange;
-      case TrangThaiYeuCauConst.daDuyet:
+      case TrangThaiYeuCau.approved:
         return Colors.blue;
-      case TrangThaiYeuCauConst.yeuCauBoSung:
+      case TrangThaiYeuCau.returned:
         return Colors.amber.shade700;
-      case TrangThaiYeuCauConst.hoanTat:
+      case TrangThaiYeuCau.completed:
         return Colors.green;
-      case TrangThaiYeuCauConst.tuChoi:
-      case TrangThaiYeuCauConst.daHuy:
+      case TrangThaiYeuCau.rejected:
+        return Colors.red;
+      case TrangThaiYeuCau.cancelled:
         return Colors.red;
       default:
         return Colors.grey;

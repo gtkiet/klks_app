@@ -22,9 +22,11 @@ class ThongBaoEvent {
 class ThongBaoHubService {
   static const String hubUrl =
       'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net/notifications';
-      
+
   ThongBaoHubService._();
   static final ThongBaoHubService instance = ThongBaoHubService._();
+
+  final _session = UserSession.instance;
 
   HubConnection? _connection;
 
@@ -118,7 +120,7 @@ class ThongBaoHubService {
   Future<void> connect() async {
     if (isConnected) return;
 
-    final token = await UserSession().getAccessToken();
+    final token = _session.accessToken;
     if (token == null || token.isEmpty) return;
 
     await _initLocalNotif();
@@ -130,8 +132,7 @@ class ThongBaoHubService {
           hubUrl,
           options: HttpConnectionOptions(
             transport: HttpTransportType.LongPolling,
-            accessTokenFactory: () async =>
-                await UserSession().getAccessToken() ?? '',
+            accessTokenFactory: () async => _session.accessToken ?? '',
           ),
         )
         .withAutomaticReconnect(retryDelays: [0, 2000, 10000, 30000])

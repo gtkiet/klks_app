@@ -24,7 +24,7 @@ class ThongBaoService {
 
   static final _client = ApiClient.instance;
 
-  Future<ServiceResult<ThongBaoListResult>> getList({
+  Future<ServiceResult<PagedResult<ThongBaoItem>>> getList({
     String keyword = '',
     int pageNumber = 0,
     int pageSize = 20,
@@ -44,7 +44,7 @@ class ThongBaoService {
           'onlyUnread': onlyUnread,
         },
       );
-      return ServiceResult.success(res.item(ThongBaoListResult.fromJson));
+      return ServiceResult.success(res.pagedResult(ThongBaoItem.fromJson));
     } on AppException catch (e) {
       return ServiceResult.failure(e.message);
     } catch (e) {

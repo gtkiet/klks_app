@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 import '../models/sua_chua_model.dart';
 import '../services/sua_chua_service.dart';
@@ -22,7 +21,7 @@ class _SuaChuaListScreenState extends State<SuaChuaListScreen> {
 
   // Data
   List<YeuCauSuaChua> _items = [];
-  List<CatalogItem> _dsTrangThai = [];
+  List<SelectorItem> _dsTrangThai = [];
   List<QuanHeCuTruModel> _dsCanHo = [];
 
   // Selection state
@@ -56,7 +55,7 @@ class _SuaChuaListScreenState extends State<SuaChuaListScreen> {
       ]);
 
       final dsCanHo = results[0] as List<QuanHeCuTruModel>;
-      final dsTrangThai = results[1] as List<CatalogItem>;
+      final dsTrangThai = results[1] as List<SelectorItem>;
 
       setState(() {
         _dsCanHo = dsCanHo;
@@ -573,7 +572,7 @@ class _YeuCauCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  _StatusChip(label: item.trangThaiLabel, color: color),
+                  _StatusChip(label: item.trangThaiYeuCauTen!, color: color),
                 ],
               ),
               const SizedBox(height: 6),

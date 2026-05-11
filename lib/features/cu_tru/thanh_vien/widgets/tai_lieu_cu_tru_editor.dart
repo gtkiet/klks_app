@@ -3,17 +3,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-import '../../quan_he/models/quan_he_cu_tru_model.dart';
-
 import '../../quan_he/widgets/shared_widget.dart';
 
 import '../../quan_he/widgets/file_upload_field.dart';
 import '../../quan_he/widgets/selector_field.dart';
+
 import '../models/thanh_vien_model.dart';
 import '../services/thanh_vien_service.dart';
 
 typedef UploadFn =
-    Future<List<UploadedFileModel>> Function({
+    Future<List<UploadedFile>> Function({
       required List<File> files,
       required String targetContainer,
     });
@@ -44,7 +43,7 @@ class _TaiLieuCuTruEditorState extends State<TaiLieuCuTruEditor> {
   final _yeuCauSvc = ThanhVienService.instance;
 
   // Future được khởi tạo 1 lần — chia sẻ với tất cả _TaiLieuCard.
-  late final Future<List<SelectorItemModel>> _loaiGiayToFuture = _yeuCauSvc
+  late final Future<List<SelectorItem>> _loaiGiayToFuture = _yeuCauSvc
       .getLoaiGiayToSelector();
 
   final List<_TaiLieuEntry> _entries = [];
@@ -161,7 +160,7 @@ class _TaiLieuCuTruEditorState extends State<TaiLieuCuTruEditor> {
 class _TaiLieuCard extends StatefulWidget {
   final int index;
   final _TaiLieuEntry entry;
-  final Future<List<SelectorItemModel>> loaiGiayToFuture;
+  final Future<List<SelectorItem>> loaiGiayToFuture;
   final UploadFn uploadFn;
   final VoidCallback onChanged;
   final VoidCallback onRemove;
@@ -333,7 +332,7 @@ class _TaiLieuCardState extends State<_TaiLieuCard> {
 // =============================================================================
 
 class _ExistingFileRow extends StatelessWidget {
-  final TaiLieuFileModel file;
+  final FileAttachment file;
   final VoidCallback onDelete;
 
   const _ExistingFileRow({required this.file, required this.onDelete});
@@ -395,7 +394,7 @@ class _ExistingFileRow extends StatelessWidget {
 // =============================================================================
 
 class _ExistingFileEntry {
-  final TaiLieuFileModel file;
+  final FileAttachment file;
   bool deleted;
 
   _ExistingFileEntry({required this.file}) : deleted = false;
@@ -409,7 +408,7 @@ class _TaiLieuEntry {
   /// Chỉ có giá trị khi khởi tạo từ server (fromServer).
   final int? _pendingLoaiGiayToId;
 
-  SelectorItemModel? loaiGiayTo;
+  SelectorItem? loaiGiayTo;
   final TextEditingController soGiayToCtrl;
   DateTime? ngayPhatHanh;
 
@@ -418,7 +417,7 @@ class _TaiLieuEntry {
 
   /// File mới người dùng upload trong phiên này.
   /// List này được giữ nguyên khi screen cha rebuild → không mất file.
-  final List<UploadedFileModel> newUploadedFiles;
+  final List<UploadedFile> newUploadedFiles;
 
   _TaiLieuEntry({
     this.taiLieuCuTruId = 0,
@@ -426,7 +425,7 @@ class _TaiLieuEntry {
     String soGiayTo = '',
     this.ngayPhatHanh,
     List<_ExistingFileEntry>? existingFiles,
-    List<UploadedFileModel>? newUploadedFiles,
+    List<UploadedFile>? newUploadedFiles,
   }) : _pendingLoaiGiayToId = pendingLoaiGiayToId,
        loaiGiayTo = null,
        soGiayToCtrl = TextEditingController(text: soGiayTo),

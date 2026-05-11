@@ -7,7 +7,7 @@ class AuthGuard extends ChangeNotifier {
   AuthGuard._();
   static final AuthGuard instance = AuthGuard._();
 
-  final UserSession _session = UserSession();
+  final UserSession _session = UserSession.instance;
 
   AuthStatus _status = AuthStatus.unknown;
   AuthStatus get status => _status;
@@ -35,10 +35,10 @@ class AuthGuard extends ChangeNotifier {
   // ===================== TRY AUTO LOGIN =====================
   Future<bool> tryAutoLogin() async {
     try {
-      final accessToken = await _session.getAccessToken();
+      final accessToken = _session.accessToken;
       if (accessToken != null && accessToken.isNotEmpty) return true;
 
-      final refreshToken = await _session.getRefreshToken();
+      final refreshToken = _session.refreshToken;
       if (refreshToken != null && refreshToken.isNotEmpty) {
         final newAccess = await AuthService.instance.refreshToken(
           refreshToken: refreshToken,
@@ -47,7 +47,7 @@ class AuthGuard extends ChangeNotifier {
       }
       return false;
     } catch (_) {
-      await _session.clearSession();
+      await _session.clear();
       return false;
     }
   }

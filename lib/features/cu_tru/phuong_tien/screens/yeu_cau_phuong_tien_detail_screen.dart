@@ -1,6 +1,7 @@
 // lib/features/cu_tru/phuong_tien/screens/yeu_cau_phuong_tien_detail_screen.dart
 
 import 'package:flutter/material.dart';
+
 import '../models/phuong_tien_model.dart';
 import '../services/phuong_tien_service.dart';
 
@@ -8,10 +9,7 @@ class YeuCauPhuongTienArgs {
   final int yeuCauId;
   final YeuCauPhuongTien? initialData;
 
-  YeuCauPhuongTienArgs({
-    required this.yeuCauId,
-    this.initialData,
-  });
+  YeuCauPhuongTienArgs({required this.yeuCauId, this.initialData});
 }
 
 class YeuCauPhuongTienDetailScreen extends StatefulWidget {
@@ -222,7 +220,10 @@ class _StatusBanner extends StatelessWidget {
                 ),
                 Text(
                   data.tenLoaiYeuCau,
-                  style: TextStyle(color: fg.withValues(alpha: 0.8), fontSize: 13),
+                  style: TextStyle(
+                    color: fg.withValues(alpha: 0.8),
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -336,7 +337,7 @@ class _InfoRow extends StatelessWidget {
 // ── Image Section ─────────────────────────────────────────────────────────────
 
 class _ImageSection extends StatelessWidget {
-  final List<HinhAnhYeuCau> images;
+  final List<FileAttachment> images;
 
   const _ImageSection({required this.images});
 
@@ -380,7 +381,7 @@ class _ImageSection extends StatelessWidget {
 }
 
 class _ImageThumb extends StatelessWidget {
-  final HinhAnhYeuCau image;
+  final FileAttachment image;
 
   const _ImageThumb({required this.image});
 
@@ -454,7 +455,7 @@ class _ImageThumb extends StatelessWidget {
 }
 
 class _FileRow extends StatelessWidget {
-  final HinhAnhYeuCau file;
+  final FileAttachment file;
 
   const _FileRow({required this.file});
 

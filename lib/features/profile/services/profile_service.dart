@@ -14,15 +14,15 @@ class ProfileService {
   static final ProfileService instance = ProfileService._();
 
   static final _client = ApiClient.instance;
-  final _session = UserSession();
+  final _session = UserSession.instance;
 
   // ── Session profile (local) ───────────────────────────────────────────────
 
   Future<Map<String, String?>> getSessionProfile() async => {
-    'fullName': await _session.getFullName(),
-    'email': await _session.getEmail(),
-    'role': await _session.getRole(),
-    'anhDaiDienUrl': await _session.getanhDaiDienUrl(),
+    'fullName': _session.fullName,
+    'email': _session.email,
+    'role': _session.role,
+    'anhDaiDienUrl': _session.anhDaiDienUrl,
   };
 
   // ── Remote profile ────────────────────────────────────────────────────────

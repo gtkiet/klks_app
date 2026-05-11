@@ -170,7 +170,7 @@ class _YeuCauDetailScreenState extends State<YeuCauDetailScreen> {
         const SizedBox(height: 12),
 
         // Nhân sự
-        if (d.coNhanSu) ...[
+        if (d.nhanSuSuaChuas.isNotEmpty) ...[
           _SectionCard(
             title: 'Nhân sự tác nghiệp',
             children: d.nhanSuSuaChuas.map(_buildNhanSuRow).toList(),
@@ -436,7 +436,7 @@ class _StatusBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  yeuCau.trangThaiLabel,
+                  yeuCau.trangThaiYeuCauTen!,
                   style: TextStyle(
                     color: c,
                     fontWeight: FontWeight.bold,

@@ -5,8 +5,10 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../models/thi_cong_model.dart';
 
+import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
+
+import '../models/thi_cong_model.dart';
 
 class YeuCauThiCongService {
   YeuCauThiCongService._();
@@ -14,18 +16,23 @@ class YeuCauThiCongService {
 
   static final _client = ApiClient.instance;
 
+  // ── Cư trú (delegate) ─────────────────────────────────────────────────────
+
+  Future<List<QuanHeCuTruModel>> getCanHoList() =>
+      CuTruService.instance.getQuanHeCuTruList();
+
   // ── 1. Catalog ────────────────────────────────────────────────────────────
 
-  Future<List<TrangThaiThiCongModel>> getTrangThaiThiCongList() async {
+  Future<List<SelectorItem>> getTrangThaiThiCongList() async {
     final res = await _client.post(
       '/api/catalog/trang-thai-thi-cong-for-selector',
     );
-    return res.list(TrangThaiThiCongModel.fromJson);
+    return res.list(SelectorItem.fromJson);
   }
 
   // ── 2. Danh sách (phân trang + lọc) ──────────────────────────────────────
 
-  Future<PagedResult<YeuCauThiCongListItemModel>> getList({
+  Future<PagedResult<YeuCauThiCongListItem>> getList({
     int? canHoId,
     int? trangThaiId,
     int? trangThaiThiCongId,
@@ -60,22 +67,22 @@ class YeuCauThiCongService {
         'pageSize': pageSize,
       },
     );
-    return res.pagedResult(YeuCauThiCongListItemModel.fromJson);
+    return res.pagedResult(YeuCauThiCongListItem.fromJson);
   }
 
   // ── 3. Chi tiết ───────────────────────────────────────────────────────────
 
-  Future<YeuCauThiCongDetailModel> getById(int id) async {
+  Future<YeuCauThiCongDetail> getById(int id) async {
     final res = await _client.post(
       '/api/yeu-cau-thi-cong/get-by-id',
       body: {'id': id},
     );
-    return res.item(YeuCauThiCongDetailModel.fromJson);
+    return res.item(YeuCauThiCongDetail.fromJson);
   }
 
   // ── 4. Tạo mới ────────────────────────────────────────────────────────────
 
-  Future<YeuCauThiCongListItemModel> create({
+  Future<YeuCauThiCongListItem> create({
     required int canHoId,
     required String hangMucThiCong,
     required DateTime duKienBatDau,
@@ -84,7 +91,7 @@ class YeuCauThiCongService {
     required String tenDonViThiCong,
     required String nguoiDaiDien,
     required String soDienThoaiDaiDien,
-    required List<NhanSuThiCongModel> danhSachNhanSu,
+    required List<NhanSuThiCong> danhSachNhanSu,
     required List<int> danhSachTepIds,
     required bool isSubmit,
   }) async {
@@ -104,12 +111,12 @@ class YeuCauThiCongService {
         'isSubmit': isSubmit,
       },
     );
-    return res.item(YeuCauThiCongListItemModel.fromJson);
+    return res.item(YeuCauThiCongListItem.fromJson);
   }
 
   // ── 5. Cập nhật ───────────────────────────────────────────────────────────
 
-  Future<YeuCauThiCongListItemModel> update({
+  Future<YeuCauThiCongListItem> update({
     required int id,
     required String hangMucThiCong,
     required DateTime duKienBatDau,
@@ -118,7 +125,7 @@ class YeuCauThiCongService {
     required String tenDonViThiCong,
     required String nguoiDaiDien,
     required String soDienThoaiDaiDien,
-    required List<NhanSuThiCongModel> danhSachNhanSu,
+    required List<NhanSuThiCong> danhSachNhanSu,
     required List<int> danhSachTepIds,
     required bool isSubmit,
     bool isWithdraw = false,
@@ -140,47 +147,46 @@ class YeuCauThiCongService {
         'isWithdraw': isWithdraw,
       },
     );
-    return res.item(YeuCauThiCongListItemModel.fromJson);
+    return res.item(YeuCauThiCongListItem.fromJson);
   }
 
   // ── 6. Thu hồi ────────────────────────────────────────────────────────────
 
-  Future<YeuCauThiCongListItemModel> withdraw(
-    YeuCauThiCongDetailModel detail,
-  ) =>
-      update(
-        id: detail.id,
-        hangMucThiCong: detail.hangMucThiCong,
-        duKienBatDau: detail.duKienBatDau ?? DateTime.now(),
-        duKienKetThuc: detail.duKienKetThuc ?? DateTime.now(),
-        noiDung: detail.noiDung,
-        tenDonViThiCong: detail.tenDonViThiCong,
-        nguoiDaiDien: detail.nguoiDaiDien,
-        soDienThoaiDaiDien: detail.soDienThoaiDaiDien,
-        danhSachNhanSu: detail.nhanSuThiCongs,
-        danhSachTepIds: detail.danhSachTep.map((e) => e.id).toList(),
-        isSubmit: false,
-        isWithdraw: true,
-      );
+  Future<YeuCauThiCongListItem> withdraw(YeuCauThiCongDetail detail) => update(
+    id: detail.id,
+    hangMucThiCong: detail.hangMucThiCong,
+    duKienBatDau: detail.duKienBatDau ?? DateTime.now(),
+    duKienKetThuc: detail.duKienKetThuc ?? DateTime.now(),
+    noiDung: detail.noiDung,
+    tenDonViThiCong: detail.tenDonViThiCong,
+    nguoiDaiDien: detail.nguoiDaiDien,
+    soDienThoaiDaiDien: detail.soDienThoaiDaiDien,
+    danhSachNhanSu: detail.nhanSuThiCongs,
+    danhSachTepIds: detail.danhSachTep.map((e) => e.id).toList(),
+    isSubmit: false,
+    isWithdraw: true,
+  );
 
   // ── 7. Upload file ────────────────────────────────────────────────────────
 
-  Future<List<UploadedFileModel>> uploadFiles({
+  Future<List<UploadedFile>> uploadFiles({
     required List<File> files,
     String targetContainer = 'tai-lieu-nhan-vien',
   }) async {
     final formData = FormData()
       ..fields.add(MapEntry('targetContainer', targetContainer));
     for (final file in files) {
-      formData.files.add(MapEntry(
-        'files',
-        await MultipartFile.fromFile(
-          file.path,
-          filename: file.path.split('/').last,
+      formData.files.add(
+        MapEntry(
+          'files',
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
         ),
-      ));
+      );
     }
     final res = await _client.postForm('/api/upload-media', formData);
-    return res.list(UploadedFileModel.fromJson);
+    return res.list(UploadedFile.fromJson);
   }
 }

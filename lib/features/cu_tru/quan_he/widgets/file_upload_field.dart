@@ -19,7 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/quan_he_cu_tru_model.dart';
 
 typedef UploadFn =
-    Future<List<UploadedFileModel>> Function({
+    Future<List<UploadedFile>> Function({
       required List<File> files,
       required String targetContainer,
     });
@@ -28,10 +28,10 @@ class AppFileUploadField extends StatefulWidget {
   final String label;
   final String targetContainer;
   final UploadFn uploadFn;
-  final List<UploadedFileModel> initialFiles;
+  final List<UploadedFile> initialFiles;
   final int? maxFiles;
   final bool allowMultiple;
-  final void Function(List<UploadedFileModel> files) onChanged;
+  final void Function(List<UploadedFile> files) onChanged;
   final bool isRequired;
   final bool enabled;
 
@@ -53,7 +53,7 @@ class AppFileUploadField extends StatefulWidget {
 }
 
 class _AppFileUploadFieldState extends State<AppFileUploadField> {
-  final List<UploadedFileModel> _uploaded = [];
+  final List<UploadedFile> _uploaded = [];
   final Map<String, _PendingItem> _pending = {};
 
   @override
@@ -135,7 +135,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
   }
 
   // ── Xem file ──────────────────────────────────────────────────────────
-  void _viewFile(UploadedFileModel file) {
+  void _viewFile(UploadedFile file) {
     if (file.isImage) {
       final images = _uploaded.where((f) => f.isImage).toList();
       final initialIndex = images.indexOf(file);
@@ -167,7 +167,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
   }
 
   // ── Xóa — chỉ xóa khỏi list, KHÔNG gọi API ───────────────────────────
-  void _removeFile(UploadedFileModel file) {
+  void _removeFile(UploadedFile file) {
     setState(() => _uploaded.remove(file));
     widget.onChanged(List.unmodifiable(_uploaded));
   }
@@ -257,7 +257,7 @@ class _AppFileUploadFieldState extends State<AppFileUploadField> {
 // =============================================================================
 
 class _PhotoGalleryScreen extends StatefulWidget {
-  final List<UploadedFileModel> images;
+  final List<UploadedFile> images;
   final int initialIndex;
 
   const _PhotoGalleryScreen({required this.images, required this.initialIndex});
@@ -340,7 +340,7 @@ class _PhotoGalleryScreenState extends State<_PhotoGalleryScreen> {
 // =============================================================================
 
 class _FileChip extends StatelessWidget {
-  final UploadedFileModel file;
+  final UploadedFile file;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
 
@@ -410,7 +410,7 @@ class _FileChip extends StatelessWidget {
 }
 
 class _FileIconBox extends StatelessWidget {
-  final UploadedFileModel file;
+  final UploadedFile file;
   const _FileIconBox({required this.file});
 
   @override

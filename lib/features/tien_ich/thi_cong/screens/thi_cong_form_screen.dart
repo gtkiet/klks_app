@@ -6,14 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-import '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
-    hide UploadedFileModel;
 import '../models/thi_cong_model.dart';
 import '../services/thi_cong_service.dart';
 
 class YeuCauThiCongFormScreen extends StatefulWidget {
   final List<QuanHeCuTruModel> dsCanHo;
-  final YeuCauThiCongDetailModel? existingDetail;
+  final YeuCauThiCongDetail? existingDetail;
 
   const YeuCauThiCongFormScreen({
     super.key,
@@ -44,8 +42,8 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
   DateTime? _duKienKetThuc;
 
   // Nhân sự & tệp
-  List<NhanSuThiCongModel> _danhSachNhanSu = [];
-  final List<UploadedFileModel> _uploadedFiles = [];
+  List<NhanSuThiCong> _danhSachNhanSu = [];
+  final List<UploadedFile> _uploadedFiles = [];
   List<int> _existingTepIds = [];
 
   // Image upload (ảnh hiện trường)
@@ -166,7 +164,7 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
         targetContainer: 'tai-lieu-nhan-vien',
       );
       setState(
-        () => _uploadedFiles.addAll(uploaded as Iterable<UploadedFileModel>),
+        () => _uploadedFiles.addAll(uploaded as Iterable<UploadedFile>),
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -215,7 +213,7 @@ class _YeuCauThiCongFormScreenState extends State<YeuCauThiCongFormScreen> {
   // ── Nhân sự ──────────────────────────────────────────────────────────────
 
   Future<void> _showAddNhanSuDialog() async {
-    final result = await showDialog<NhanSuThiCongModel>(
+    final result = await showDialog<NhanSuThiCong>(
       context: context,
       builder: (_) => const _AddNhanSuDialog(),
     );
@@ -848,7 +846,7 @@ class _AddNhanSuDialogState extends State<_AddNhanSuDialog> {
     if (!_formKey.currentState!.validate()) return;
     Navigator.pop(
       context,
-      NhanSuThiCongModel(
+      NhanSuThiCong(
         hoTen: _hoTenCtrl.text.trim(),
         soCCCD: _cccdCtrl.text.trim(),
         soDienThoai: _sdtCtrl.text.trim(),

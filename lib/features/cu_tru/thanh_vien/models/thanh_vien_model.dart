@@ -1,6 +1,17 @@
 // lib/features/cu_tru/thanh_vien/models/thanh_vien_model.dart
+//
+// Re-export QuanHeCuTruModel để ThanhVienService không cần import chéo feature.
+//
+// CÁCH DÙNG TRONG SERVICE:
+//   import 'package:your_app/features/cu_tru/thanh_vien/models/thanh_vien_model.dart';
+//   // QuanHeCuTruModel, FileAttachment, PagingInfo đều có sẵn qua re-export
 
-// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+// Re-export — service chỉ cần import file này
+export '../../quan_he/models/quan_he_cu_tru_model.dart';
+
+import '../../../shared/models/shared_models.dart';
+
+// ── Thành viên cư trú (list item) ────────────────────────────────────────────
 
 class ThanhVienCuTruModel {
   final int quanHeCuTruId;
@@ -63,42 +74,10 @@ class ThanhVienCuTruModel {
   );
 }
 
-// ── Nested: file đính kèm trong một tài liệu ─────────────────────────────────
+// ── Tài liệu cư trú ──────────────────────────────────────────────────────────
 
-class TaiLieuFileModel {
-  final int id;
-  final String fileUrl;
-  final String fileName;
-  final String contentType;
-
-  const TaiLieuFileModel({
-    required this.id,
-    required this.fileUrl,
-    required this.fileName,
-    required this.contentType,
-  });
-
-  bool get isImage => contentType.startsWith('image/');
-  bool get isPdf => contentType == 'application/pdf';
-
-  factory TaiLieuFileModel.fromJson(Map<String, dynamic> json) =>
-      TaiLieuFileModel(
-        id: json['id'] as int? ?? 0,
-        fileUrl: json['fileUrl'] as String? ?? '',
-        fileName: json['fileName'] as String? ?? '',
-        contentType: json['contentType'] as String? ?? '',
-      );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'fileUrl': fileUrl,
-    'fileName': fileName,
-    'contentType': contentType,
-  };
-}
-
-// ── Nested: một tài liệu cư trú (CMND, hộ khẩu…) ────────────────────────────
-
+/// Một tài liệu cư trú (CMND, hộ khẩu…) kèm danh sách file đính kèm.
+/// File đính kèm dùng [FileAttachment] từ shared — không định nghĩa lại.
 class TaiLieuCuTruModel {
   final int id;
   final int loaiGiayToId;
@@ -106,7 +85,9 @@ class TaiLieuCuTruModel {
   final String soGiayTo;
   final DateTime? ngayPhatHanh;
   final int? targetTaiLieuCuTruId;
-  final List<TaiLieuFileModel> files;
+
+  /// Dùng [FileAttachment] từ shared/models/file_model.dart
+  final List<FileAttachment> files;
 
   const TaiLieuCuTruModel({
     required this.id,
@@ -129,7 +110,7 @@ class TaiLieuCuTruModel {
             : null,
         targetTaiLieuCuTruId: json['targetTaiLieuCuTruId'] as int?,
         files: (json['files'] as List<dynamic>? ?? [])
-            .map((e) => TaiLieuFileModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => FileAttachment.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 
@@ -144,7 +125,7 @@ class TaiLieuCuTruModel {
   };
 }
 
-// ── Root model ────────────────────────────────────────────────────────────────
+// ── Thông tin cư dân chi tiết ─────────────────────────────────────────────────
 
 class ThongTinCuDanModel {
   final int userId;
@@ -285,8 +266,7 @@ class ThongTinCuDanModel {
   );
 }
 
-// YeuCauCuTruListResult và PagingInfo (local) giữ cùng file này —
-// chúng chỉ là wrapper của YeuCauCuTruModel, không dùng ở nơi khác.
+// ── Yêu cầu cư trú ───────────────────────────────────────────────────────────
 
 class YeuCauCuTruModel {
   final int id;
@@ -351,7 +331,6 @@ class YeuCauCuTruModel {
     this.documents = const [],
   });
 
-  /// Họ tên đầy đủ từ yêu cầu (nếu có).
   String? get hoTenDayDu {
     if (yeuCauHo == null && yeuCauTen == null) return null;
     return '${yeuCauHo ?? ''} ${yeuCauTen ?? ''}'.trim();
@@ -433,71 +412,24 @@ class YeuCauCuTruModel {
   };
 }
 
-// ── Paging (local, chỉ dùng cho yêu cầu cư trú) ─────────────────────────────
-
-class PagingInfo {
-  final int pageSize;
-  final int pageNumber;
-  final int totalItems;
-
-  const PagingInfo({
-    required this.pageSize,
-    required this.pageNumber,
-    required this.totalItems,
-  });
-
-  factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-    pageSize: json['pageSize'] as int? ?? 0,
-    pageNumber: json['pageNumber'] as int? ?? 0,
-    totalItems: json['totalItems'] as int? ?? 0,
-  );
-}
-
-// ── List result wrapper ───────────────────────────────────────────────────────
-
-class YeuCauCuTruListResult {
-  final List<YeuCauCuTruModel> items;
-  final PagingInfo pagingInfo;
-
-  const YeuCauCuTruListResult({required this.items, required this.pagingInfo});
-
-  int get totalItems => pagingInfo.totalItems;
-  int get pageNumber => pagingInfo.pageNumber;
-  int get pageSize => pagingInfo.pageSize;
-
-  factory YeuCauCuTruListResult.fromJson(Map<String, dynamic> json) =>
-      YeuCauCuTruListResult(
-        items: (json['items'] as List<dynamic>? ?? [])
-            .map((e) => YeuCauCuTruModel.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        pagingInfo: PagingInfo.fromJson(
-          json['pagingInfo'] as Map<String, dynamic>? ?? {},
-        ),
-      );
-}
+// ── Request models ────────────────────────────────────────────────────────────
 
 class TaiLieuCuTruRequest {
-  /// 0 = tạo mới, khác 0 = cập nhật tài liệu cũ.
   final int taiLieuCuTruId;
   final int? loaiGiayToId;
-
-  /// Server validate required — gửi '' nếu không có.
   final String soGiayTo;
   final DateTime? ngayPhatHanh;
-
-  /// Bắt buộc: danh sách fileId từ /api/upload-media.
   final List<int> fileIds;
 
   const TaiLieuCuTruRequest({
     this.taiLieuCuTruId = 0,
     this.loaiGiayToId,
-    this.soGiayTo = '', // default empty — server accept ''
+    this.soGiayTo = '',
     this.ngayPhatHanh,
     required this.fileIds,
   });
 
   Map<String, dynamic> toJson() => {
-    // soGiayTo luôn gửi — server bắt buộc field này tồn tại
     'soGiayTo': soGiayTo,
     'fileIds': fileIds,
     if (taiLieuCuTruId != 0) 'taiLieuCuTruId': taiLieuCuTruId,
@@ -505,10 +437,6 @@ class TaiLieuCuTruRequest {
     if (ngayPhatHanh != null) 'ngayPhatHanh': ngayPhatHanh!.toIso8601String(),
   };
 }
-
-// =============================================================================
-// REQUEST MODELS
-// =============================================================================
 
 class GetListYeuCauCuTruRequest {
   final int pageNumber;
@@ -519,7 +447,7 @@ class GetListYeuCauCuTruRequest {
   final int? loaiYeuCauId;
   final int? trangThaiId;
   final String? keyword;
-  final String? sortCol;
+  final String sortCol;
   final bool isAsc;
 
   const GetListYeuCauCuTruRequest({
@@ -589,16 +517,15 @@ class TaoYeuCauCuTruRequest {
       'isSubmit': isSubmit,
       if (targetQuanHeCuTruId != null)
         'targetQuanHeCuTruId': targetQuanHeCuTruId,
-      if (firstName != null && firstName!.isNotEmpty) 'firstName': firstName,
-      if (lastName != null && lastName!.isNotEmpty) 'lastName': lastName,
+      if (firstName?.isNotEmpty == true) 'firstName': firstName,
+      if (lastName?.isNotEmpty == true) 'lastName': lastName,
       if (gioiTinhId != null) 'gioiTinhId': gioiTinhId,
       if (dob != null) 'dob': dob!.toIso8601String(),
-      if (cccd != null && cccd!.isNotEmpty) 'cccd': cccd,
-      if (phoneNumber != null && phoneNumber!.isNotEmpty)
-        'phoneNumber': phoneNumber,
-      if (diaChi != null && diaChi!.isNotEmpty) 'diaChi': diaChi,
+      if (cccd?.isNotEmpty == true) 'cccd': cccd,
+      if (phoneNumber?.isNotEmpty == true) 'phoneNumber': phoneNumber,
+      if (diaChi?.isNotEmpty == true) 'diaChi': diaChi,
       if (loaiQuanHeId != null) 'loaiQuanHeId': loaiQuanHeId,
-      if (noiDung != null && noiDung!.isNotEmpty) 'noiDung': noiDung,
+      if (noiDung?.isNotEmpty == true) 'noiDung': noiDung,
     };
     _attachTaiLieu(map, taiLieuCuTrus);
     return map;
@@ -641,16 +568,15 @@ class CapNhatYeuCauCuTruRequest {
       'id': id,
       'isSubmit': isSubmit,
       'isWithdraw': isWithdraw,
-      if (firstName != null && firstName!.isNotEmpty) 'firstName': firstName,
-      if (lastName != null && lastName!.isNotEmpty) 'lastName': lastName,
-      if (phoneNumber != null && phoneNumber!.isNotEmpty)
-        'phoneNumber': phoneNumber,
+      if (firstName?.isNotEmpty == true) 'firstName': firstName,
+      if (lastName?.isNotEmpty == true) 'lastName': lastName,
+      if (phoneNumber?.isNotEmpty == true) 'phoneNumber': phoneNumber,
       if (dob != null) 'dob': dob!.toIso8601String(),
       if (gioiTinhId != null) 'gioiTinhId': gioiTinhId,
-      if (cccd != null && cccd!.isNotEmpty) 'cccd': cccd,
-      if (diaChi != null && diaChi!.isNotEmpty) 'diaChi': diaChi,
+      if (cccd?.isNotEmpty == true) 'cccd': cccd,
+      if (diaChi?.isNotEmpty == true) 'diaChi': diaChi,
       if (loaiQuanHeId != null) 'loaiQuanHeId': loaiQuanHeId,
-      if (noiDung != null && noiDung!.isNotEmpty) 'noiDung': noiDung,
+      if (noiDung?.isNotEmpty == true) 'noiDung': noiDung,
     };
     _attachTaiLieu(map, taiLieuCuTrus);
     return map;

@@ -1,6 +1,14 @@
 // lib/features/tien_ich/dich_vu/models/dich_vu_model.dart
+//
+// CÁCH DÙNG TRONG SERVICE:
+//   import 'package:your_app/features/tien_ich/dich_vu/models/dich_vu_model.dart';
+//   // SelectorItem, PagingInfo, QuanHeCuTruModel có sẵn qua re-export
 
-// TODO: gọi lib/features/cu_tru/models/quan_he_cu_tru_model.dart để lấy data địa chỉ đầy đủ thay vì chỉ mã tòa nhà, mã tầng, mã căn hộ
+export '../../../shared/models/shared_models.dart';
+export '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
+    show QuanHeCuTruModel;
+
+// ── Dịch vụ (list item) ───────────────────────────────────────────────────────
 
 class DichVuItem {
   final int id;
@@ -35,7 +43,7 @@ class DichVuItem {
   String get displayName => '$maDichVu - $tenDichVu';
 
   factory DichVuItem.fromJson(Map<String, dynamic> json) => DichVuItem(
-    id: json['id'] as int,
+    id: json['id'] as int? ?? 0,
     maDichVu: json['maDichVu'] as String? ?? '',
     tenDichVu: json['tenDichVu'] as String? ?? '',
     loaiDichVuId: json['loaiDichVuId'] as int? ?? 0,
@@ -93,52 +101,139 @@ class DichVuItem {
   );
 }
 
-// ─────────────────────────────────────────────
-// Detail model — dùng cho get-by-id
-// ─────────────────────────────────────────────
+// ── Khung giờ ────────────────────────────────────────────────────────────────
 
-class DichVuDetail extends DichVuItem {
-  final List<KhungGioItem> khungGioDichVu;
-  final BangGia? bangGia;
+class KhungGioItem {
+  final int id;
+  final int dichVuId;
+  final String gioBatDau;
+  final String gioKetThuc;
+  final String tenKhungGio;
+  final int ngayTrongTuan;
+  final bool isActive;
 
-  const DichVuDetail({
-    required super.id,
-    required super.maDichVu,
-    required super.tenDichVu,
-    required super.loaiDichVuId,
-    required super.loaiDichVuTen,
-    required super.donViTinh,
-    super.moTa,
-    required super.isBatBuoc,
-    super.soLuongToiDa,
-    required super.trangThaiDichVuId,
-    required super.trangThaiDichVuTen,
-    super.iconUrl,
-    required this.khungGioDichVu,
-    this.bangGia,
+  const KhungGioItem({
+    required this.id,
+    required this.dichVuId,
+    required this.gioBatDau,
+    required this.gioKetThuc,
+    required this.tenKhungGio,
+    required this.ngayTrongTuan,
+    required this.isActive,
   });
 
-  factory DichVuDetail.fromJson(Map<String, dynamic> json) => DichVuDetail(
+  String get thoiGian => '$gioBatDau - $gioKetThuc';
+
+  factory KhungGioItem.fromJson(Map<String, dynamic> json) => KhungGioItem(
+    id: json['id'] as int? ?? 0,
+    dichVuId: json['dichVuId'] as int? ?? 0,
+    gioBatDau: json['gioBatDau'] as String? ?? '',
+    gioKetThuc: json['gioKetThuc'] as String? ?? '',
+    tenKhungGio: json['tenKhungGio'] as String? ?? '',
+    ngayTrongTuan: json['ngayTrongTuan'] as int? ?? 0,
+    isActive: json['isActive'] as bool? ?? false,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'dichVuId': dichVuId,
+    'gioBatDau': gioBatDau,
+    'gioKetThuc': gioKetThuc,
+    'tenKhungGio': tenKhungGio,
+    'ngayTrongTuan': ngayTrongTuan,
+    'isActive': isActive,
+  };
+
+  KhungGioItem copyWith({
+    int? id,
+    int? dichVuId,
+    String? gioBatDau,
+    String? gioKetThuc,
+    String? tenKhungGio,
+    int? ngayTrongTuan,
+    bool? isActive,
+  }) => KhungGioItem(
+    id: id ?? this.id,
+    dichVuId: dichVuId ?? this.dichVuId,
+    gioBatDau: gioBatDau ?? this.gioBatDau,
+    gioKetThuc: gioKetThuc ?? this.gioKetThuc,
+    tenKhungGio: tenKhungGio ?? this.tenKhungGio,
+    ngayTrongTuan: ngayTrongTuan ?? this.ngayTrongTuan,
+    isActive: isActive ?? this.isActive,
+  );
+}
+
+// ── Bảng giá ─────────────────────────────────────────────────────────────────
+
+class GiaLuyTien {
+  final int id;
+  final int bangGiaId;
+  final double tuMuc;
+  final double? denMuc;
+  final double donGia;
+
+  const GiaLuyTien({
+    required this.id,
+    required this.bangGiaId,
+    required this.tuMuc,
+    this.denMuc,
+    required this.donGia,
+  });
+
+  factory GiaLuyTien.fromJson(Map<String, dynamic> json) => GiaLuyTien(
     id: json['id'] as int,
-    maDichVu: json['maDichVu'] as String? ?? '',
-    tenDichVu: json['tenDichVu'] as String? ?? '',
-    loaiDichVuId: json['loaiDichVuId'] as int? ?? 0,
-    loaiDichVuTen: json['loaiDichVuTen'] as String? ?? '',
-    donViTinh: json['donViTinh'] as String? ?? '',
-    moTa: json['moTa'] as String?,
-    isBatBuoc: json['isBatBuoc'] as bool? ?? false,
-    soLuongToiDa: json['soLuongToiDa'] as int?,
-    trangThaiDichVuId: json['trangThaiDichVuId'] as int? ?? 0,
-    trangThaiDichVuTen: json['trangThaiDichVuTen'] as String? ?? '',
-    iconUrl: json['iconUrl'] as String?,
-    khungGioDichVu:
-        (json['khungGioDichVu'] as List<dynamic>?)
-            ?.map((e) => KhungGioItem.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [],
-    bangGia: json['bangGia'] != null
-        ? BangGia.fromJson(json['bangGia'] as Map<String, dynamic>)
-        : null,
+    bangGiaId: json['bangGiaId'] as int,
+    tuMuc: (json['tuMuc'] as num).toDouble(),
+    denMuc: (json['denMuc'] as num?)?.toDouble(),
+    donGia: (json['donGia'] as num).toDouble(),
+  );
+}
+
+class GiaKhungGio {
+  final int id;
+  final int bangGiaId;
+  final int khungGioId;
+  final String tenKhungGio;
+  final double donGia;
+
+  const GiaKhungGio({
+    required this.id,
+    required this.bangGiaId,
+    required this.khungGioId,
+    required this.tenKhungGio,
+    required this.donGia,
+  });
+
+  factory GiaKhungGio.fromJson(Map<String, dynamic> json) => GiaKhungGio(
+    id: json['id'] as int,
+    bangGiaId: json['bangGiaId'] as int,
+    khungGioId: json['khungGioId'] as int,
+    tenKhungGio: json['tenKhungGio'] as String? ?? '',
+    donGia: (json['donGia'] as num).toDouble(),
+  );
+}
+
+class GiaLoaiCanHo {
+  final int id;
+  final int bangGiaId;
+  final int loaiCanHoId;
+  final String loaiCanHoTen;
+  final double donGia;
+
+  const GiaLoaiCanHo({
+    required this.id,
+    required this.bangGiaId,
+    required this.loaiCanHoId,
+    required this.loaiCanHoTen,
+    required this.donGia,
+  });
+
+  factory GiaLoaiCanHo.fromJson(Map<String, dynamic> json) => GiaLoaiCanHo(
+    id: json['id'] as int,
+    bangGiaId: json['bangGiaId'] as int,
+    loaiCanHoId: json['loaiCanHoId'] as int,
+    loaiCanHoTen: json['loaiCanHoTen'] as String? ?? '',
+    donGia: (json['donGia'] as num).toDouble(),
   );
 }
 
@@ -185,161 +280,64 @@ class BangGia {
     loaiDinhGiaTen: json['loaiDinhGiaTen'] as String? ?? '',
     donGia: (json['donGia'] as num?)?.toDouble() ?? 0,
     isActive: json['isActive'] as bool? ?? false,
-    giaLuyTiens:
-        (json['giaLuyTiens'] as List<dynamic>?)
-            ?.map((e) => GiaLuyTien.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [],
-    giaKhungGios:
-        (json['giaKhungGios'] as List<dynamic>?)
-            ?.map((e) => GiaKhungGio.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [],
-    giaLoaiCanHos:
-        (json['giaLoaiCanHos'] as List<dynamic>?)
-            ?.map((e) => GiaLoaiCanHo.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [],
+    giaLuyTiens: (json['giaLuyTiens'] as List<dynamic>? ?? [])
+        .map((e) => GiaLuyTien.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    giaKhungGios: (json['giaKhungGios'] as List<dynamic>? ?? [])
+        .map((e) => GiaKhungGio.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    giaLoaiCanHos: (json['giaLoaiCanHos'] as List<dynamic>? ?? [])
+        .map((e) => GiaLoaiCanHo.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
-// ─────────────────────────────────────────────
+// ── Detail model ──────────────────────────────────────────────────────────────
 
-class GiaLuyTien {
-  final int id;
-  final int bangGiaId;
-  final double tuMuc;
-  final double? denMuc;
-  final double donGia;
+class DichVuDetail extends DichVuItem {
+  final List<KhungGioItem> khungGioDichVu;
+  final BangGia? bangGia;
 
-  const GiaLuyTien({
-    required this.id,
-    required this.bangGiaId,
-    required this.tuMuc,
-    this.denMuc,
-    required this.donGia,
+  const DichVuDetail({
+    required super.id,
+    required super.maDichVu,
+    required super.tenDichVu,
+    required super.loaiDichVuId,
+    required super.loaiDichVuTen,
+    required super.donViTinh,
+    super.moTa,
+    required super.isBatBuoc,
+    super.soLuongToiDa,
+    required super.trangThaiDichVuId,
+    required super.trangThaiDichVuTen,
+    super.iconUrl,
+    required this.khungGioDichVu,
+    this.bangGia,
   });
 
-  factory GiaLuyTien.fromJson(Map<String, dynamic> json) => GiaLuyTien(
-    id: json['id'] as int,
-    bangGiaId: json['bangGiaId'] as int,
-    tuMuc: (json['tuMuc'] as num).toDouble(),
-    denMuc: (json['denMuc'] as num?)?.toDouble(),
-    donGia: (json['donGia'] as num).toDouble(),
+  factory DichVuDetail.fromJson(Map<String, dynamic> json) => DichVuDetail(
+    id: json['id'] as int? ?? 0,
+    maDichVu: json['maDichVu'] as String? ?? '',
+    tenDichVu: json['tenDichVu'] as String? ?? '',
+    loaiDichVuId: json['loaiDichVuId'] as int? ?? 0,
+    loaiDichVuTen: json['loaiDichVuTen'] as String? ?? '',
+    donViTinh: json['donViTinh'] as String? ?? '',
+    moTa: json['moTa'] as String?,
+    isBatBuoc: json['isBatBuoc'] as bool? ?? false,
+    soLuongToiDa: json['soLuongToiDa'] as int?,
+    trangThaiDichVuId: json['trangThaiDichVuId'] as int? ?? 0,
+    trangThaiDichVuTen: json['trangThaiDichVuTen'] as String? ?? '',
+    iconUrl: json['iconUrl'] as String?,
+    khungGioDichVu: (json['khungGioDichVu'] as List<dynamic>? ?? [])
+        .map((e) => KhungGioItem.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    bangGia: json['bangGia'] != null
+        ? BangGia.fromJson(json['bangGia'] as Map<String, dynamic>)
+        : null,
   );
 }
 
-// ─────────────────────────────────────────────
-
-class GiaKhungGio {
-  final int id;
-  final int bangGiaId;
-  final int khungGioId;
-  final String tenKhungGio;
-  final double donGia;
-
-  const GiaKhungGio({
-    required this.id,
-    required this.bangGiaId,
-    required this.khungGioId,
-    required this.tenKhungGio,
-    required this.donGia,
-  });
-
-  factory GiaKhungGio.fromJson(Map<String, dynamic> json) => GiaKhungGio(
-    id: json['id'] as int,
-    bangGiaId: json['bangGiaId'] as int,
-    khungGioId: json['khungGioId'] as int,
-    tenKhungGio: json['tenKhungGio'] as String? ?? '',
-    donGia: (json['donGia'] as num).toDouble(),
-  );
-}
-
-// ─────────────────────────────────────────────
-
-class GiaLoaiCanHo {
-  final int id;
-  final int bangGiaId;
-  final int loaiCanHoId;
-  final String loaiCanHoTen;
-  final double donGia;
-
-  const GiaLoaiCanHo({
-    required this.id,
-    required this.bangGiaId,
-    required this.loaiCanHoId,
-    required this.loaiCanHoTen,
-    required this.donGia,
-  });
-
-  factory GiaLoaiCanHo.fromJson(Map<String, dynamic> json) => GiaLoaiCanHo(
-    id: json['id'] as int,
-    bangGiaId: json['bangGiaId'] as int,
-    loaiCanHoId: json['loaiCanHoId'] as int,
-    loaiCanHoTen: json['loaiCanHoTen'] as String? ?? '',
-    donGia: (json['donGia'] as num).toDouble(),
-  );
-}
-
-class KhungGioItem {
-  final int id;
-  final int dichVuId;
-  final String gioBatDau;
-  final String gioKetThuc;
-  final String tenKhungGio;
-  final int ngayTrongTuan;
-  final bool isActive;
-
-  const KhungGioItem({
-    required this.id,
-    required this.dichVuId,
-    required this.gioBatDau,
-    required this.gioKetThuc,
-    required this.tenKhungGio,
-    required this.ngayTrongTuan,
-    required this.isActive,
-  });
-
-  String get thoiGian => '$gioBatDau - $gioKetThuc';
-
-  factory KhungGioItem.fromJson(Map<String, dynamic> json) => KhungGioItem(
-    id: json['id'] as int,
-    dichVuId: json['dichVuId'] as int,
-    gioBatDau: json['gioBatDau'] as String? ?? '',
-    gioKetThuc: json['gioKetThuc'] as String? ?? '',
-    tenKhungGio: json['tenKhungGio'] as String? ?? '',
-    ngayTrongTuan: json['ngayTrongTuan'] as int? ?? 0,
-    isActive: json['isActive'] as bool? ?? false,
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'dichVuId': dichVuId,
-    'gioBatDau': gioBatDau,
-    'gioKetThuc': gioKetThuc,
-    'tenKhungGio': tenKhungGio,
-    'ngayTrongTuan': ngayTrongTuan,
-    'isActive': isActive,
-  };
-
-  KhungGioItem copyWith({
-    int? id,
-    int? dichVuId,
-    String? gioBatDau,
-    String? gioKetThuc,
-    String? tenKhungGio,
-    int? ngayTrongTuan,
-    bool? isActive,
-  }) => KhungGioItem(
-    id: id ?? this.id,
-    dichVuId: dichVuId ?? this.dichVuId,
-    gioBatDau: gioBatDau ?? this.gioBatDau,
-    gioKetThuc: gioKetThuc ?? this.gioKetThuc,
-    tenKhungGio: tenKhungGio ?? this.tenKhungGio,
-    ngayTrongTuan: ngayTrongTuan ?? this.ngayTrongTuan,
-    isActive: isActive ?? this.isActive,
-  );
-}
+// ── Đăng ký dịch vụ ──────────────────────────────────────────────────────────
 
 class DichVuDangKyItem {
   final int id;
@@ -370,13 +368,11 @@ class DichVuDangKyItem {
     required this.trangThaiDangKyTen,
   });
 
-  /// Còn hiệu lực nếu ngayKetThuc chưa qua hoặc chưa set
   bool get isActive {
     if (ngayKetThuc == null) return true;
     return ngayKetThuc!.isAfter(DateTime.now());
   }
 
-  /// Khoảng thời gian dạng "dd/MM/yyyy → dd/MM/yyyy"
   String get thoiGianHienThi {
     String fmt(DateTime? d) => d == null
         ? 'N/A'
@@ -448,7 +444,7 @@ class DichVuDangKyItem {
   );
 }
 
-// ─────────────────────────────────────────────
+// ── Request models ────────────────────────────────────────────────────────────
 
 class DichVuDangKyRequest {
   final int? loaiDichVuId;
@@ -475,7 +471,6 @@ class DichVuDangKyRequest {
     this.isAsc = false,
   });
 
-  /// Preset: lấy dịch vụ tiện ích (loaiDichVuId = 3)
   factory DichVuDangKyRequest.tienIch({
     int pageNumber = 1,
     int pageSize = 20,
@@ -491,7 +486,7 @@ class DichVuDangKyRequest {
     if (trangThaiDangKyId != null) 'trangThaiDangKyId': trangThaiDangKyId,
     if (tuNgay != null) 'tuNgay': tuNgay!.toIso8601String(),
     if (denNgay != null) 'denNgay': denNgay!.toIso8601String(),
-    if (keyword != null && keyword!.isNotEmpty) 'keyword': keyword,
+    if (keyword?.isNotEmpty == true) 'keyword': keyword,
     'pageNumber': pageNumber,
     'pageSize': pageSize,
     'sortCol': sortCol,
@@ -521,22 +516,4 @@ class DichVuDangKyRequest {
     sortCol: sortCol ?? this.sortCol,
     isAsc: isAsc ?? this.isAsc,
   );
-}
-
-class SelectorItem {
-  final int id;
-  final String name;
-
-  const SelectorItem({required this.id, required this.name});
-
-  factory SelectorItem.fromJson(Map<String, dynamic> json) =>
-      SelectorItem(id: json['id'] as int, name: json['name'] as String);
-
-  Map<String, dynamic> toJson() => {'id': id, 'name': name};
-
-  SelectorItem copyWith({int? id, String? name}) =>
-      SelectorItem(id: id ?? this.id, name: name ?? this.name);
-
-  @override
-  String toString() => name;
 }

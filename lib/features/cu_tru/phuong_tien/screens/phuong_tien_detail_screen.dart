@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/phuong_tien_model.dart';
+
 import '../services/phuong_tien_service.dart';
 
 class PhuongTienDetailArgs {
@@ -147,7 +148,7 @@ class _PhuongTienDetailScreenState extends State<PhuongTienDetailScreen> {
   }
 
   // ── Image gallery ──────────────────────────────────────────────────────
-  Widget _buildImageSection(List<HinhAnhPhuongTien> images) {
+  Widget _buildImageSection(List<FileAttachment> images) {
     return SizedBox(
       height: 200,
       child: PageView.builder(

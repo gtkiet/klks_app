@@ -12,7 +12,7 @@ class HoaDonService {
   // ── 1. Danh sách hóa đơn ─────────────────────────────────────────────────
 
   /// [trangThaiHoaDonId] 1=Chờ duyệt, 2=Chưa thanh toán, 3=Đã thanh toán, 4=Quá hạn, 5=Một phần, 6=Đã hủy, null=tất cả
-  Future<HoaDonListResult> getList({
+  Future<PagedResult<HoaDon>> getList({
     required int canHoId,
     int? trangThaiHoaDonId,
     int? thang,
@@ -34,7 +34,7 @@ class HoaDonService {
         'isAsc': false,
       },
     );
-    return res.item(HoaDonListResult.fromJson);
+    return res.pagedResult(HoaDon.fromJson);
   }
 
   // ── 2. Chi tiết hóa đơn ──────────────────────────────────────────────────

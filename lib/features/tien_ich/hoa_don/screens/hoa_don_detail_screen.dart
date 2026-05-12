@@ -68,6 +68,7 @@ class _HoaDonDetailScreenState extends State<HoaDonDetailScreen> {
           hoaDonId: detail.id,
           maHoaDon: detail.maHoaDon,
           tongTien: detail.tongTien,
+          chiTietHoaDonIds: detail.chiTietHoaDonIds,
         ),
       ),
     ).then((_) => _load()); // Reload sau khi quay về

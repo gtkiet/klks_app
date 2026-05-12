@@ -17,12 +17,14 @@ class ThanhToanScreen extends StatefulWidget {
   final int hoaDonId;
   final String maHoaDon;
   final double tongTien;
+  final List<int> chiTietHoaDonIds;
 
   const ThanhToanScreen({
     super.key,
     required this.hoaDonId,
     required this.maHoaDon,
     required this.tongTien,
+    required this.chiTietHoaDonIds,
   });
 
   @override
@@ -62,6 +64,7 @@ class _ThanhToanScreenState extends State<ThanhToanScreen> {
     try {
       final phien = await HoaDonService.instance.taoPhienThanhToan(
         hoaDonId: widget.hoaDonId,
+        chiTietHoaDonIds: widget.chiTietHoaDonIds,
       );
       if (!mounted) return;
       setState(() {

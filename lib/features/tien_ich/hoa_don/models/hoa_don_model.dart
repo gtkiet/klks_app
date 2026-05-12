@@ -150,7 +150,8 @@ class HoaDonDetail {
     ngayHanThanhToan:
         DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
         DateTime.now(),
-    tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
+    // tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
+    tongTien: json['tongTien'] as double? ?? 0,
     trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
     trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
     ghiChu: json['ghiChu'] as String? ?? '',
@@ -162,6 +163,7 @@ class HoaDonDetail {
   bool get laCoTheThanhToan => trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
   bool get laDaThanhToan => trangThaiHoaDonId == 3;
   String get kyThanhToan => 'Tháng $thang/$nam';
+  List<int> get chiTietHoaDonIds => chiTietHoaDons.map((e) => e.id).toList();
 }
 
 // ── Chi tiết cố định ──────────────────────────────────────────────────────────

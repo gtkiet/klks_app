@@ -113,7 +113,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     AppSpacing.xs.verticalSpace,
 
                     Text(
-                      'Nhập tên đăng nhập của bạn. Chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu.',
+                      'Nhập email của bạn. Chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu.',
                       style: AppTypography.body.copyWith(
                         color: AppColors.textSecondary,
                         height: 1.6,
@@ -130,8 +130,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                     // ── Username ───────────────────────────────────────
                     AppTextField(
-                      label: 'TÊN ĐĂNG NHẬP',
-                      hint: 'Nhập tên đăng nhập của bạn',
+                      label: 'EMAIL',
+                      hint: 'Nhập email của bạn',
                       controller: _usernameController,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,

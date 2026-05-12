@@ -1,44 +1,30 @@
 // lib/features/phan_anh/screens/phan_anh_list_screen.dart
+//
+// Thay đổi so với v1:
+//   - Migrate toàn bộ sang design system (AppCard, AppColors, AppTypography...)
+//   - Load danh sách căn hộ + CanHoSelector ngay dưới AppBar
+//   - Đổi căn hộ → reset list (chỉ hiện phản ánh của căn đó)
+//   - canHoId được truyền vào getList để filter phía server
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/network/api_client.dart';
+import '../../../design/design.dart';
+
+// import '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
+// import '../../cu_tru/quan_he/services/quan_he_cu_tru_service.dart';
+
+import '../../cu_tru/quan_he/widgets/can_ho_selector.dart';
+
 import '../models/phan_anh_model.dart';
 import '../services/phan_anh_service.dart';
-
-import 'phan_anh_detail_screen.dart';
 import 'phan_anh_create_screen.dart';
+import 'phan_anh_detail_screen.dart';
 
-/// Màu badge theo mã trạng thái (tham chiếu bảng Status Catalog)
-Color _statusColor(int id) {
-  switch (id) {
-    case 1:
-      return const Color(0xFFE2E8F0);
-    case 2:
-      return const Color(0xFF3182CE);
-    case 3:
-      return const Color(0xFFED8936);
-    case 4:
-      return const Color(0xFFECC94B);
-    case 5:
-      return const Color(0xFF805AD5);
-    case 6:
-      return const Color(0xFF38A169);
-    case 7:
-      return const Color(0xFFE53E3E);
-    case 8:
-      return const Color(0xFFCBD5E0);
-    case 9:
-      return const Color(0xFFA0AEC0);
-    default:
-      return Colors.grey;
-  }
-}
-
-Color _statusTextColor(int id) =>
-    (id == 1 || id == 8 || id == 9) ? Colors.black87 : Colors.white;
-
-// ─── Status filter data ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// STATUS CATALOG
+// ─────────────────────────────────────────────────────────────────────────────
 
 const _kStatuses = <(int?, String)>[
   (null, 'Tất cả'),
@@ -53,7 +39,30 @@ const _kStatuses = <(int?, String)>[
   (9, 'Đã thu hồi'),
 ];
 
-// ─── Screen ──────────────────────────────────────────────────────────────────
+AppBadgeVariant _badgeVariant(int id) => switch (id) {
+      2 || 3 || 4 => AppBadgeVariant.info,
+      5 || 6 => AppBadgeVariant.success,
+      7 || 9 => AppBadgeVariant.error,
+      _ => AppBadgeVariant.warning,
+    };
+
+/// Màu dot nhỏ bên trái label trong filter chip — giữ màu gốc đặc trưng
+Color _statusDotColor(int id) => switch (id) {
+      1 => const Color(0xFFE2E8F0),
+      2 => const Color(0xFF3182CE),
+      3 => const Color(0xFFED8936),
+      4 => const Color(0xFFECC94B),
+      5 => const Color(0xFF805AD5),
+      6 => const Color(0xFF38A169),
+      7 => const Color(0xFFE53E3E),
+      8 => const Color(0xFFCBD5E0),
+      9 => const Color(0xFFA0AEC0),
+      _ => AppColors.textDisabled,
+    };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
 
 class PhanAnhListScreen extends StatefulWidget {
   const PhanAnhListScreen({super.key});
@@ -67,6 +76,12 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
   final _searchCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
 
+  // ── Căn hộ ──────────────────────────────────────────────────────────────
+  List<QuanHeCuTruModel> _dsCanHo = [];
+  QuanHeCuTruModel? _selectedCanHo;
+  bool _isLoadingCanHo = true;
+
+  // ── Danh sách phản ánh ───────────────────────────────────────────────────
   List<PhanAnhResponse> _items = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
@@ -74,16 +89,15 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
   int _page = 1;
   bool _hasMore = true;
   int? _filterStatus;
-  bool _hasSearchText = false;
 
   static const _pageSize = 15;
 
   @override
   void initState() {
     super.initState();
-    _searchCtrl.addListener(_onSearchChanged);
+    _searchCtrl.addListener(() => setState(() {})); // rebuild để show/hide clear
     _scrollCtrl.addListener(_onScroll);
-    _load(reset: true);
+    _loadCanHo();
   }
 
   @override
@@ -93,10 +107,33 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
     super.dispose();
   }
 
-  void _onSearchChanged() {
-    final has = _searchCtrl.text.isNotEmpty;
-    if (has != _hasSearchText) setState(() => _hasSearchText = has);
+  // ── Load căn hộ ───────────────────────────────────────────────────────────
+
+  Future<void> _loadCanHo() async {
+    setState(() => _isLoadingCanHo = true);
+    try {
+      final list = await _service.getCanHoList();
+      if (!mounted) return;
+      setState(() {
+        _dsCanHo = list;
+        _selectedCanHo = list.isNotEmpty ? list.first : null;
+        _isLoadingCanHo = false;
+      });
+    } on AppException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingCanHo = false);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    }
+    _load(reset: true);
   }
+
+  void _onCanHoChanged(QuanHeCuTruModel canHo) {
+    setState(() => _selectedCanHo = canHo);
+    _load(reset: true);
+  }
+
+  // ── Paging / scroll ───────────────────────────────────────────────────────
 
   void _onScroll() {
     if (_scrollCtrl.position.pixels >=
@@ -125,115 +162,132 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
       final result = await _service.getList(
         keyword: keyword.isEmpty ? null : keyword,
         trangThaiPhanAnhId: _filterStatus,
+        canHoId: _selectedCanHo?.canHoId,
         pageNumber: _page,
         pageSize: _pageSize,
       );
-
+      if (!mounted) return;
       setState(() {
         _items.addAll(result.items);
         _hasMore = _items.length < result.pagingInfo.totalItems;
         _page++;
       });
-    } catch (e) {
+    } on AppException catch (e) {
+      if (!mounted) return;
+      setState(() => _errorMsg = e.message);
+    } catch (_) {
+      if (!mounted) return;
       setState(() => _errorMsg = 'Đã xảy ra lỗi khi tải danh sách phản ánh.');
     } finally {
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
-  // ── Filter bottom sheet ──────────────────────────────────────────────────
+  // ── Filter bottom sheet ───────────────────────────────────────────────────
 
   void _showFilterSheet() {
     int? localSelected = _filterStatus;
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
             void apply(int? value) {
-              setSheetState(() {
-                localSelected = value;
-              });
-
-              setState(() {
-                _filterStatus = value;
-              });
-
+              setSheetState(() => localSelected = value);
+              setState(() => _filterStatus = value);
               Navigator.pop(sheetCtx);
-
               _load(reset: true);
             }
 
-            return SafeArea(
-              child: SingleChildScrollView(
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.modal,
+              ),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              child: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // handle
                     Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+                        color: AppColors.border,
+                        borderRadius: AppRadius.badge,
                       ),
                     ),
-
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Lọc theo trạng thái',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+                        child: Text('Lọc theo trạng thái',
+                            style: AppTypography.headline),
                       ),
                     ),
-
-                    RadioGroup<int?>(
-                      groupValue: localSelected,
-                      onChanged: apply,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _kStatuses.length,
-                        itemBuilder: (_, i) {
-                          final (value, label) = _kStatuses[i];
-
-                          return InkWell(
-                            onTap: () => apply(value),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 4,
-                              ),
-                              child: Row(
-                                children: [
-                                  Radio<int?>(value: value),
-
-                                  const SizedBox(width: 4),
-
-                                  Expanded(child: Text(label)),
-                                ],
-                              ),
+                    const Divider(height: 1),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _kStatuses.length,
+                      itemBuilder: (_, i) {
+                        final (value, label) = _kStatuses[i];
+                        final isSelected = localSelected == value;
+                        return InkWell(
+                          onTap: () => apply(value),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                // dot màu trạng thái
+                                if (value != null)
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    margin: const EdgeInsets.only(right: 10),
+                                    decoration: BoxDecoration(
+                                      color: _statusDotColor(value),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color: AppColors.border, width: 0.5),
+                                    ),
+                                  )
+                                else
+                                  const SizedBox(width: 20),
+                                Expanded(
+                                  child: Text(label,
+                                      style: AppTypography.body.copyWith(
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : AppColors.textPrimary,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                      )),
+                                ),
+                                if (isSelected)
+                                  const Icon(Icons.check,
+                                      color: AppColors.primary, size: 18),
+                              ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
-
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -244,26 +298,28 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
     );
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   String? get _activeStatusLabel => _filterStatus != null
       ? _kStatuses
-            .firstWhere(
-              (s) => s.$1 == _filterStatus,
-              orElse: () => (_filterStatus, 'ID $_filterStatus'),
-            )
-            .$2
+          .firstWhere((s) => s.$1 == _filterStatus,
+              orElse: () => (_filterStatus, 'ID $_filterStatus'))
+          .$2
       : null;
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Phản ánh khiếu nại'),
+    return AppScaffold(
+      showAppBar: true,
+      appBar: AppTopBar(
+        title: 'Phản ánh khiếu nại',
         actions: [
           IconButton(
             icon: Badge(
               isLabelVisible: _filterStatus != null,
+              backgroundColor: AppColors.primary,
               child: const Icon(Icons.filter_list),
             ),
             tooltip: 'Lọc trạng thái',
@@ -275,58 +331,66 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
         onPressed: () async {
           final created = await Navigator.push<bool>(
             context,
-            MaterialPageRoute(builder: (_) => const PhanAnhCreateScreen()),
+            MaterialPageRoute<bool>(
+                builder: (_) => const PhanAnhCreateScreen()),
           );
           if (created == true && mounted) _load(reset: true);
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Tạo mới'),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
+        label: Text('Tạo mới',
+            style: AppTypography.buttonLabel
+                .copyWith(color: AppColors.textOnPrimary)),
       ),
       body: Column(
         children: [
-          // ── Search bar ─────────────────────────────────────────────
+          // ── CanHoSelector ──────────────────────────────────────────────
+          if (_isLoadingCanHo)
+            const LinearProgressIndicator()
+          else if (_dsCanHo.isNotEmpty)
+            CanHoSelector(
+              dsCanHo: _dsCanHo,
+              selected: _selectedCanHo,
+              onChanged: _onCanHoChanged,
+            ),
+
+          // ── Search bar ─────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: AppTextField.search(
+              hint: 'Tìm kiếm tiêu đề phản ánh...',
               controller: _searchCtrl,
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm tiêu đề...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _hasSearchText
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          _load(reset: true);
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                isDense: true,
-              ),
-              textInputAction: TextInputAction.search,
               onSubmitted: (_) => _load(reset: true),
             ),
           ),
 
-          // ── Active filter chip ──────────────────────────────────────
+          // ── Active filter chip ─────────────────────────────────────────
           if (_activeStatusLabel != null)
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
                 child: Chip(
-                  avatar: const Icon(Icons.filter_alt, size: 16),
-                  label: Text(
-                    _activeStatusLabel!,
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                  avatar: _filterStatus != null
+                      ? Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: _statusDotColor(_filterStatus!),
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                      : null,
+                  label: Text(_activeStatusLabel!,
+                      style: AppTypography.captionSmall),
                   onDeleted: () {
                     setState(() => _filterStatus = null);
                     _load(reset: true);
                   },
+                  deleteIconColor: AppColors.textSecondary,
+                  backgroundColor: AppColors.secondaryLight,
+                  side: BorderSide.none,
+                  visualDensity: VisualDensity.compact,
                 ),
               ),
             ),
@@ -342,34 +406,25 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_errorMsg != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
-              const SizedBox(height: 12),
-              Text(_errorMsg!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => _load(reset: true),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Thử lại'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return ErrorDisplay.fullScreen(
+          error: _errorMsg!, onRetry: () => _load(reset: true));
     }
     if (_items.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inbox_outlined, size: 56, color: Colors.grey[400]),
+            const Icon(Icons.inbox_outlined,
+                size: 64, color: AppColors.textDisabled),
             const SizedBox(height: 12),
-            const Text('Không có phản ánh nào.'),
+            Text(
+              _selectedCanHo != null
+                  ? 'Không có phản ánh nào cho ${_selectedCanHo!.tenCanHo}'
+                  : 'Không có phản ánh nào.',
+              style:
+                  AppTypography.body.copyWith(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       );
@@ -379,11 +434,10 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
       onRefresh: () => _load(reset: true),
       child: ListView.separated(
         controller: _scrollCtrl,
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         itemCount: _items.length + (_isLoadingMore ? 1 : 0),
-        // FIX: đặt tên tham số rõ ràng, không dùng wildcard _ bị lỗi trùng
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
-        itemBuilder: (context, i) {
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        itemBuilder: (_, i) {
           if (i == _items.length) {
             return const Center(
               child: Padding(
@@ -396,10 +450,11 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
           return _PhanAnhCard(
             item: item,
             onTap: () async {
-              await Navigator.push(
+              await Navigator.push<void>(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => PhanAnhDetailScreen(phanAnhId: item.id),
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      PhanAnhDetailScreen(phanAnhId: item.id),
                 ),
               );
               if (mounted) _load(reset: true);
@@ -411,7 +466,9 @@ class _PhanAnhListScreenState extends State<PhanAnhListScreen> {
   }
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CARD
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _PhanAnhCard extends StatelessWidget {
   final PhanAnhResponse item;
@@ -422,82 +479,67 @@ class _PhanAnhCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fmt = DateFormat('dd/MM/yyyy HH:mm');
-    return Card(
-      margin: EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
+
+    return AppCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: tiêu đề + badge trạng thái ──────────────────────
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.tieuDe,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusBadge(
-                    id: item.trangThaiPhanAnhId,
-                    label: item.trangThaiPhanAnhTen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              _MetaRow(icon: Icons.home_outlined, text: item.tenCanHo),
-              _MetaRow(
-                icon: Icons.category_outlined,
-                text: item.loaiPhanAnhTen,
-              ),
-              _MetaRow(icon: Icons.person_outline, text: item.tenNguoiGui),
-              if (item.tenNguoiXuLy != null)
-                _MetaRow(
-                  icon: Icons.engineering_outlined,
-                  text: item.tenNguoiXuLy!,
+              Expanded(
+                child: Text(
+                  item.tieuDe,
+                  style: AppTypography.subhead
+                      .copyWith(color: AppColors.textPrimary),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              _MetaRow(
-                icon: Icons.access_time,
-                text: fmt.format(item.createdAt.toLocal()),
+              ),
+              const SizedBox(width: 8),
+              AppStatusBadge(
+                label: item.trangThaiPhanAnhTen,
+                variant: _badgeVariant(item.trangThaiPhanAnhId),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
+          const SizedBox(height: 8),
 
-class _StatusBadge extends StatelessWidget {
-  final int id;
-  final String label;
+          // ── Meta rows ────────────────────────────────────────────────
+          _MetaRow(icon: Icons.home_outlined, text: item.tenCanHo),
+          const SizedBox(height: 3),
+          _MetaRow(
+              icon: Icons.category_outlined, text: item.loaiPhanAnhTen),
+          const SizedBox(height: 3),
+          _MetaRow(icon: Icons.person_outline, text: item.tenNguoiGui),
+          if (item.tenNguoiXuLy != null) ...[
+            const SizedBox(height: 3),
+            _MetaRow(
+              icon: Icons.engineering_outlined,
+              text: item.tenNguoiXuLy!,
+            ),
+          ],
 
-  const _StatusBadge({required this.id, required this.label});
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+          const SizedBox(height: 8),
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: _statusColor(id),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: _statusTextColor(id),
-        ),
+          // ── Footer: thời gian ─────────────────────────────────────────
+          Row(
+            children: [
+              const Icon(Icons.access_time,
+                  size: 13, color: AppColors.textDisabled),
+              const SizedBox(width: 4),
+              Text(
+                fmt.format(item.createdAt.toLocal()),
+                style: AppTypography.captionSmall
+                    .copyWith(color: AppColors.textDisabled),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -511,22 +553,20 @@ class _MetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 3),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: Colors.grey[600]),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppColors.textSecondary),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: AppTypography.captionSmall
+                .copyWith(color: AppColors.textSecondary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

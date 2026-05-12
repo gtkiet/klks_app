@@ -17,7 +17,6 @@ import 'package:klks_app/features/home/screens/home_screen.dart';
 import 'package:klks_app/features/phan_anh/screens/phan_anh_list_screen.dart';
 import 'package:klks_app/features/khao_sat/screens/khao_sat_list_screen.dart';
 
-
 import 'package:klks_app/features/thong_bao/screens/thong_bao_list_screen.dart';
 import 'package:klks_app/features/thong_bao/screens/thong_bao_detail_screen.dart';
 
@@ -164,17 +163,10 @@ class AppRouter {
                     path: 'thi-cong',
                     builder: (_, _) => const YeuCauThiCongListScreen(),
                   ),
-                  
+
                   GoRoute(
                     path: 'hoa-don',
-                    builder: (_, state) {
-                      final args = state.extra as HoaDonListArgs;
-
-                      return HoaDonListScreen(
-                        canHoId: args.canHoId,
-                        tenCanHo: args.tenCanHo,
-                      );
-                    },
+                    builder: (_, _) => HoaDonListScreen(),
                   ),
                 ],
               ),

@@ -1,10 +1,11 @@
 // lib/features/hoa_don/models/hoa_don_model.dart
-//
-// CÁCH DÙNG TRONG SERVICE:
-//   import 'package:your_app/features/hoa_don/models/hoa_don_model.dart';
-//   // PagingInfo, PagedResult có sẵn qua re-export
 
-export '../../../shared/models/shared_models.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+export 'package:klks_app/features/shared/models/shared_models.dart';
+
+export 'package:klks_app/features/cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 
 // ── Hóa đơn (list item) ───────────────────────────────────────────────────────
 
@@ -34,26 +35,25 @@ class HoaDon {
   });
 
   factory HoaDon.fromJson(Map<String, dynamic> json) => HoaDon(
-        id: json['id'] as int? ?? 0,
-        canHoId: json['canHoId'] as int? ?? 0,
-        maHoaDon: json['maHoaDon'] as String? ?? '',
-        thang: json['thang'] as int? ?? 0,
-        nam: json['nam'] as int? ?? 0,
-        ngayLap:
-            DateTime.tryParse(json['ngayLap'] as String? ?? '') ?? DateTime.now(),
-        ngayHanThanhToan:
-            DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
-                DateTime.now(),
-        tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
-        trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
-        trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
-      );
+    id: json['id'] as int? ?? 0,
+    canHoId: json['canHoId'] as int? ?? 0,
+    maHoaDon: json['maHoaDon'] as String? ?? '',
+    thang: json['thang'] as int? ?? 0,
+    nam: json['nam'] as int? ?? 0,
+    ngayLap:
+        DateTime.tryParse(json['ngayLap'] as String? ?? '') ?? DateTime.now(),
+    ngayHanThanhToan:
+        DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
+        DateTime.now(),
+    tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
+    trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
+    trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
+  );
 
   bool get laDaThanhToan => trangThaiHoaDonId == 3;
   bool get laQuaHan => trangThaiHoaDonId == 4;
   bool get laChuaThanhToan => trangThaiHoaDonId == 2;
-  bool get laCoTheThanhToan =>
-      trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
+  bool get laCoTheThanhToan => trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
 
   bool get sapHetHan {
     final soNgayConLai = ngayHanThanhToan.difference(DateTime.now()).inDays;
@@ -91,17 +91,17 @@ class ChiTietHoaDon {
   });
 
   factory ChiTietHoaDon.fromJson(Map<String, dynamic> json) => ChiTietHoaDon(
-        id: json['id'] as int? ?? 0,
-        loaiChiTietHoaDonId: json['loaiChiTietHoaDonId'] as int? ?? 0,
-        loaiChiTietHoaDonTen: json['loaiChiTietHoaDonTen'] as String? ?? '',
-        tenMucPhi: json['tenMucPhi'] as String? ?? '',
-        soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
-        donGia: (json['donGia'] as num? ?? 0).toDouble(),
-        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
-        loaiDinhGiaId: json['loaiDinhGiaId'] as int? ?? 0,
-        loaiDinhGiaTen: json['loaiDinhGiaTen'] as String? ?? '',
-        ghiChu: json['ghiChu'] as String? ?? '',
-      );
+    id: json['id'] as int? ?? 0,
+    loaiChiTietHoaDonId: json['loaiChiTietHoaDonId'] as int? ?? 0,
+    loaiChiTietHoaDonTen: json['loaiChiTietHoaDonTen'] as String? ?? '',
+    tenMucPhi: json['tenMucPhi'] as String? ?? '',
+    soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
+    donGia: (json['donGia'] as num? ?? 0).toDouble(),
+    thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+    loaiDinhGiaId: json['loaiDinhGiaId'] as int? ?? 0,
+    loaiDinhGiaTen: json['loaiDinhGiaTen'] as String? ?? '',
+    ghiChu: json['ghiChu'] as String? ?? '',
+  );
 
   // loaiDinhGiaId: 1=Cố định, 2=Lũy tiến, 3=Diện tích, 4=Khung giờ
   bool get laLuyTien => loaiDinhGiaId == 2;
@@ -140,27 +140,26 @@ class HoaDonDetail {
   });
 
   factory HoaDonDetail.fromJson(Map<String, dynamic> json) => HoaDonDetail(
-        id: json['id'] as int? ?? 0,
-        canHoId: json['canHoId'] as int? ?? 0,
-        maHoaDon: json['maHoaDon'] as String? ?? '',
-        thang: json['thang'] as int? ?? 0,
-        nam: json['nam'] as int? ?? 0,
-        ngayLap:
-            DateTime.tryParse(json['ngayLap'] as String? ?? '') ?? DateTime.now(),
-        ngayHanThanhToan:
-            DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
-                DateTime.now(),
-        tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
-        trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
-        trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
-        ghiChu: json['ghiChu'] as String? ?? '',
-        chiTietHoaDons: (json['chiTietHoaDons'] as List<dynamic>? ?? [])
-            .map((e) => ChiTietHoaDon.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+    id: json['id'] as int? ?? 0,
+    canHoId: json['canHoId'] as int? ?? 0,
+    maHoaDon: json['maHoaDon'] as String? ?? '',
+    thang: json['thang'] as int? ?? 0,
+    nam: json['nam'] as int? ?? 0,
+    ngayLap:
+        DateTime.tryParse(json['ngayLap'] as String? ?? '') ?? DateTime.now(),
+    ngayHanThanhToan:
+        DateTime.tryParse(json['ngayHanThanhToan'] as String? ?? '') ??
+        DateTime.now(),
+    tongTien: (json['tongTien'] as num? ?? 0).toDouble(),
+    trangThaiHoaDonId: json['trangThaiHoaDonId'] as int? ?? 0,
+    trangThaiHoaDonTen: json['trangThaiHoaDonTen'] as String? ?? '',
+    ghiChu: json['ghiChu'] as String? ?? '',
+    chiTietHoaDons: (json['chiTietHoaDons'] as List<dynamic>? ?? [])
+        .map((e) => ChiTietHoaDon.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
 
-  bool get laCoTheThanhToan =>
-      trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
+  bool get laCoTheThanhToan => trangThaiHoaDonId == 2 || trangThaiHoaDonId == 5;
   bool get laDaThanhToan => trangThaiHoaDonId == 3;
   String get kyThanhToan => 'Tháng $thang/$nam';
 }
@@ -185,13 +184,13 @@ class ChiTietCoDinh {
   });
 
   factory ChiTietCoDinh.fromJson(Map<String, dynamic> json) => ChiTietCoDinh(
-        id: json['id'] as int? ?? 0,
-        tenMucPhi: json['tenMucPhi'] as String? ?? '',
-        soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
-        donGia: (json['donGia'] as num? ?? 0).toDouble(),
-        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
-        ghiChu: json['ghiChu'] as String? ?? '',
-      );
+    id: json['id'] as int? ?? 0,
+    tenMucPhi: json['tenMucPhi'] as String? ?? '',
+    soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
+    donGia: (json['donGia'] as num? ?? 0).toDouble(),
+    thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+    ghiChu: json['ghiChu'] as String? ?? '',
+  );
 }
 
 // ── Chi tiết lũy tiến ────────────────────────────────────────────────────────
@@ -214,13 +213,13 @@ class BacThang {
   });
 
   factory BacThang.fromJson(Map<String, dynamic> json) => BacThang(
-        tenBac: json['tenBac'] as String? ?? '',
-        tuSo: (json['tuSo'] as num? ?? 0).toDouble(),
-        denSo: (json['denSo'] as num? ?? 0).toDouble(),
-        soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
-        donGia: (json['donGia'] as num? ?? 0).toDouble(),
-        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
-      );
+    tenBac: json['tenBac'] as String? ?? '',
+    tuSo: (json['tuSo'] as num? ?? 0).toDouble(),
+    denSo: (json['denSo'] as num? ?? 0).toDouble(),
+    soLuong: (json['soLuong'] as num? ?? 0).toDouble(),
+    donGia: (json['donGia'] as num? ?? 0).toDouble(),
+    thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+  );
 }
 
 class ChiTietLuyTien {
@@ -245,17 +244,17 @@ class ChiTietLuyTien {
   });
 
   factory ChiTietLuyTien.fromJson(Map<String, dynamic> json) => ChiTietLuyTien(
-        id: json['id'] as int? ?? 0,
-        tenMucPhi: json['tenMucPhi'] as String? ?? '',
-        chiSoCu: (json['chiSoCu'] as num? ?? 0).toDouble(),
-        chiSoMoi: (json['chiSoMoi'] as num? ?? 0).toDouble(),
-        soLuongTieuThu: (json['soLuongTieuThu'] as num? ?? 0).toDouble(),
-        thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
-        anhDongHoUrl: json['anhDongHoUrl'] as String? ?? '',
-        bacThang: (json['bacThang'] as List<dynamic>? ?? [])
-            .map((e) => BacThang.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+    id: json['id'] as int? ?? 0,
+    tenMucPhi: json['tenMucPhi'] as String? ?? '',
+    chiSoCu: (json['chiSoCu'] as num? ?? 0).toDouble(),
+    chiSoMoi: (json['chiSoMoi'] as num? ?? 0).toDouble(),
+    soLuongTieuThu: (json['soLuongTieuThu'] as num? ?? 0).toDouble(),
+    thanhTien: (json['thanhTien'] as num? ?? 0).toDouble(),
+    anhDongHoUrl: json['anhDongHoUrl'] as String? ?? '',
+    bacThang: (json['bacThang'] as List<dynamic>? ?? [])
+        .map((e) => BacThang.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
 }
 
 // ── Chi tiết diện tích ────────────────────────────────────────────────────────
@@ -304,11 +303,11 @@ class KhungGioHoaDon {
   });
 
   factory KhungGioHoaDon.fromJson(Map<String, dynamic> json) => KhungGioHoaDon(
-        tenKhungGio: json['tenKhungGio'] as String? ?? '',
-        gioBatDau: json['gioBatDau'] as String? ?? '',
-        gioKetThuc: json['gioKetThuc'] as String? ?? '',
-        donGia: (json['donGia'] as num? ?? 0).toDouble(),
-      );
+    tenKhungGio: json['tenKhungGio'] as String? ?? '',
+    gioBatDau: json['gioBatDau'] as String? ?? '',
+    gioKetThuc: json['gioKetThuc'] as String? ?? '',
+    donGia: (json['donGia'] as num? ?? 0).toDouble(),
+  );
 }
 
 class ChiTietKhungGio {
@@ -349,8 +348,105 @@ class PhienThanhToan {
   });
 
   factory PhienThanhToan.fromJson(Map<String, dynamic> json) => PhienThanhToan(
-        maThanhToan: json['maThanhToan'] as String? ?? '',
-        soTien: (json['soTien'] as num? ?? 0).toDouble(),
-        vietQrUrl: json['vietQrUrl'] as String? ?? '',
+    maThanhToan: json['maThanhToan'] as String? ?? '',
+    soTien: (json['soTien'] as num? ?? 0).toDouble(),
+    vietQrUrl: json['vietQrUrl'] as String? ?? '',
+  );
+}
+
+// ─── FORMATTER ────────────────────────────────────────────────────────────────
+
+final _currencyFmt = NumberFormat('#,###', 'vi_VN');
+final _dateFmt = DateFormat('dd/MM/yyyy');
+
+String formatTien(double amount) => '${_currencyFmt.format(amount)} đ';
+String formatNgay(DateTime dt) => _dateFmt.format(dt);
+String formatSoThap(double v) =>
+    v == v.truncateToDouble() ? v.toInt().toString() : v.toString();
+
+// ─── TRANG THAI HOA DON ───────────────────────────────────────────────────────
+
+class TrangThaiHoaDonConfig {
+  final String ten;
+  final Color mau;
+  final Color mauNen;
+  final IconData icon;
+
+  const TrangThaiHoaDonConfig({
+    required this.ten,
+    required this.mau,
+    required this.mauNen,
+    required this.icon,
+  });
+}
+
+TrangThaiHoaDonConfig getTrangThaiConfig(int id) {
+  switch (id) {
+    case 1:
+      return TrangThaiHoaDonConfig(
+        ten: 'Chờ duyệt',
+        mau: const Color(0xFFF59E0B),
+        mauNen: const Color(0xFFFEF3C7),
+        icon: Icons.hourglass_empty_rounded,
       );
+    case 2:
+      return TrangThaiHoaDonConfig(
+        ten: 'Chưa thanh toán',
+        mau: const Color(0xFFF97316),
+        mauNen: const Color(0xFFFFF7ED),
+        icon: Icons.payment_rounded,
+      );
+    case 3:
+      return TrangThaiHoaDonConfig(
+        ten: 'Đã thanh toán',
+        mau: const Color(0xFF16A34A),
+        mauNen: const Color(0xFFF0FDF4),
+        icon: Icons.check_circle_rounded,
+      );
+    case 4:
+      return TrangThaiHoaDonConfig(
+        ten: 'Quá hạn',
+        mau: const Color(0xFFDC2626),
+        mauNen: const Color(0xFFFEF2F2),
+        icon: Icons.warning_rounded,
+      );
+    case 5:
+      return TrangThaiHoaDonConfig(
+        ten: 'Thanh toán một phần',
+        mau: const Color(0xFF0891B2),
+        mauNen: const Color(0xFFECFEFF),
+        icon: Icons.incomplete_circle_rounded,
+      );
+    case 6:
+      return TrangThaiHoaDonConfig(
+        ten: 'Đã hủy',
+        mau: const Color(0xFF6B7280),
+        mauNen: const Color(0xFFF9FAFB),
+        icon: Icons.cancel_rounded,
+      );
+    default:
+      return TrangThaiHoaDonConfig(
+        ten: 'Không xác định',
+        mau: const Color(0xFF6B7280),
+        mauNen: const Color(0xFFF9FAFB),
+        icon: Icons.help_outline_rounded,
+      );
+  }
+}
+
+// ─── LOAI DINH GIA ICON ───────────────────────────────────────────────────────
+
+IconData getLoaiDinhGiaIcon(int loaiDinhGiaId) {
+  switch (loaiDinhGiaId) {
+    case 1:
+      return Icons.receipt_long_rounded; // Cố định
+    case 2:
+      return Icons.show_chart_rounded; // Lũy tiến
+    case 3:
+      return Icons.square_foot_rounded; // Diện tích
+    case 4:
+      return Icons.access_time_rounded; // Khung giờ
+    default:
+      return Icons.attach_money_rounded;
+  }
 }

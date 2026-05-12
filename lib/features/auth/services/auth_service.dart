@@ -1,12 +1,15 @@
 // lib/features/auth/services/auth_service.dart
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../core/storage/user_session.dart';
+import 'package:klks_app/core/network/api_client.dart';
+import 'package:klks_app/core/storage/user_session.dart';
+
+import 'package:klks_app/features/thong_bao/services/thong_bao_hub_service.dart';
+
 import '../models/user_model.dart';
-import '../../thong_bao/services/thong_bao_hub_service.dart';
 
 class AuthService {
   AuthService._();

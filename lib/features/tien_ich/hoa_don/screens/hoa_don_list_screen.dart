@@ -1,30 +1,44 @@
 // lib/features/hoa_don/screens/hoa_don_list_screen.dart
+//
+// Thay đổi so với v1:
+//   - Bỏ constructor canHoId/tenCanHo — tự load danh sách căn hộ
+//   - CanHoSelector ngay dưới AppBar
+//   - Đổi căn hộ → rebuild toàn bộ TabBarView (ValueKey)
+//   - Migrate sang design system: AppColors, AppTypography, AppScaffold,
+//     AppTopBar, AppRadius, ErrorDisplay — giữ nguyên visual _HoaDonCard
 
 import 'package:flutter/material.dart';
+
+import 'package:klks_app/core/network/api_client.dart';
+import 'package:klks_app/design/design.dart';
 
 import 'package:klks_app/features/cu_tru/quan_he/widgets/can_ho_selector.dart';
 
 import '../models/hoa_don_model.dart';
 import '../services/hoa_don_service.dart';
-import '../utils/hoa_don_utils.dart';
+
 import 'hoa_don_detail_screen.dart';
 
-class HoaDonListArgs {
-  final int canHoId;
-  final String tenCanHo;
+// ─────────────────────────────────────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────────────────────────────────────
 
-  HoaDonListArgs({required this.canHoId, this.tenCanHo = 'Căn hộ của tôi'});
-}
+const _tabs = [
+  (label: 'Tất cả', trangThaiId: null as int?),
+  (label: 'Chờ duyệt', trangThaiId: 1),
+  (label: 'Chưa thanh toán', trangThaiId: 2),
+  (label: 'Đã thanh toán', trangThaiId: 3),
+  (label: 'Quá hạn', trangThaiId: 4),
+  (label: 'Một phần', trangThaiId: 5),
+  (label: 'Đã hủy', trangThaiId: 6),
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
 
 class HoaDonListScreen extends StatefulWidget {
-  final int canHoId;
-  final String tenCanHo;
-
-  const HoaDonListScreen({
-    super.key,
-    required this.canHoId,
-    required this.tenCanHo,
-  });
+  const HoaDonListScreen({super.key});
 
   @override
   State<HoaDonListScreen> createState() => _HoaDonListScreenState();
@@ -32,10 +46,14 @@ class HoaDonListScreen extends StatefulWidget {
 
 class _HoaDonListScreenState extends State<HoaDonListScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
 
-  bool get _isValidCanHoId => widget.canHoId > 0;
+  // ── Căn hộ ──────────────────────────────────────────────────────────────
+  List<QuanHeCuTruModel> _dsCanHo = [];
+  QuanHeCuTruModel? _selectedCanHo;
+  bool _isLoadingCanHo = true;
 
+  // ── Filter tháng/năm ─────────────────────────────────────────────────────
   int? _filterThang;
   int? _filterNam;
 
@@ -50,20 +68,16 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
     return 'Lọc';
   }
 
-  static const _tabs = [
-    (label: 'Tất cả', trangThaiId: null as int?),
-    (label: 'Chờ duyệt', trangThaiId: 1),
-    (label: 'Chưa thanh toán', trangThaiId: 2),
-    (label: 'Đã thanh toán', trangThaiId: 3),
-    (label: 'Quá hạn', trangThaiId: 4),
-    (label: 'Một phần', trangThaiId: 5),
-    (label: 'Đã hủy', trangThaiId: 6),
-  ];
+  // ── ValueKey để force rebuild TabBarView ─────────────────────────────────
+  /// Thay đổi khi đổi căn hộ hoặc filter → TabBarView rebuild hoàn toàn
+  String get _tabViewKey =>
+      '${_selectedCanHo?.canHoId}-$_filterThang-$_filterNam';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _loadCanHo();
   }
 
   @override
@@ -72,241 +86,200 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
     super.dispose();
   }
 
+  // ── Load căn hộ ───────────────────────────────────────────────────────────
+
+  Future<void> _loadCanHo() async {
+    setState(() => _isLoadingCanHo = true);
+    try {
+      final list = await HoaDonService.instance.getCanHoList();
+      if (!mounted) return;
+      setState(() {
+        _dsCanHo = list;
+        _selectedCanHo = list.isNotEmpty ? list.first : null;
+        _isLoadingCanHo = false;
+      });
+    } on AppException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingCanHo = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
+  void _onCanHoChanged(QuanHeCuTruModel canHo) {
+    setState(() => _selectedCanHo = canHo);
+    // ValueKey thay đổi → TabBarView tự rebuild
+  }
+
+  // ── Filter bottom sheet ───────────────────────────────────────────────────
+
   Future<void> _openFilterSheet() async {
-    // Lưu giá trị tạm — user Cancel thì không mất filter cũ
     int? tempThang = _filterThang;
     int? tempNam = _filterNam;
 
     final now = DateTime.now();
     final years = List.generate(now.year - 2019, (i) => now.year - i);
 
-    await showModalBottomSheet(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-            20,
-            16,
-            20,
-            20 + MediaQuery.of(ctx).padding.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Title + nút xoá filter
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Lọc theo tháng/năm',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
+        builder: (ctx, setSheet) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: AppRadius.modal,
+            ),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              16,
+              20,
+              20 + MediaQuery.of(ctx).padding.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Handle ──────────────────────────────────────────────
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: AppRadius.badge,
                     ),
                   ),
-                  if (tempThang != null || tempNam != null)
-                    TextButton(
-                      onPressed: () => setSheetState(() {
-                        tempThang = null;
-                        tempNam = null;
-                      }),
-                      child: const Text(
-                        'Xoá lọc',
-                        style: TextStyle(
-                          color: Color(0xFFDC2626),
-                          fontSize: 13,
+                ),
+                const SizedBox(height: 16),
+
+                // ── Title + xoá lọc ────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Lọc theo tháng/năm', style: AppTypography.headline),
+                    if (tempThang != null || tempNam != null)
+                      TextButton(
+                        onPressed: () => setSheet(() {
+                          tempThang = null;
+                          tempNam = null;
+                        }),
+                        child: Text(
+                          'Xoá lọc',
+                          style: AppTypography.buttonLabel.copyWith(
+                            color: AppColors.error,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // ── Chọn năm
-              const Text(
-                'Năm',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF475569),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: years.map((y) {
-                  final selected = tempNam == y;
-                  return GestureDetector(
-                    onTap: () =>
-                        setSheetState(() => tempNam = selected ? null : y),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? const Color(0xFF6366F1)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '$y',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: selected
-                              ? Colors.white
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // ── Chọn tháng
-              const Text(
-                'Tháng',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF475569),
+                // ── Năm ───────────────────────────────────────────────
+                Text(
+                  'Năm',
+                  style: AppTypography.subhead.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(12, (i) => i + 1).map((m) {
-                  final selected = tempThang == m;
-                  return GestureDetector(
-                    onTap: () =>
-                        setSheetState(() => tempThang = selected ? null : m),
-                    child: Container(
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: years.map((y) {
+                    final sel = tempNam == y;
+                    return _FilterChip(
+                      label: '$y',
+                      selected: sel,
+                      onTap: () => setSheet(() => tempNam = sel ? null : y),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Tháng ─────────────────────────────────────────────
+                Text(
+                  'Tháng',
+                  style: AppTypography.subhead.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: List.generate(12, (i) => i + 1).map((m) {
+                    final sel = tempThang == m;
+                    return _FilterChip(
+                      label: 'T$m',
+                      selected: sel,
                       width: 52,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? const Color(0xFF6366F1)
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'T$m',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: selected
-                              ? Colors.white
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
+                      onTap: () => setSheet(() => tempThang = sel ? null : m),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
 
-              // ── Nút Áp dụng
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
+                // ── Áp dụng ───────────────────────────────────────────
+                AppButton(
+                  label: 'Áp dụng',
                   onPressed: () {
-                    // Commit filter ra ngoài — sẽ trigger rebuild TabBarView
                     setState(() {
                       _filterThang = tempThang;
                       _filterNam = tempNam;
                     });
                     Navigator.pop(ctx);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Áp dụng',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    if (!_isValidCanHoId) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: const Text(
-            'Hóa đơn',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-        ),
-        body: const Center(
+    // Chưa load xong căn hộ lần đầu
+    if (_isLoadingCanHo) {
+      return AppScaffold(
+        title: 'Hóa đơn',
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Không có căn hộ nào
+    if (_dsCanHo.isEmpty) {
+      return AppScaffold(
+        title: 'Hóa đơn',
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.home_work_outlined,
-                  size: 56,
-                  color: Color(0xFFCBD5E1),
+                  size: 64,
+                  color: AppColors.textDisabled,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   'Không tìm thấy thông tin căn hộ',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0F172A),
-                  ),
+                  style: AppTypography.subhead,
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Vui lòng liên hệ Ban Quản Lý\nđể được hỗ trợ.',
+                  'Vui lòng liên hệ Ban Quản Lý để được hỗ trợ.',
+                  style: AppTypography.body.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                 ),
               ],
             ),
@@ -316,31 +289,9 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Hóa đơn',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-            Text(
-              widget.tenCanHo,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF64748B),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
+      backgroundColor: AppColors.background,
+      appBar: AppTopBar(
+        title: 'Hóa đơn',
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -351,18 +302,15 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
                     ? Icons.filter_alt_rounded
                     : Icons.filter_alt_outlined,
                 size: 18,
-                color: _hasFilter
-                    ? const Color(0xFF6366F1)
-                    : const Color(0xFF94A3B8),
+                color: _hasFilter ? AppColors.primary : AppColors.textDisabled,
               ),
               label: Text(
                 _filterLabel,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTypography.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: _hasFilter
-                      ? const Color(0xFF6366F1)
-                      : const Color(0xFF94A3B8),
+                      ? AppColors.primary
+                      : AppColors.textDisabled,
                 ),
               ),
               style: TextButton.styleFrom(
@@ -375,37 +323,89 @@ class _HoaDonListScreenState extends State<HoaDonListScreen>
           controller: _tabController,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          labelColor: const Color(0xFF6366F1),
-          unselectedLabelColor: const Color(0xFF94A3B8),
-          indicatorColor: const Color(0xFF6366F1),
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: AppColors.primary,
           indicatorSize: TabBarIndicatorSize.label,
-          labelStyle: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          labelStyle: AppTypography.subhead,
+          unselectedLabelStyle: AppTypography.body,
           tabs: _tabs.map((t) => Tab(text: t.label)).toList(),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        // ValueKey theo filter → force rebuild toàn bộ tabs khi filter thay đổi
-        key: ValueKey('$_filterThang-$_filterNam'),
-        children: _tabs
-            .map(
-              (t) => _HoaDonTabContent(
-                canHoId: widget.canHoId,
-                trangThaiId: t.trangThaiId,
-                filterThang: _filterThang,
-                filterNam: _filterNam,
+      body: Column(
+        children: [
+          // ── CanHoSelector ──────────────────────────────────────────────
+          CanHoSelector(
+            dsCanHo: _dsCanHo,
+            selected: _selectedCanHo,
+            onChanged: _onCanHoChanged,
+          ),
+
+          // ── Filter chip active ─────────────────────────────────────────
+          if (_hasFilter)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Chip(
+                  avatar: const Icon(
+                    Icons.calendar_month_outlined,
+                    size: 14,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
+                    _filterLabel,
+                    style: AppTypography.captionSmall.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  onDeleted: () => setState(() {
+                    _filterThang = null;
+                    _filterNam = null;
+                  }),
+                  deleteIconColor: AppColors.textSecondary,
+                  backgroundColor: AppColors.primaryLight,
+                  side: BorderSide.none,
+                  visualDensity: VisualDensity.compact,
+                ),
               ),
-            )
-            .toList(),
+            ),
+
+          // ── TabBarView ─────────────────────────────────────────────────
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              key: ValueKey(_tabViewKey),
+              children: _tabs.map((t) {
+                final canHoId = _selectedCanHo?.canHoId ?? 0;
+                if (canHoId <= 0) {
+                  return Center(
+                    child: Text(
+                      'Chưa chọn căn hộ',
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  );
+                }
+                return _HoaDonTabContent(
+                  canHoId: canHoId,
+                  trangThaiId: t.trangThaiId,
+                  filterThang: _filterThang,
+                  filterNam: _filterNam,
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ─── TAB CONTENT ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// TAB CONTENT
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _HoaDonTabContent extends StatefulWidget {
   final int canHoId;
@@ -427,7 +427,6 @@ class _HoaDonTabContent extends StatefulWidget {
 class _HoaDonTabContentState extends State<_HoaDonTabContent>
     with AutomaticKeepAliveClientMixin {
   @override
-  // false vì filter thay đổi thì TabBarView rebuild hoàn toàn qua ValueKey
   bool get wantKeepAlive => false;
 
   List<HoaDon> _items = [];
@@ -454,7 +453,9 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_loadingMore &&
+        (_paging?.hasNextPage ?? false)) {
       _loadMore();
     }
   }
@@ -469,7 +470,6 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
         _items = [];
       });
     }
-
     try {
       final result = await HoaDonService.instance.getList(
         canHoId: widget.canHoId,
@@ -482,6 +482,12 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
       setState(() {
         _items = reset ? result.items : [..._items, ...result.items];
         _paging = result.pagingInfo;
+        _loading = false;
+      });
+    } on AppException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
         _loading = false;
       });
     } catch (e) {
@@ -522,12 +528,10 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
         _loadingMore = false;
         _currentPage--;
       });
-      _showSnackBar(e.toString());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
-  }
-
-  void _showSnackBar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -537,14 +541,36 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
-
     if (_error != null) {
-      return _ErrorRetry(message: _error!, onRetry: () => _load(reset: true));
+      return ErrorDisplay.fullScreen(
+        error: _error!,
+        onRetry: () => _load(reset: true),
+      );
     }
-
     if (_items.isEmpty) {
-      return _EmptyState(
-        hasFilter: widget.filterThang != null || widget.filterNam != null,
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              widget.filterThang != null || widget.filterNam != null
+                  ? Icons.search_off_rounded
+                  : Icons.receipt_long_outlined,
+              size: 64,
+              color: AppColors.textDisabled,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              widget.filterThang != null || widget.filterNam != null
+                  ? 'Không có hóa đơn nào\ntrong khoảng thời gian này'
+                  : 'Không có hóa đơn nào',
+              textAlign: TextAlign.center,
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -555,8 +581,8 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
         padding: const EdgeInsets.all(16),
         itemCount: _items.length + (_loadingMore ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          if (index == _items.length) {
+        itemBuilder: (context, i) {
+          if (i == _items.length) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
@@ -565,14 +591,14 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
             );
           }
           return _HoaDonCard(
-            hoaDon: _items[index],
+            hoaDon: _items[i],
             onTap: () {
-              Navigator.push(
+              Navigator.push<void>(
                 context,
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (_) => HoaDonDetailScreen(
-                    hoaDonId: _items[index].id,
-                    maHoaDon: _items[index].maHoaDon,
+                    hoaDonId: _items[i].id,
+                    maHoaDon: _items[i].maHoaDon,
                   ),
                 ),
               ).then((_) => _load(reset: true));
@@ -584,7 +610,9 @@ class _HoaDonTabContentState extends State<_HoaDonTabContent>
   }
 }
 
-// ─── HOA DON CARD ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// HOA DON CARD  — giữ nguyên visual identity, thay màu hex → AppColors
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _HoaDonCard extends StatelessWidget {
   final HoaDon hoaDon;
@@ -600,11 +628,11 @@ class _HoaDonCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.surface,
+          borderRadius: AppRadius.card,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withAlpha(13),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -612,15 +640,15 @@ class _HoaDonCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Header
+            // ── Header ────────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: hoaDon.laQuaHan
-                    ? const Color(0xFFFEF2F2)
-                    : const Color(0xFFF8FAFF),
+                    ? AppColors.errorLight
+                    : AppColors.primaryLight.withAlpha(80),
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
+                  top: Radius.circular(AppRadius.standard),
                 ),
               ),
               child: Row(
@@ -629,7 +657,7 @@ class _HoaDonCard extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: cfg.mauNen,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: AppRadius.buttonSmall,
                     ),
                     child: Icon(cfg.icon, color: cfg.mau, size: 18),
                   ),
@@ -638,19 +666,11 @@ class _HoaDonCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          hoaDon.maHoaDon,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
+                        Text(hoaDon.maHoaDon, style: AppTypography.subhead),
                         Text(
                           hoaDon.kyThanhToan,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
+                          style: AppTypography.captionSmall.copyWith(
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -663,12 +683,11 @@ class _HoaDonCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: cfg.mauNen,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: AppRadius.badge,
                     ),
                     child: Text(
                       cfg.ten,
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: AppTypography.captionSmall.copyWith(
                         color: cfg.mau,
                         fontWeight: FontWeight.w600,
                       ),
@@ -678,7 +697,7 @@ class _HoaDonCard extends StatelessWidget {
               ),
             ),
 
-            // Body
+            // ── Body: hạn + tổng tiền ─────────────────────────────────────
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -687,11 +706,10 @@ class _HoaDonCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Hạn thanh toán',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF94A3B8),
+                        style: AppTypography.captionSmall.copyWith(
+                          color: AppColors.textDisabled,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -702,18 +720,16 @@ class _HoaDonCard extends StatelessWidget {
                               padding: EdgeInsets.only(right: 4),
                               child: Icon(
                                 Icons.warning_amber_rounded,
-                                color: Color(0xFFF97316),
+                                color: AppColors.warning,
                                 size: 14,
                               ),
                             ),
                           Text(
                             formatNgay(hoaDon.ngayHanThanhToan),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                            style: AppTypography.subhead.copyWith(
                               color: hoaDon.laQuaHan
-                                  ? const Color(0xFFDC2626)
-                                  : const Color(0xFF0F172A),
+                                  ? AppColors.error
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -723,20 +739,17 @@ class _HoaDonCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text(
+                      Text(
                         'Tổng tiền',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF94A3B8),
+                        style: AppTypography.captionSmall.copyWith(
+                          color: AppColors.textDisabled,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         formatTien(hoaDon.tongTien),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF6366F1),
+                        style: AppTypography.headline.copyWith(
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -745,28 +758,30 @@ class _HoaDonCard extends StatelessWidget {
               ),
             ),
 
-            // CTA nếu chưa thanh toán
+            // ── CTA bar ───────────────────────────────────────────────────
             if (hoaDon.laCoTheThanhToan)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6366F1),
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(AppRadius.standard),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.qr_code_rounded, color: Colors.white, size: 16),
-                    SizedBox(width: 6),
+                    const Icon(
+                      Icons.qr_code_rounded,
+                      color: AppColors.textOnPrimary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
                     Text(
                       'Xem & Thanh toán',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.subhead.copyWith(
+                        color: AppColors.textOnPrimary,
                       ),
                     ),
                   ],
@@ -779,77 +794,41 @@ class _HoaDonCard extends StatelessWidget {
   }
 }
 
-// ─── EMPTY / ERROR ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// FILTER CHIP  (dùng trong bottom sheet)
+// ─────────────────────────────────────────────────────────────────────────────
 
-class _EmptyState extends StatelessWidget {
-  final bool hasFilter;
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final double? width;
 
-  const _EmptyState({this.hasFilter = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            hasFilter ? Icons.search_off_rounded : Icons.receipt_long_outlined,
-            size: 56,
-            color: const Color(0xFFCBD5E1),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            hasFilter
-                ? 'Không có hóa đơn nào\ntrong khoảng thời gian này'
-                : 'Không có hóa đơn nào',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorRetry extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorRetry({required this.message, required this.onRetry});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.width,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.wifi_off_rounded,
-              size: 48,
-              color: Color(0xFFCBD5E1),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Thử lại'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.inputFill,
+          borderRadius: AppRadius.buttonSmall,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: AppTypography.caption.copyWith(
+            color: selected ? AppColors.textOnPrimary : AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

@@ -1,8 +1,17 @@
+// ═══════════════════════════════════════════════════════════════════════════
 // lib/features/auth/screens/reset_password_screen.dart
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// BUG FIX:
+//   1. Không navigate về login khi reset thất bại (trước dùng finally).
+//   2. Thêm nút "Gửi lại mã" (resend) với cooldown 60 giây.
+//   3. Chỉ navigate về login khi reset THÀNH CÔNG.
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:klks_app/design/design.dart';
 import '../services/auth_service.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -22,131 +31,316 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _loading = false;
+  bool _resending = false;
+  String? _errorText;
+  String? _successMessage;
+
+  // Cooldown cho nút "Gửi lại mã"
+  int _resendCooldown = 0;
+  Timer? _cooldownTimer;
 
   @override
   void dispose() {
     _resetCodeController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
+    _cooldownTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> _resetPassword() async {
-    final resetCode = _resetCodeController.text.trim();
-    final newPassword = _newPasswordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
+  void _startCooldown() {
+    _resendCooldown = 60;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      setState(() {
+        _resendCooldown--;
+        if (_resendCooldown <= 0) t.cancel();
+      });
+    });
+  }
 
-    if (resetCode.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-      return;
-    }
-
-    if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
-      return;
-    }
-
-    setState(() => _loading = true);
-
+  Future<void> _resendCode() async {
+    setState(() {
+      _resending = true;
+      _errorText = null;
+      _successMessage = null;
+    });
     try {
-      final result = await _authService.resetPassword(
-        username: widget.username,
-        resetCode: resetCode,
-        newPassword: newPassword,
-        confirmPassword: confirmPassword,
-      );
-
+      await _authService.forgotPassword(username: widget.username);
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password reset success: $result')),
-      );
+      setState(() => _successMessage = 'Đã gửi lại mã xác nhận.');
+      _startCooldown();
     } catch (e) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      setState(() => _errorText = e.toString());
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _resending = false);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    setState(() {
+      _loading = true;
+      _errorText = null;
+      _successMessage = null;
+    });
+
+    try {
+      await _authService.resetPassword(
+        username: widget.username,
+        resetCode: _resetCodeController.text.trim(),
+        newPassword: _newPasswordController.text.trim(),
+        confirmPassword: _confirmPasswordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      // BUG FIX: chỉ navigate khi THÀNH CÔNG
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đặt lại mật khẩu thành công! Vui lòng đăng nhập.'),
+        ),
+      );
       context.go('/auth/login');
+    } catch (e) {
+      if (!mounted) return;
+      // BUG FIX: ở lại màn hình, hiện lỗi để user nhập lại
+      setState(() => _errorText = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Reset Password')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
+    return AppScaffold(
+      showAppBar: false,
+      body: SafeArea(
+        child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
+            // ── Custom top bar ───────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.sm,
               ),
-              child: Text(
-                'Username: ${widget.username}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
+                    color: AppColors.textPrimary,
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppSpacing.md.verticalSpace,
+
+                    // ── Icon ───────────────────────────────────────────
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.verified_user_rounded,
+                        color: AppColors.primary,
+                        size: 32,
+                      ),
+                    ),
+
+                    AppSpacing.lg.verticalSpace,
+
+                    // ── Heading ────────────────────────────────────────
+                    Text(
+                      'Đặt lại mật khẩu',
+                      style: AppTypography.display.copyWith(
+                        color: AppColors.textPrimary,
+                        fontSize: 26,
+                      ),
+                    ),
+
+                    AppSpacing.xs.verticalSpace,
+
+                    // ── Subtitle with username ─────────────────────────
+                    RichText(
+                      text: TextSpan(
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text: 'Mã xác nhận đã được gửi cho tài khoản ',
+                          ),
+                          TextSpan(
+                            text: widget.username,
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const TextSpan(text: '.'),
+                        ],
+                      ),
+                    ),
+
+                    AppSpacing.xl.verticalSpace,
+
+                    // ── Error / Success banner ─────────────────────────
+                    if (_errorText != null) ...[
+                      ErrorDisplay(error: _errorText, compact: true),
+                      AppSpacing.md.verticalSpace,
+                    ],
+                    if (_successMessage != null) ...[
+                      _SuccessBanner(message: _successMessage!),
+                      AppSpacing.md.verticalSpace,
+                    ],
+
+                    // ── Reset code ─────────────────────────────────────
+                    AppTextField(
+                      label: 'MÃ XÁC NHẬN',
+                      hint: 'Nhập mã xác nhận',
+                      controller: _resetCodeController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      prefixIcon: const Icon(
+                        Icons.tag_rounded,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+
+                    AppSpacing.xs.verticalSpace,
+
+                    // ── Resend code ────────────────────────────────────
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: _resending
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            )
+                          : TextButton(
+                              onPressed: _resendCooldown > 0
+                                  ? null
+                                  : _resendCode,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                _resendCooldown > 0
+                                    ? 'Gửi lại sau ${_resendCooldown}s'
+                                    : 'Gửi lại mã',
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: _resendCooldown > 0
+                                      ? AppColors.textDisabled
+                                      : AppColors.primary,
+                                ),
+                              ),
+                            ),
+                    ),
+
+                    AppSpacing.md.verticalSpace,
+
+                    // ── New password ───────────────────────────────────
+                    AppTextField.password(
+                      label: 'MẬT KHẨU MỚI',
+                      hint: 'Nhập mật khẩu mới',
+                      controller: _newPasswordController,
+                    ),
+
+                    AppSpacing.md.verticalSpace,
+
+                    // ── Confirm password ───────────────────────────────
+                    AppTextField.password(
+                      label: 'XÁC NHẬN MẬT KHẨU',
+                      hint: 'Nhập lại mật khẩu mới',
+                      controller: _confirmPasswordController,
+                    ),
+
+                    AppSpacing.xl.verticalSpace,
+
+                    // ── Submit ─────────────────────────────────────────
+                    AppButton(
+                      label: 'Đặt lại mật khẩu',
+                      isLoading: _loading,
+                      onPressed: _loading ? null : _resetPassword,
+                    ),
+
+                    AppSpacing.md.verticalSpace,
+
+                    // ── Back to login ──────────────────────────────────
+                    AppButton(
+                      label: 'Quay lại đăng nhập',
+                      variant: AppButtonVariant.secondary,
+                      onPressed: () => context.go('/auth/login'),
+                    ),
+
+                    AppSpacing.xl.verticalSpace,
+                  ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _resetCodeController,
-              decoration: const InputDecoration(
-                labelText: 'Reset Code',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _newPasswordController,
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: const InputDecoration(
-                labelText: 'Confirm Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-
-            const SizedBox(height: 24),
-
-            SizedBox(
-              height: 48,
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _resetPassword,
-                      child: const Text('Reset Password'),
-                    ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Banner xanh thông báo thành công (gửi lại mã).
+class _SuccessBanner extends StatelessWidget {
+  final String message;
+  const _SuccessBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.successLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.success.withAlpha(60)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_outline,
+            color: AppColors.success,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTypography.body.copyWith(
+                color: AppColors.success,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

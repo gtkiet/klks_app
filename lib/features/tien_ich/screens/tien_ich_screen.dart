@@ -25,6 +25,12 @@ class TienIchScreen extends StatelessWidget {
       description: 'Yêu cầu thi công, cải tạo',
       route: '/tien-ich/thi-cong',
     ),
+    _TienIchMeta(
+      icon: Icons.construction_outlined,
+      label: 'Hóa đơn',
+      description: 'Hóa đơn thanh toán',
+      route: '/tien-ich/hoa-don',
+    ),
   ];
 
   @override

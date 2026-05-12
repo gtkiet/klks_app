@@ -1,5 +1,7 @@
 // lib/features/hoa_don/services/hoa_don_service.dart
 
+import 'package:klks_app/features/cu_tru/quan_he/services/cu_tru_service.dart';
+
 import '../../../../core/network/api_client.dart';
 import '../models/hoa_don_model.dart';
 
@@ -8,6 +10,9 @@ class HoaDonService {
   static final instance = HoaDonService._();
 
   static final _client = ApiClient.instance;
+
+  Future<List<QuanHeCuTruModel>> getCanHoList() =>
+      CuTruService.instance.getQuanHeCuTruList();
 
   // ── 1. Danh sách hóa đơn ─────────────────────────────────────────────────
 

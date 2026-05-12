@@ -48,16 +48,6 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
     );
   }
 
-  void _goToHoaDon(QuanHeCuTruModel item) {
-    context.push(
-      '/cu-tru/hoa-don',
-      extra: {
-        'canHoId': item.canHoId,
-        'tenCanHo': item.tenCanHo,
-      },
-    );
-  }
-
   // ── Build ──────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -97,7 +87,6 @@ class _QuanHeCuTruListScreenState extends State<QuanHeCuTruListScreen> {
               _goToDetail(_list[index], CuTruDetailMode.thanhVien),
           onPhuongTien: () =>
               _goToDetail(_list[index], CuTruDetailMode.phuongTien),
-          onHoaDon: () => _goToHoaDon(_list[index]),
         ),
       ),
     );
@@ -109,13 +98,11 @@ class _CuTruCard extends StatelessWidget {
   final QuanHeCuTruModel item;
   final VoidCallback onThanhVien;
   final VoidCallback onPhuongTien;
-  final VoidCallback onHoaDon;
 
   const _CuTruCard({
     required this.item,
     required this.onThanhVien,
     required this.onPhuongTien,
-    required this.onHoaDon,
   });
 
   @override
@@ -185,14 +172,6 @@ class _CuTruCard extends StatelessWidget {
                     onPressed: onPhuongTien,
                     icon: const Icon(Icons.directions_car_outlined, size: 18),
                     label: const Text('Phương tiện'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onHoaDon,
-                    icon: const Icon(Icons.receipt, size: 18),
-                    label: const Text('Hóa đơn'),
                   ),
                 ),
               ],

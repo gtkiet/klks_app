@@ -23,10 +23,10 @@ import 'package:klks_app/features/tien_ich/screens/tien_ich_screen.dart';
 import 'package:klks_app/features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart';
 import 'package:klks_app/features/tien_ich/sua_chua/screens/sua_chua_list_screen.dart';
 import 'package:klks_app/features/tien_ich/thi_cong/screens/thi_cong_list_screen.dart';
+import 'package:klks_app/features/tien_ich/hoa_don/screens/hoa_don_list_screen.dart';
 
 import 'package:klks_app/features/cu_tru/quan_he/screens/cu_tru_list_screen.dart';
 import 'package:klks_app/features/cu_tru/quan_he/screens/cu_tru_detail_screen.dart';
-import 'package:klks_app/features/cu_tru/hoa_don/screens/hoa_don_list_screen.dart';
 
 import 'package:klks_app/features/profile/screens/profile_screen.dart';
 import 'package:klks_app/features/profile/screens/profile_detail_screen.dart';
@@ -43,7 +43,8 @@ class AppRouter {
     /// ================= REDIRECT =================
     redirect: (context, state) {
       final status = AuthGuard.instance.status;
-      final location = state.matchedLocation;
+
+      final location = state.uri.path;
 
       final isAuthRoute = location.startsWith('/auth');
       final isSplash = location == '/splash';
@@ -53,7 +54,9 @@ class AppRouter {
       }
 
       if (status == AuthStatus.unauthenticated) {
-        return isAuthRoute ? null : '/auth/login';
+        if (isAuthRoute) return null;
+
+        return '/auth/login';
       }
 
       if (status == AuthStatus.authenticated) {
@@ -70,7 +73,14 @@ class AppRouter {
 
       GoRoute(
         path: '/auth',
-        redirect: (_, _) => '/auth/login',
+        builder: (_, _) => const SizedBox.shrink(),
+        redirect: (_, state) {
+          if (state.uri.path == '/auth') {
+            return '/auth/login';
+          }
+
+          return null;
+        },
         routes: [
           GoRoute(path: 'login', builder: (_, _) => const LoginScreen()),
           GoRoute(path: 'register', builder: (_, _) => const RegisterScreen()),
@@ -148,6 +158,18 @@ class AppRouter {
                     path: 'thi-cong',
                     builder: (_, _) => const YeuCauThiCongListScreen(),
                   ),
+                  
+                  GoRoute(
+                    path: 'hoa-don',
+                    builder: (_, state) {
+                      final args = state.extra as HoaDonListArgs;
+
+                      return HoaDonListScreen(
+                        canHoId: args.canHoId,
+                        tenCanHo: args.tenCanHo,
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
@@ -168,17 +190,6 @@ class AppRouter {
                       return CuTruDetailScreen(
                         item: extra.item,
                         initialMode: extra.initialMode,
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'hoa-don',
-                    builder: (_, state) {
-                      final args = state.extra as HoaDonListArgs;
-
-                      return HoaDonListScreen(
-                        canHoId: args.canHoId,
-                        tenCanHo: args.tenCanHo,
                       );
                     },
                   ),

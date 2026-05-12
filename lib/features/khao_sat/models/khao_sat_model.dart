@@ -1,6 +1,7 @@
 // lib/features/khao_sat/models/khao_sat_model.dart
 
-export 'package:klks_app/features/shared/models/shared_models.dart' show PagingInfo, PagedResult;
+export 'package:klks_app/features/shared/models/shared_models.dart';
+export 'package:klks_app/features/cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ENUMS / CONSTANTS
@@ -62,49 +63,50 @@ class KhaoSatResponse {
   bool get isPublished => trangThaiId == KhaoSatTrangThai.published;
   bool get isClosed => trangThaiId == KhaoSatTrangThai.closed;
 
-  factory KhaoSatResponse.fromJson(Map<String, dynamic> json) =>
-      KhaoSatResponse(
-        id: json['id'] as int? ?? 0,
-        tieuDe: json['tieuDe'] as String? ?? '',
-        moTa: json['moTa'] as String? ?? '',
-        loaiKhaoSatId: json['loaiKhaoSatId'] as int? ?? 0,
-        loaiKhaoSatTen: json['loaiKhaoSatTen'] as String? ?? '',
-        coCheTinhDiemId: json['coCheTinhDiemId'] as int? ?? 0,
-        coCheTinhDiemTen: json['coCheTinhDiemTen'] as String? ?? '',
-        trangThaiId: json['trangThaiId'] as int? ?? 0,
-        trangThaiTen: json['trangThaiTen'] as String? ?? '',
-        ngayBatDau: DateTime.tryParse(json['ngayBatDau'] as String? ?? '') ??
-            DateTime.now(),
-        ngayKetThuc: DateTime.tryParse(json['ngayKetThuc'] as String? ?? '') ??
-            DateTime.now(),
-        tyleThamGiaToiThieu:
-            (json['tyleThamGiaToiThieu'] as num?)?.toDouble() ?? 0,
-        tyLeDongYToiThieu:
-            (json['tyLeDongYToiThieu'] as num?)?.toDouble() ?? 0,
-        isAnDanh: json['isAnDanh'] as bool? ?? false,
-        isVoted: json['isVoted'] as bool? ?? false,
-        createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
-            DateTime.now(),
-      );
+  factory KhaoSatResponse.fromJson(
+    Map<String, dynamic> json,
+  ) => KhaoSatResponse(
+    id: json['id'] as int? ?? 0,
+    tieuDe: json['tieuDe'] as String? ?? '',
+    moTa: json['moTa'] as String? ?? '',
+    loaiKhaoSatId: json['loaiKhaoSatId'] as int? ?? 0,
+    loaiKhaoSatTen: json['loaiKhaoSatTen'] as String? ?? '',
+    coCheTinhDiemId: json['coCheTinhDiemId'] as int? ?? 0,
+    coCheTinhDiemTen: json['coCheTinhDiemTen'] as String? ?? '',
+    trangThaiId: json['trangThaiId'] as int? ?? 0,
+    trangThaiTen: json['trangThaiTen'] as String? ?? '',
+    ngayBatDau:
+        DateTime.tryParse(json['ngayBatDau'] as String? ?? '') ??
+        DateTime.now(),
+    ngayKetThuc:
+        DateTime.tryParse(json['ngayKetThuc'] as String? ?? '') ??
+        DateTime.now(),
+    tyleThamGiaToiThieu: (json['tyleThamGiaToiThieu'] as num?)?.toDouble() ?? 0,
+    tyLeDongYToiThieu: (json['tyLeDongYToiThieu'] as num?)?.toDouble() ?? 0,
+    isAnDanh: json['isAnDanh'] as bool? ?? false,
+    isVoted: json['isVoted'] as bool? ?? false,
+    createdAt:
+        DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tieuDe': tieuDe,
-        'moTa': moTa,
-        'loaiKhaoSatId': loaiKhaoSatId,
-        'loaiKhaoSatTen': loaiKhaoSatTen,
-        'coCheTinhDiemId': coCheTinhDiemId,
-        'coCheTinhDiemTen': coCheTinhDiemTen,
-        'trangThaiId': trangThaiId,
-        'trangThaiTen': trangThaiTen,
-        'ngayBatDau': ngayBatDau.toIso8601String(),
-        'ngayKetThuc': ngayKetThuc.toIso8601String(),
-        'tyleThamGiaToiThieu': tyleThamGiaToiThieu,
-        'tyLeDongYToiThieu': tyLeDongYToiThieu,
-        'isAnDanh': isAnDanh,
-        'isVoted': isVoted,
-        'createdAt': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'tieuDe': tieuDe,
+    'moTa': moTa,
+    'loaiKhaoSatId': loaiKhaoSatId,
+    'loaiKhaoSatTen': loaiKhaoSatTen,
+    'coCheTinhDiemId': coCheTinhDiemId,
+    'coCheTinhDiemTen': coCheTinhDiemTen,
+    'trangThaiId': trangThaiId,
+    'trangThaiTen': trangThaiTen,
+    'ngayBatDau': ngayBatDau.toIso8601String(),
+    'ngayKetThuc': ngayKetThuc.toIso8601String(),
+    'tyleThamGiaToiThieu': tyleThamGiaToiThieu,
+    'tyLeDongYToiThieu': tyLeDongYToiThieu,
+    'isAnDanh': isAnDanh,
+    'isVoted': isVoted,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   KhaoSatResponse copyWith({
     int? id,
@@ -123,25 +125,24 @@ class KhaoSatResponse {
     bool? isAnDanh,
     bool? isVoted,
     DateTime? createdAt,
-  }) =>
-      KhaoSatResponse(
-        id: id ?? this.id,
-        tieuDe: tieuDe ?? this.tieuDe,
-        moTa: moTa ?? this.moTa,
-        loaiKhaoSatId: loaiKhaoSatId ?? this.loaiKhaoSatId,
-        loaiKhaoSatTen: loaiKhaoSatTen ?? this.loaiKhaoSatTen,
-        coCheTinhDiemId: coCheTinhDiemId ?? this.coCheTinhDiemId,
-        coCheTinhDiemTen: coCheTinhDiemTen ?? this.coCheTinhDiemTen,
-        trangThaiId: trangThaiId ?? this.trangThaiId,
-        trangThaiTen: trangThaiTen ?? this.trangThaiTen,
-        ngayBatDau: ngayBatDau ?? this.ngayBatDau,
-        ngayKetThuc: ngayKetThuc ?? this.ngayKetThuc,
-        tyleThamGiaToiThieu: tyleThamGiaToiThieu ?? this.tyleThamGiaToiThieu,
-        tyLeDongYToiThieu: tyLeDongYToiThieu ?? this.tyLeDongYToiThieu,
-        isAnDanh: isAnDanh ?? this.isAnDanh,
-        isVoted: isVoted ?? this.isVoted,
-        createdAt: createdAt ?? this.createdAt,
-      );
+  }) => KhaoSatResponse(
+    id: id ?? this.id,
+    tieuDe: tieuDe ?? this.tieuDe,
+    moTa: moTa ?? this.moTa,
+    loaiKhaoSatId: loaiKhaoSatId ?? this.loaiKhaoSatId,
+    loaiKhaoSatTen: loaiKhaoSatTen ?? this.loaiKhaoSatTen,
+    coCheTinhDiemId: coCheTinhDiemId ?? this.coCheTinhDiemId,
+    coCheTinhDiemTen: coCheTinhDiemTen ?? this.coCheTinhDiemTen,
+    trangThaiId: trangThaiId ?? this.trangThaiId,
+    trangThaiTen: trangThaiTen ?? this.trangThaiTen,
+    ngayBatDau: ngayBatDau ?? this.ngayBatDau,
+    ngayKetThuc: ngayKetThuc ?? this.ngayKetThuc,
+    tyleThamGiaToiThieu: tyleThamGiaToiThieu ?? this.tyleThamGiaToiThieu,
+    tyLeDongYToiThieu: tyLeDongYToiThieu ?? this.tyLeDongYToiThieu,
+    isAnDanh: isAnDanh ?? this.isAnDanh,
+    isVoted: isVoted ?? this.isVoted,
+    createdAt: createdAt ?? this.createdAt,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,20 +165,20 @@ class LuaChonModel {
   });
 
   factory LuaChonModel.fromJson(Map<String, dynamic> json) => LuaChonModel(
-        id: json['id'] as int? ?? 0,
-        noiDungLuaChon: json['noiDungLuaChon'] as String? ?? '',
-        isUngVienBQT: json['isUngVienBQT'] as bool? ?? false,
-        tieuSuUngVien: json['tieuSuUngVien'] as String?,
-        ungVienId: json['ungVienId'] as int?,
-      );
+    id: json['id'] as int? ?? 0,
+    noiDungLuaChon: json['noiDungLuaChon'] as String? ?? '',
+    isUngVienBQT: json['isUngVienBQT'] as bool? ?? false,
+    tieuSuUngVien: json['tieuSuUngVien'] as String?,
+    ungVienId: json['ungVienId'] as int?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'noiDungLuaChon': noiDungLuaChon,
-        'isUngVienBQT': isUngVienBQT,
-        'tieuSuUngVien': tieuSuUngVien,
-        'ungVienId': ungVienId,
-      };
+    'id': id,
+    'noiDungLuaChon': noiDungLuaChon,
+    'isUngVienBQT': isUngVienBQT,
+    'tieuSuUngVien': tieuSuUngVien,
+    'ungVienId': ungVienId,
+  };
 
   LuaChonModel copyWith({
     int? id,
@@ -185,14 +186,13 @@ class LuaChonModel {
     bool? isUngVienBQT,
     String? tieuSuUngVien,
     int? ungVienId,
-  }) =>
-      LuaChonModel(
-        id: id ?? this.id,
-        noiDungLuaChon: noiDungLuaChon ?? this.noiDungLuaChon,
-        isUngVienBQT: isUngVienBQT ?? this.isUngVienBQT,
-        tieuSuUngVien: tieuSuUngVien ?? this.tieuSuUngVien,
-        ungVienId: ungVienId ?? this.ungVienId,
-      );
+  }) => LuaChonModel(
+    id: id ?? this.id,
+    noiDungLuaChon: noiDungLuaChon ?? this.noiDungLuaChon,
+    isUngVienBQT: isUngVienBQT ?? this.isUngVienBQT,
+    tieuSuUngVien: tieuSuUngVien ?? this.tieuSuUngVien,
+    ungVienId: ungVienId ?? this.ungVienId,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -215,22 +215,22 @@ class CauHoiModel {
   });
 
   factory CauHoiModel.fromJson(Map<String, dynamic> json) => CauHoiModel(
-        id: json['id'] as int? ?? 0,
-        noiDungCauHoi: json['noiDungCauHoi'] as String? ?? '',
-        isBatBuoc: json['isBatBuoc'] as bool? ?? false,
-        isMultiSelect: json['isMultiSelect'] as bool? ?? false,
-        luaChons: (json['luaChons'] as List<dynamic>? ?? [])
-            .map((e) => LuaChonModel.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+    id: json['id'] as int? ?? 0,
+    noiDungCauHoi: json['noiDungCauHoi'] as String? ?? '',
+    isBatBuoc: json['isBatBuoc'] as bool? ?? false,
+    isMultiSelect: json['isMultiSelect'] as bool? ?? false,
+    luaChons: (json['luaChons'] as List<dynamic>? ?? [])
+        .map((e) => LuaChonModel.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'noiDungCauHoi': noiDungCauHoi,
-        'isBatBuoc': isBatBuoc,
-        'isMultiSelect': isMultiSelect,
-        'luaChons': luaChons.map((e) => e.toJson()).toList(),
-      };
+    'id': id,
+    'noiDungCauHoi': noiDungCauHoi,
+    'isBatBuoc': isBatBuoc,
+    'isMultiSelect': isMultiSelect,
+    'luaChons': luaChons.map((e) => e.toJson()).toList(),
+  };
 
   CauHoiModel copyWith({
     int? id,
@@ -238,14 +238,13 @@ class CauHoiModel {
     bool? isBatBuoc,
     bool? isMultiSelect,
     List<LuaChonModel>? luaChons,
-  }) =>
-      CauHoiModel(
-        id: id ?? this.id,
-        noiDungCauHoi: noiDungCauHoi ?? this.noiDungCauHoi,
-        isBatBuoc: isBatBuoc ?? this.isBatBuoc,
-        isMultiSelect: isMultiSelect ?? this.isMultiSelect,
-        luaChons: luaChons ?? this.luaChons,
-      );
+  }) => CauHoiModel(
+    id: id ?? this.id,
+    noiDungCauHoi: noiDungCauHoi ?? this.noiDungCauHoi,
+    isBatBuoc: isBatBuoc ?? this.isBatBuoc,
+    isMultiSelect: isMultiSelect ?? this.isMultiSelect,
+    luaChons: luaChons ?? this.luaChons,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -293,42 +292,43 @@ class KhaoSatDetailResponse {
 
   bool get canVote => trangThaiId == KhaoSatTrangThai.published && !isVoted;
 
-  factory KhaoSatDetailResponse.fromJson(Map<String, dynamic> json) =>
-      KhaoSatDetailResponse(
-        id: json['id'] as int? ?? 0,
-        tieuDe: json['tieuDe'] as String? ?? '',
-        moTa: json['moTa'] as String? ?? '',
-        loaiKhaoSatId: json['loaiKhaoSatId'] as int? ?? 0,
-        loaiKhaoSatTen: json['loaiKhaoSatTen'] as String? ?? '',
-        coCheTinhDiemId: json['coCheTinhDiemId'] as int? ?? 0,
-        coCheTinhDiemTen: json['coCheTinhDiemTen'] as String? ?? '',
-        trangThaiId: json['trangThaiId'] as int? ?? 0,
-        trangThaiTen: json['trangThaiTen'] as String? ?? '',
-        ngayBatDau: DateTime.tryParse(json['ngayBatDau'] as String? ?? '') ??
-            DateTime.now(),
-        ngayKetThuc: DateTime.tryParse(json['ngayKetThuc'] as String? ?? '') ??
-            DateTime.now(),
-        tyleThamGiaToiThieu:
-            (json['tyleThamGiaToiThieu'] as num?)?.toDouble() ?? 0,
-        tyLeDongYToiThieu:
-            (json['tyLeDongYToiThieu'] as num?)?.toDouble() ?? 0,
-        isAnDanh: json['isAnDanh'] as bool? ?? false,
-        isVoted: json['isVoted'] as bool? ?? false,
-        createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
-            DateTime.now(),
-        cauHois: (json['cauHois'] as List<dynamic>? ?? [])
-            .map((e) => CauHoiModel.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+  factory KhaoSatDetailResponse.fromJson(
+    Map<String, dynamic> json,
+  ) => KhaoSatDetailResponse(
+    id: json['id'] as int? ?? 0,
+    tieuDe: json['tieuDe'] as String? ?? '',
+    moTa: json['moTa'] as String? ?? '',
+    loaiKhaoSatId: json['loaiKhaoSatId'] as int? ?? 0,
+    loaiKhaoSatTen: json['loaiKhaoSatTen'] as String? ?? '',
+    coCheTinhDiemId: json['coCheTinhDiemId'] as int? ?? 0,
+    coCheTinhDiemTen: json['coCheTinhDiemTen'] as String? ?? '',
+    trangThaiId: json['trangThaiId'] as int? ?? 0,
+    trangThaiTen: json['trangThaiTen'] as String? ?? '',
+    ngayBatDau:
+        DateTime.tryParse(json['ngayBatDau'] as String? ?? '') ??
+        DateTime.now(),
+    ngayKetThuc:
+        DateTime.tryParse(json['ngayKetThuc'] as String? ?? '') ??
+        DateTime.now(),
+    tyleThamGiaToiThieu: (json['tyleThamGiaToiThieu'] as num?)?.toDouble() ?? 0,
+    tyLeDongYToiThieu: (json['tyLeDongYToiThieu'] as num?)?.toDouble() ?? 0,
+    isAnDanh: json['isAnDanh'] as bool? ?? false,
+    isVoted: json['isVoted'] as bool? ?? false,
+    createdAt:
+        DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+    cauHois: (json['cauHois'] as List<dynamic>? ?? [])
+        .map((e) => CauHoiModel.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'tieuDe': tieuDe,
-        'moTa': moTa,
-        'trangThaiId': trangThaiId,
-        'isVoted': isVoted,
-        'cauHois': cauHois.map((e) => e.toJson()).toList(),
-      };
+    'id': id,
+    'tieuDe': tieuDe,
+    'moTa': moTa,
+    'trangThaiId': trangThaiId,
+    'isVoted': isVoted,
+    'cauHois': cauHois.map((e) => e.toJson()).toList(),
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -365,14 +365,13 @@ class KetQuaLuaChonModel {
     bool? isUngVienBQT,
     double? soLuongPhieuBau,
     double? tyLePhanTram,
-  }) =>
-      KetQuaLuaChonModel(
-        luaChonId: luaChonId ?? this.luaChonId,
-        noiDungLuaChon: noiDungLuaChon ?? this.noiDungLuaChon,
-        isUngVienBQT: isUngVienBQT ?? this.isUngVienBQT,
-        soLuongPhieuBau: soLuongPhieuBau ?? this.soLuongPhieuBau,
-        tyLePhanTram: tyLePhanTram ?? this.tyLePhanTram,
-      );
+  }) => KetQuaLuaChonModel(
+    luaChonId: luaChonId ?? this.luaChonId,
+    noiDungLuaChon: noiDungLuaChon ?? this.noiDungLuaChon,
+    isUngVienBQT: isUngVienBQT ?? this.isUngVienBQT,
+    soLuongPhieuBau: soLuongPhieuBau ?? this.soLuongPhieuBau,
+    tyLePhanTram: tyLePhanTram ?? this.tyLePhanTram,
+  );
 }
 
 class KetQuaCauHoiModel {
@@ -394,8 +393,7 @@ class KetQuaCauHoiModel {
         noiDungCauHoi: json['noiDungCauHoi'] as String? ?? '',
         isMultiSelect: json['isMultiSelect'] as bool? ?? false,
         ketQuaLuaChons: (json['ketQuaLuaChons'] as List<dynamic>? ?? [])
-            .map((e) =>
-                KetQuaLuaChonModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => KetQuaLuaChonModel.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 }
@@ -441,8 +439,7 @@ class KetQuaKhaoSatResponse {
         coCheTinhDiemId: json['coCheTinhDiemId'] as int? ?? 0,
         coCheTinhDiemTen: json['coCheTinhDiemTen'] as String? ?? '',
         ketQuaCauHois: (json['ketQuaCauHois'] as List<dynamic>? ?? [])
-            .map((e) =>
-                KetQuaCauHoiModel.fromJson(e as Map<String, dynamic>))
+            .map((e) => KetQuaCauHoiModel.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
 
@@ -457,19 +454,18 @@ class KetQuaKhaoSatResponse {
     int? coCheTinhDiemId,
     String? coCheTinhDiemTen,
     List<KetQuaCauHoiModel>? ketQuaCauHois,
-  }) =>
-      KetQuaKhaoSatResponse(
-        khaoSatId: khaoSatId ?? this.khaoSatId,
-        tieuDeKhaoSat: tieuDeKhaoSat ?? this.tieuDeKhaoSat,
-        tongSoCanHo: tongSoCanHo ?? this.tongSoCanHo,
-        soCanHoDaThamGia: soCanHoDaThamGia ?? this.soCanHoDaThamGia,
-        tyLeThamGia: tyLeThamGia ?? this.tyLeThamGia,
-        tyleThamGiaToiThieu: tyleThamGiaToiThieu ?? this.tyleThamGiaToiThieu,
-        isHieuLuc: isHieuLuc ?? this.isHieuLuc,
-        coCheTinhDiemId: coCheTinhDiemId ?? this.coCheTinhDiemId,
-        coCheTinhDiemTen: coCheTinhDiemTen ?? this.coCheTinhDiemTen,
-        ketQuaCauHois: ketQuaCauHois ?? this.ketQuaCauHois,
-      );
+  }) => KetQuaKhaoSatResponse(
+    khaoSatId: khaoSatId ?? this.khaoSatId,
+    tieuDeKhaoSat: tieuDeKhaoSat ?? this.tieuDeKhaoSat,
+    tongSoCanHo: tongSoCanHo ?? this.tongSoCanHo,
+    soCanHoDaThamGia: soCanHoDaThamGia ?? this.soCanHoDaThamGia,
+    tyLeThamGia: tyLeThamGia ?? this.tyLeThamGia,
+    tyleThamGiaToiThieu: tyleThamGiaToiThieu ?? this.tyleThamGiaToiThieu,
+    isHieuLuc: isHieuLuc ?? this.isHieuLuc,
+    coCheTinhDiemId: coCheTinhDiemId ?? this.coCheTinhDiemId,
+    coCheTinhDiemTen: coCheTinhDiemTen ?? this.coCheTinhDiemTen,
+    ketQuaCauHois: ketQuaCauHois ?? this.ketQuaCauHois,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -483,9 +479,9 @@ class TraLoiRequest {
   const TraLoiRequest({required this.luaChonId, this.noiDungTraLoiTuDo});
 
   Map<String, dynamic> toJson() => {
-        'luaChonId': luaChonId,
-        'noiDungTraLoiTuDo': noiDungTraLoiTuDo,
-      };
+    'luaChonId': luaChonId,
+    'noiDungTraLoiTuDo': noiDungTraLoiTuDo,
+  };
 }
 
 class XacNhanBieuQuyetRequest {
@@ -502,9 +498,9 @@ class XacNhanBieuQuyetRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'khaoSatId': khaoSatId,
-        'canHoId': canHoId,
-        'otpCode': otpCode,
-        'traLois': traLois.map((e) => e.toJson()).toList(),
-      };
+    'khaoSatId': khaoSatId,
+    'canHoId': canHoId,
+    'otpCode': otpCode,
+    'traLois': traLois.map((e) => e.toJson()).toList(),
+  };
 }

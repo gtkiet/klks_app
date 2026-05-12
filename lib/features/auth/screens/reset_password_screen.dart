@@ -65,8 +65,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Password reset success: $result')),
       );
-
-      context.go('/auth/login');
     } catch (e) {
       if (!mounted) return;
 
@@ -77,6 +75,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (mounted) {
         setState(() => _loading = false);
       }
+      context.go('/auth/login');
     }
   }
 

@@ -44,8 +44,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Reset code sent: $result')));
-
-      context.pushNamed('/auth/reset-password/$username');
     } catch (e) {
       if (!mounted) return;
 
@@ -56,6 +54,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (mounted) {
         setState(() => _loading = false);
       }
+      context.push('/auth/reset-password/$username');
     }
   }
 

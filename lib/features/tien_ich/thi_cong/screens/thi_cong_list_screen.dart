@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:klks_app/features/cu_tru/quan_he/widgets/can_ho_selector.dart';
+
 import '../models/thi_cong_model.dart';
 import '../services/thi_cong_service.dart';
 
@@ -132,7 +134,6 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
       appBar: AppBar(
         title: const Text('Yêu cầu thi công'),
         actions: [
-          // Filter trạng thái
           PopupMenuButton<int?>(
             icon: Stack(
               children: [
@@ -227,17 +228,12 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
 
     return Column(
       children: [
-        // ── Selector căn hộ ───────────────────────────────────────────────
-        _CanHoSelector(
+        CanHoSelector(
           dsCanHo: _dsCanHo,
           selected: _selectedCanHo,
           onChanged: _onCanHoChanged,
         ),
-
-        // ── Filter chip active ────────────────────────────────────────────
         if (_filterTrangThaiId != null) _buildActiveFilterBar(),
-
-        // ── Danh sách ─────────────────────────────────────────────────────
         Expanded(child: _buildList()),
       ],
     );
@@ -287,11 +283,7 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.construction_outlined,
-              size: 64,
-              color: Colors.grey.shade300,
-            ),
+            Icon(Icons.construction_outlined, size: 64, color: Colors.grey.shade300),
             const SizedBox(height: 12),
             Text(
               _filterTrangThaiId != null
@@ -321,195 +313,6 @@ class _YeuCauThiCongListScreenState extends State<YeuCauThiCongListScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Selector căn hộ
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _CanHoSelector extends StatelessWidget {
-  final List<QuanHeCuTruModel> dsCanHo;
-  final QuanHeCuTruModel? selected;
-  final ValueChanged<QuanHeCuTruModel> onChanged;
-
-  const _CanHoSelector({
-    required this.dsCanHo,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (dsCanHo.length == 1) {
-      return _SingleCanHoBanner(canHo: dsCanHo.first);
-    }
-    return _CanHoDropdown(
-      dsCanHo: dsCanHo,
-      selected: selected,
-      onChanged: onChanged,
-    );
-  }
-}
-
-class _SingleCanHoBanner extends StatelessWidget {
-  final QuanHeCuTruModel canHo;
-  const _SingleCanHoBanner({required this.canHo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade600,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.apartment, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  canHo.tenCanHo,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  '${canHo.tenToaNha} · ${canHo.tenTang}',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CanHoDropdown extends StatelessWidget {
-  final List<QuanHeCuTruModel> dsCanHo;
-  final QuanHeCuTruModel? selected;
-  final ValueChanged<QuanHeCuTruModel> onChanged;
-
-  const _CanHoDropdown({
-    required this.dsCanHo,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Căn hộ',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          DropdownButtonFormField<QuanHeCuTruModel>(
-            initialValue: selected,
-            isExpanded: true,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.apartment, size: 18),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.blue.shade600, width: 1.5),
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-            ),
-            items: dsCanHo.map((canHo) {
-              return DropdownMenuItem<QuanHeCuTruModel>(
-                value: canHo,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      canHo.tenCanHo,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      '${canHo.tenToaNha} · ${canHo.tenTang}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-            selectedItemBuilder: (context) => dsCanHo.map((canHo) {
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '${canHo.tenCanHo}  ·  ${canHo.tenToaNha}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            }).toList(),
-            onChanged: (canHo) {
-              if (canHo != null) onChanged(canHo);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Card yêu cầu
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -532,7 +335,6 @@ class _YeuCauCard extends StatelessWidget {
       case TrangThaiYeuCau.completed:
         return Colors.green;
       case TrangThaiYeuCau.rejected:
-        return Colors.red;
       case TrangThaiYeuCau.cancelled:
         return Colors.red;
       default:
@@ -580,11 +382,7 @@ class _YeuCauCard extends StatelessWidget {
               ],
               if (item.trangThaiThiCongTen.isNotEmpty) ...[
                 const SizedBox(height: 4),
-                _IconText(
-                  Icons.engineering,
-                  item.trangThaiThiCongTen,
-                  color: Colors.teal,
-                ),
+                _IconText(Icons.engineering, item.trangThaiThiCongTen, color: Colors.teal),
               ],
               if (item.duKienBatDau != null) ...[
                 const SizedBox(height: 4),
@@ -648,9 +446,7 @@ class _IconText extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: c),
         const SizedBox(width: 4),
-        Expanded(
-          child: Text(text, style: TextStyle(fontSize: 12, color: c)),
-        ),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 12, color: c))),
       ],
     );
   }

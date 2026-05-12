@@ -40,6 +40,10 @@ class HomeScreen extends StatelessWidget {
           _NavButton(
             label: 'Phản ánh',
             onPressed: () => context.push('/home/phan-anh'),
+          ),const SizedBox(height: 8),
+          _NavButton(
+            label: 'Khảo sát',
+            onPressed: () => context.push('/home/khao-sat'),
           ),
           const SizedBox(height: 32),
         ],
@@ -49,9 +53,6 @@ class HomeScreen extends StatelessWidget {
 }
 
 // ── User info ─────────────────────────────────────────────────────────────────
-//
-// fullName: đọc sync từ session, không cần lắng nghe (chưa có chức năng đổi tên)
-// avatar:   dùng ValueListenableBuilder vì có chức năng đổi ảnh từ ProfileScreen
 
 class _UserInfo extends StatelessWidget {
   final String fullName;

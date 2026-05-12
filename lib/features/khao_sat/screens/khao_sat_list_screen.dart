@@ -1,18 +1,10 @@
 // lib/features/khao_sat/screens/khao_sat_list_screen.dart
-//
-// Thay đổi so với v1:
-//   - Load danh sách căn hộ của cư dân qua QuanHeCuTruService
-//   - CanHoSelector hiển thị dưới TabBar (banner 1 căn / dropdown nhiều căn)
-//   - selectedCanHo được truyền vào KhaoSatDetailScreen thay mock
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../design/design.dart';
-
-// import '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
-// import '../../cu_tru/quan_he/services/quan_he_cu_tru_service.dart';
 
 import '../../cu_tru/quan_he/widgets/can_ho_selector.dart';
 import '../models/khao_sat_model.dart';

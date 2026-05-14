@@ -2,9 +2,10 @@
 
 import 'dart:io';
 import 'package:dio/dio.dart';
-import '../../../core/network/api_client.dart';
-import '../../../core/storage/user_session.dart';
-import '../../auth/services/auth_service.dart';
+
+import 'package:klks_app/core/network/api_client.dart';
+import 'package:klks_app/core/storage/user_session.dart';
+import 'package:klks_app/features/auth/services/auth_service.dart';
 import '../models/user_profile.dart';
 
 class ProfileService {
@@ -21,9 +22,7 @@ class ProfileService {
   }
 
   // ── Change avatar ─────────────────────────────────────────────────────────
-  //
-  // Sau khi upload thành công, gọi updateAvatar() → HomeScreen tự rebuild.
-
+  
   Future<String> changeAvatar(File file) async {
     final formData = FormData.fromMap({
       'avatar': await MultipartFile.fromFile(
@@ -39,9 +38,7 @@ class ProfileService {
   }
 
   // ── Change password ───────────────────────────────────────────────────────
-  //
-  // Validate client-side trước khi gọi API để tránh request thừa.
-
+  
   Future<void> changePassword({
     required String oldPassword,
     required String newPassword,

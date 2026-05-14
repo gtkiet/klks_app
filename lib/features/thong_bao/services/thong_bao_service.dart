@@ -5,7 +5,7 @@
 // mà trả về success/failure — giữ nguyên vì đây là design decision của feature.
 // Chỉ đồng bộ error parsing và bỏ boilerplate lặp lại.
 
-import '../../../core/network/api_client.dart';
+import 'package:klks_app/core/network/api_client.dart';
 import '../models/thong_bao_model.dart';
 
 class ServiceResult<T> {

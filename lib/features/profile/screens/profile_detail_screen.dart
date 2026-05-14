@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../core/storage/user_session.dart';
-import '../../../design/design.dart';
+import 'package:klks_app/core/storage/user_session.dart';
+import 'package:klks_app/design/design.dart';
 import '../models/user_profile.dart';
 import '../services/profile_service.dart';
 
@@ -63,7 +63,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     return ListView(
       padding: AppSpacing.insetAll16,
       children: [
-        // Avatar — reactive: đổi ảnh từ màn change-avatar cập nhật tại đây luôn
         Center(
           child: ValueListenableBuilder(
             valueListenable: UserSession.instance.anhDaiDienUrlNotifier,

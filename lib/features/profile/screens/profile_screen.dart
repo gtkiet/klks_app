@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/storage/user_session.dart';
-import '../../../design/design.dart';
+import 'package:klks_app/core/storage/user_session.dart';
+import 'package:klks_app/design/design.dart';
 import '../services/profile_service.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -87,7 +87,6 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Avatar — rebuild chỉ khi ảnh thay đổi (updateAvatar từ change-avatar screen)
         ValueListenableBuilder(
           valueListenable: UserSession.instance.anhDaiDienUrlNotifier,
           builder: (context, url, _) => CircleAvatar(

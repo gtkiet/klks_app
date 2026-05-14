@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../design/design.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../design/design.dart';
 import '../models/khao_sat_model.dart';
 import '../services/khao_sat_service.dart';
 

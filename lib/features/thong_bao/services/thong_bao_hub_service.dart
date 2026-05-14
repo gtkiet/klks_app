@@ -5,7 +5,8 @@ import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:signalr_netcore/signalr_client.dart';
-import '../../../core/storage/user_session.dart';
+
+import 'package:klks_app/core/storage/user_session.dart';
 
 class ThongBaoEvent {
   final String tieuDe;

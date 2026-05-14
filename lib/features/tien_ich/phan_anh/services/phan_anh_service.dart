@@ -2,11 +2,11 @@
 
 import 'dart:io';
 
-import '../../../core/network/api_client.dart';
+import '../../../../core/network/api_client.dart';
 
-import '../../cu_tru/quan_he/services/cu_tru_service.dart';
+import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
 
-import '../../shared/services/shared_services.dart';
+import '../../../shared/services/shared_services.dart';
 import '../models/phan_anh_model.dart';
 
 class PhanAnhService {

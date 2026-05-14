@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../guards/auth_guard.dart';
+import 'package:klks_app/core/guards/auth_guard.dart';
 import 'main_screen.dart';
 
 import 'package:klks_app/features/splash/screens/splash_screen.dart';
@@ -14,8 +14,8 @@ import 'package:klks_app/features/auth/screens/forgot_password_screen.dart';
 import 'package:klks_app/features/auth/screens/reset_password_screen.dart';
 
 import 'package:klks_app/features/home/screens/home_screen.dart';
-import 'package:klks_app/features/phan_anh/screens/phan_anh_list_screen.dart';
-import 'package:klks_app/features/khao_sat/screens/khao_sat_list_screen.dart';
+import 'package:klks_app/features/tien_ich/phan_anh/screens/phan_anh_list_screen.dart';
+import 'package:klks_app/features/tien_ich/khao_sat/screens/khao_sat_list_screen.dart';
 
 import 'package:klks_app/features/thong_bao/screens/thong_bao_list_screen.dart';
 import 'package:klks_app/features/thong_bao/screens/thong_bao_detail_screen.dart';
@@ -110,16 +110,6 @@ class AppRouter {
               GoRoute(
                 path: '/home',
                 builder: (_, _) => const HomeScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'phan-anh',
-                    builder: (_, _) => const PhanAnhListScreen(),
-                  ),
-                  GoRoute(
-                    path: 'khao-sat',
-                    builder: (_, _) => const KhaoSatListScreen(),
-                  ),
-                ],
               ),
             ],
           ),
@@ -163,10 +153,17 @@ class AppRouter {
                     path: 'thi-cong',
                     builder: (_, _) => const YeuCauThiCongListScreen(),
                   ),
-
                   GoRoute(
                     path: 'hoa-don',
                     builder: (_, _) => HoaDonListScreen(),
+                  ),
+                  GoRoute(
+                    path: 'phan-anh',
+                    builder: (_, _) => const PhanAnhListScreen(),
+                  ),
+                  GoRoute(
+                    path: 'khao-sat',
+                    builder: (_, _) => const KhaoSatListScreen(),
                   ),
                 ],
               ),

@@ -1,7 +1,7 @@
 // lib/features/home/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+// import 'package:go_router/go_router.dart';
 
 import 'package:klks_app/core/navigation/app_navigation.dart';
 import 'package:klks_app/core/storage/user_session.dart';
@@ -33,18 +33,6 @@ class HomeScreen extends StatelessWidget {
           const _SectionTitle('Truy cập nhanh'),
           const SizedBox(height: 8),
           const _QuickTabRow(),
-          const SizedBox(height: 32),
-
-          const _SectionTitle('Test chức năng'),
-          const SizedBox(height: 8),
-          _NavButton(
-            label: 'Phản ánh',
-            onPressed: () => context.push('/home/phan-anh'),
-          ),const SizedBox(height: 8),
-          _NavButton(
-            label: 'Khảo sát',
-            onPressed: () => context.push('/home/khao-sat'),
-          ),
           const SizedBox(height: 32),
         ],
       ),
@@ -223,17 +211,17 @@ class _SectionTitle extends StatelessWidget {
       );
 }
 
-class _NavButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
+// class _NavButton extends StatelessWidget {
+//   final String label;
+//   final VoidCallback onPressed;
 
-  const _NavButton({required this.label, required this.onPressed});
+//   const _NavButton({required this.label, required this.onPressed});
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: ElevatedButton(onPressed: onPressed, child: Text(label)),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(vertical: 6),
+//       child: ElevatedButton(onPressed: onPressed, child: Text(label)),
+//     );
+//   }
+// }

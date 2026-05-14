@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../design/design.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../design/design.dart';
 
 import 'package:klks_app/features/cu_tru/quan_he/widgets/can_ho_selector.dart';
 

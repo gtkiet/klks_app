@@ -1,6 +1,6 @@
 // lib/features/shared/services/selector_service.dart
 
-import '../../../../core/network/api_client.dart';
+import 'package:klks_app/core/network/api_client.dart';
 import '../models/selector_item_model.dart';
 
 class SelectorService {

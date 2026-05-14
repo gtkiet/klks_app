@@ -1,15 +1,10 @@
 // lib/features/profile/screens/change_avatar_screen.dart
-//
-// Sau khi upload thành công:
-//   - UserSession.instance.updateAvatar() được gọi trong ProfileService
-//   - HomeScreen và ProfileScreen tự rebuild qua ValueListenableBuilder
-//   - Màn này navigate back, không cần làm gì thêm
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../design/design.dart';
+import 'package:klks_app/design/design.dart';
 import '../services/profile_service.dart';
 
 class ChangeAvatarScreen extends StatefulWidget {
@@ -76,7 +71,7 @@ class _ChangeAvatarScreenState extends State<ChangeAvatarScreen> {
     setState(() => _loading = true);
     try {
       await ProfileService.instance.changeAvatar(_file!);
-      // updateAvatar() đã được gọi trong service → HomeScreen tự rebuild
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(

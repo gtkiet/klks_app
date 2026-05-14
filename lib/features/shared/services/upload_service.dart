@@ -3,7 +3,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 
-import '../../../../core/network/api_client.dart';
+import 'package:klks_app/core/network/api_client.dart';
 
 import '../models/file_model.dart';
 

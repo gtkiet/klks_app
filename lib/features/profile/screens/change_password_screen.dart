@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../design/design.dart';
+import 'package:klks_app/design/design.dart';
 import '../services/profile_service.dart';
 
 class ChangePasswordScreen extends StatefulWidget {

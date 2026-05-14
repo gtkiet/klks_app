@@ -1,23 +1,8 @@
 // lib/core/storage/user_session.dart
-//
-// FLOW:
-//   1. Đăng nhập:      await UserSession.instance.save(userModel);
-//   2. App khởi động:  await UserSession.instance.load();   // trong main()
-//   3. Đăng xuất:      await UserSession.instance.clear();
-//
-// REACTIVE AVATAR — lắng nghe thay đổi ảnh đại diện:
-//
-//   ValueListenableBuilder(
-//     valueListenable: UserSession.instance.anhDaiDienUrlNotifier,
-//     builder: (context, url, _) => Avatar(url: url),
-//   )
-//
-// Sau khi upload avatar thành công ở ProfileScreen:
-//   await UserSession.instance.updateAvatar(newUrl);
-//   → Widget đang lắng nghe tự rebuild, không cần làm gì thêm
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'package:klks_app/features/auth/models/user_model.dart';
 
 abstract class _K {
@@ -38,16 +23,6 @@ class UserSession {
 
   final _storage = const FlutterSecureStorage();
 
-  // ── Reactive field ────────────────────────────────────────────────────────
-  //
-  // Chỉ avatar cần reactive vì có chức năng đổi ảnh từ ProfileScreen.
-  // Các field khác đọc thẳng (sync) sau khi load().
-
-  /// Lắng nghe thay đổi avatar:
-  ///   ValueListenableBuilder(
-  ///     valueListenable: UserSession.instance.anhDaiDienUrlNotifier,
-  ///     builder: (context, url, _) => ...,
-  ///   )
   final anhDaiDienUrlNotifier = ValueNotifier<String?>(null);
 
   String? get anhDaiDienUrl => anhDaiDienUrlNotifier.value;
@@ -136,11 +111,7 @@ class UserSession {
   }
 
   // ── Đổi avatar ────────────────────────────────────────────────────────────
-  //
-  // Gọi từ ProfileScreen sau khi upload thành công:
-  //   await UserSession.instance.updateAvatar(newUrl);
-  //   → HomeScreen và mọi widget đang lắng nghe tự rebuild
-
+  
   Future<void> updateAvatar(String newUrl) async {
     anhDaiDienUrlNotifier.value = newUrl;
     await _storage.write(key: _K.anhDaiDienUrl, value: newUrl);

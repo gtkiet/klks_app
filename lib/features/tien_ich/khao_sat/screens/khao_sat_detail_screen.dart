@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../design/design.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../design/design.dart';
 
-import '../../cu_tru/quan_he/widgets/can_ho_selector.dart';
+import '../../../cu_tru/quan_he/widgets/can_ho_selector.dart';
 
 import '../models/khao_sat_model.dart';
 import '../services/khao_sat_service.dart';

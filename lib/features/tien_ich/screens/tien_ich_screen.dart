@@ -26,10 +26,22 @@ class TienIchScreen extends StatelessWidget {
       route: '/tien-ich/thi-cong',
     ),
     _TienIchMeta(
-      icon: Icons.construction_outlined,
+      icon: Icons.receipt_outlined,
       label: 'Hóa đơn',
       description: 'Hóa đơn thanh toán',
       route: '/tien-ich/hoa-don',
+    ),
+    _TienIchMeta(
+      icon: Icons.feedback_outlined,
+      label: 'Phản ánh',
+      description: 'Phản ánh',
+      route: '/tien-ich/phan-anh',
+    ),
+    _TienIchMeta(
+      icon: Icons.poll_outlined,
+      label: 'Khảo sát',
+      description: 'Khảo sát',
+      route: '/tien-ich/khao-sat',
     ),
   ];
 

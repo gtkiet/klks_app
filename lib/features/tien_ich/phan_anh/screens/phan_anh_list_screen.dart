@@ -9,13 +9,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../design/design.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../design/design.dart';
 
 // import '../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 // import '../../cu_tru/quan_he/services/quan_he_cu_tru_service.dart';
 
-import '../../cu_tru/quan_he/widgets/can_ho_selector.dart';
+import '../../../cu_tru/quan_he/widgets/can_ho_selector.dart';
 
 import '../models/phan_anh_model.dart';
 import '../services/phan_anh_service.dart';

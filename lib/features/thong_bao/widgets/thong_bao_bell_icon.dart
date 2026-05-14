@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../services/thong_bao_hub_service.dart';
 
-import '../../../core/navigation/app_navigation.dart';
+import 'package:klks_app/core/navigation/app_navigation.dart';
 
 class ThongBaoBellIcon extends StatefulWidget {
   /// Callback khi user nhấn. Nếu null, widget tự disable.

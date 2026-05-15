@@ -4,10 +4,12 @@
 //   import 'package:your_app/features/tien_ich/thi_cong/models/thi_cong_model.dart';
 //   // TrangThaiYeuCau, FileAttachment, PagingInfo, QuanHeCuTruModel có sẵn qua re-export
 
-export '../../../shared/models/shared_models.dart';
+export 'package:klks_app/features/shared/models/file_model.dart';
+export 'package:klks_app/features/shared/models/paging_model.dart';
+export 'package:klks_app/features/shared/models/selector_item_model.dart';
 export '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'show QuanHeCuTruModel;
 
-import '../../../shared/models/shared_models.dart';
+import 'package:klks_app/features/shared/models/file_model.dart';
 
 /// Trạng thái yêu cầu chung — dùng lại ở thi_cong, sua_chua.
 abstract class TrangThaiYeuCau {

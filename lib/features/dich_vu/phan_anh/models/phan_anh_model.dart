@@ -4,7 +4,9 @@
 //   import 'package:your_app/features/phan_anh/models/phan_anh_model.dart';
 //   // FileAttachment, PagingInfo có sẵn qua re-export
 
-export '../../../shared/models/shared_models.dart';
+// export '../../../shared/models/shared_models.dart';
+export 'package:klks_app/features/shared/models/paging_model.dart';
+export 'package:klks_app/features/shared/models/file_model.dart';
 
 // Re-export QuanHeCuTruModel để service có thể lấy địa chỉ đầy đủ
 // thay vì chỉ dùng tenCanHo/tenTang/tenToaNha riêng lẻ.
@@ -14,7 +16,8 @@ export '../../../shared/models/shared_models.dart';
 export '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
     show QuanHeCuTruModel;
 
-import '../../../shared/models/shared_models.dart';
+import 'package:klks_app/features/shared/models/file_model.dart';
+
 
 class PhanAnhResponse {
   final int id;

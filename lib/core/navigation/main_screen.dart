@@ -31,7 +31,7 @@ class MainScreen extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Trang chủ',
           ),
           BottomNavigationBarItem(
             icon: ThongBaoNavIcon(),
@@ -41,7 +41,7 @@ class MainScreen extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.widgets_outlined),
             activeIcon: Icon(Icons.widgets),
-            label: 'Tiện ích',
+            label: 'Dịch vụ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.apartment_outlined),

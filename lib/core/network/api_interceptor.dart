@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 
-import 'package:klks_app/core/guards/auth_guard.dart';
 import 'package:klks_app/core/storage/user_session.dart';
 import 'package:klks_app/features/auth/services/auth_service.dart';
 
@@ -110,7 +109,7 @@ class ApiInterceptor extends Interceptor {
     _queue.clear();
   }
 
-  Future<void> _logout() async => AuthGuard.instance.logout();
+  Future<void> _logout() async => AuthService.instance.logout();
 }
 
 class _PendingRequest {

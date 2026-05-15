@@ -4,11 +4,14 @@
 //   import 'package:your_app/features/tien_ich/sua_chua/models/sua_chua_model.dart';
 //   // FileAttachment, PagingInfo, QuanHeCuTruModel đều có sẵn qua re-export
 
-export '../../../shared/models/shared_models.dart';
+export 'package:klks_app/features/shared/models/file_model.dart';
+export 'package:klks_app/features/shared/models/paging_model.dart';
+export 'package:klks_app/features/shared/models/selector_item_model.dart';
 export '../../../cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
     show QuanHeCuTruModel;
 
-import '../../../shared/models/shared_models.dart';
+import 'package:klks_app/features/shared/models/file_model.dart';
+
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

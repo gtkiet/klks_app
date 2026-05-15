@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-export 'package:klks_app/features/shared/models/shared_models.dart';
+// export 'package:klks_app/features/shared/models/file_model.dart';
 
 export 'package:klks_app/features/cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 

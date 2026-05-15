@@ -1,6 +1,6 @@
 // lib/features/khao_sat/models/khao_sat_model.dart
 
-export 'package:klks_app/features/shared/models/shared_models.dart';
+// export 'package:klks_app/features/shared/models/shared_models.dart';
 export 'package:klks_app/features/cu_tru/quan_he/models/quan_he_cu_tru_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────

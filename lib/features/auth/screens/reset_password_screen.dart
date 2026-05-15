@@ -1,11 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // lib/features/auth/screens/reset_password_screen.dart
 // ═══════════════════════════════════════════════════════════════════════════
-//
-// BUG FIX:
-//   1. Không navigate về login khi reset thất bại (trước dùng finally).
-//   2. Thêm nút "Gửi lại mã" (resend) với cooldown 60 giây.
-//   3. Chỉ navigate về login khi reset THÀNH CÔNG.
 
 import 'dart:async';
 import 'package:flutter/material.dart';

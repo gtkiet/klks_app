@@ -1,7 +1,9 @@
 // lib/features/splash/screens/splash_screen.dart
 
 import 'package:flutter/material.dart';
+
 import 'package:klks_app/core/guards/auth_guard.dart';
+import 'package:klks_app/core/storage/user_session.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,6 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    UserSession.instance.load();
     AuthGuard.instance.init();
   }
 

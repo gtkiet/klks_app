@@ -9,7 +9,7 @@
 // Re-export — service chỉ cần import file này
 export '../../quan_he/models/quan_he_cu_tru_model.dart';
 
-import '../../../shared/models/shared_models.dart';
+import 'package:klks_app/features/shared/models/file_model.dart';
 
 // ── Thành viên cư trú (list item) ────────────────────────────────────────────
 

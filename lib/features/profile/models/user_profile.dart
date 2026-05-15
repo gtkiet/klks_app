@@ -29,7 +29,6 @@ class UserProfile {
     this.anhDaiDienUrl,
   });
 
-  /// Họ tên đầy đủ — dùng để hiển thị thay cho HomeData.fullName
   String get fullName => '$firstName $lastName'.trim();
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(

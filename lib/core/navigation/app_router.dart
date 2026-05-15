@@ -138,11 +138,11 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/tien-ich',
+                path: '/dich-vu',
                 builder: (_, _) => const TienIchScreen(),
                 routes: [
                   GoRoute(
-                    path: 'dich-vu',
+                    path: 'tien-ich',
                     builder: (_, _) => const DichVuListScreen(),
                   ),
                   GoRoute(

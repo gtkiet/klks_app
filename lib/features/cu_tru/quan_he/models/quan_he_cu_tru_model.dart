@@ -24,7 +24,10 @@
 // ═══════════════════════════════════════════════════════════════════════
 
 // Re-export shared models — service của feature cu_tru không cần import thêm.
-export '../../../shared/models/shared_models.dart';
+// export '../../../shared/models/shared_models.dart';
+export 'package:klks_app/features/shared/models/file_model.dart';
+export 'package:klks_app/features/shared/models/selector_item_model.dart';
+export 'package:klks_app/features/shared/models/paging_model.dart';
 
 class QuanHeCuTruModel {
   final int quanHeCuTruId;

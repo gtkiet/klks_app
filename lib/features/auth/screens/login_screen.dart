@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:klks_app/core/guards/auth_guard.dart';
 import 'package:klks_app/design/design.dart';
 
 import '../services/auth_service.dart';
@@ -42,7 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
       if (mounted) {
-        AuthGuard.instance.setAuthenticated();
         context.go('/home');
       }
     } catch (e) {

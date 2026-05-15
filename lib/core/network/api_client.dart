@@ -3,7 +3,9 @@
 import 'package:dio/dio.dart';
 import 'api_interceptor.dart';
 
-import 'package:klks_app/features/shared/models/shared_models.dart';
+import 'package:klks_app/features/shared/models/paging_model.dart';
+
+const String baseUrl = 'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ERROR LAYER
@@ -180,8 +182,8 @@ class ApiResponse {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class ApiClient {
-  static const String baseUrl =
-      'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net';
+  // static const String baseUrl =
+  //     'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net';
 
   ApiClient._internal();
   static final ApiClient instance = ApiClient._internal();

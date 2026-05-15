@@ -53,12 +53,6 @@ class AuthGuard extends ChangeNotifier {
     }
   }
 
-  // ===================== LOGOUT =====================
-  Future<void> logout() async {
-    await AuthService.instance.logout();
-    _setStatus(AuthStatus.unauthenticated);
-  }
-
   // ===================== SET STATUS =====================
   void _setStatus(AuthStatus status) {
     if (_status == status) return;
@@ -67,6 +61,7 @@ class AuthGuard extends ChangeNotifier {
   }
 
   void setAuthenticated() => _setStatus(AuthStatus.authenticated);
+  void setUnauthenticated() => _setStatus(AuthStatus.unauthenticated);
 }
 
 enum AuthStatus { unknown, authenticated, unauthenticated }

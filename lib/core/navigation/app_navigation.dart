@@ -21,9 +21,9 @@ class AppNavigation {
   static void goProfile() => goTab(4);
 
   /// Chuyển tab rồi push subroute — mượt, đúng tab highlight
-  static void goTienIchDichVu() => _goTabThenPush(2, '/tien-ich/dich-vu');
-  static void goTienIchSuaChua() => _goTabThenPush(2, '/tien-ich/sua-chua');
-  static void goTienIchThiCong() => _goTabThenPush(2, '/tien-ich/thi-cong');
+  static void goTienIchDichVu() => _goTabThenPush(2, '/dich-vu/tien-ich');
+  static void goTienIchSuaChua() => _goTabThenPush(2, '/dich-vu/sua-chua');
+  static void goTienIchThiCong() => _goTabThenPush(2, '/dich-vu/thi-cong');
 
   static void _goTabThenPush(int tabIndex, String route) {
     // 1. Reset branch về root trước

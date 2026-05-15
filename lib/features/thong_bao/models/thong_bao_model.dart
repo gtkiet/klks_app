@@ -4,7 +4,7 @@
 //   import 'package:your_app/features/thong_bao/models/thong_bao_model.dart';
 //   // PagingInfo, PagedResult có sẵn qua re-export
 
-export '../../shared/models/shared_models.dart';
+export 'package:klks_app/features/shared/models/paging_model.dart';
 
 class ThongBaoItem {
   final int id;

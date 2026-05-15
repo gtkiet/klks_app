@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
+import 'package:klks_app/core/guards/auth_guard.dart';
 import 'package:klks_app/core/network/api_client.dart';
 import 'package:klks_app/core/storage/user_session.dart';
 
@@ -44,6 +45,7 @@ class AuthService {
 
     await _session.save(user);
 
+    AuthGuard.instance.setAuthenticated();
     unawaited(ThongBaoHubService.instance.connect());
 
     return user;
@@ -84,6 +86,7 @@ class AuthService {
       // Bỏ qua lỗi logout — luôn xoá session
     } finally {
       await _session.clear();
+      AuthGuard.instance.setUnauthenticated();
       await ThongBaoHubService.instance.disconnect();
     }
   }

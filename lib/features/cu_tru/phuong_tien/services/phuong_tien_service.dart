@@ -2,9 +2,11 @@
 
 import 'dart:io';
 
-import '../../../../core/network/api_client.dart';
+import 'package:klks_app/core/network/api_client.dart';
+import 'package:klks_app/features/shared/models/paging_model.dart';
+import 'package:klks_app/features/shared/services/selector_service.dart';
+import 'package:klks_app/features/shared/services/upload_service.dart';
 
-import '../../../shared/services/shared_services.dart';
 import '../models/phuong_tien_model.dart';
 
 class PhuongTienService {

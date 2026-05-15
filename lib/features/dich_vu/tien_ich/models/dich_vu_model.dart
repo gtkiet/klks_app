@@ -4,7 +4,8 @@
 //   import 'package:klks_app/features/tien_ich/dich_vu/models/dich_vu_model.dart';
 //   // SelectorItem, PagingInfo, QuanHeCuTruModel có sẵn qua re-export
 
-export 'package:klks_app/features/shared/models/shared_models.dart';
+export 'package:klks_app/features/shared/models/paging_model.dart';
+export 'package:klks_app/features/shared/models/selector_item_model.dart';
 export 'package:klks_app/features/cu_tru/quan_he/models/quan_he_cu_tru_model.dart'
     show QuanHeCuTruModel;
 

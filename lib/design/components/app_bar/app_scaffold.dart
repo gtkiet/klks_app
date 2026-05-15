@@ -13,8 +13,15 @@ import 'app_top_bar.dart';
 ///
 /// Usage:
 /// ```dart
+/// // With app bar (title required)
 /// AppScaffold(
 ///   title: 'Dashboard',
+///   body: MyContent(),
+/// )
+///
+/// // With custom app bar
+/// AppScaffold(
+///   appBar: AppTopBar(title: 'Custom', actions: [...]),
 ///   body: MyContent(),
 /// )
 ///
@@ -24,6 +31,12 @@ import 'app_top_bar.dart';
 ///   body: SplashContent(),
 /// )
 /// ```
+///
+/// FIX: Làm rõ behavior của [showAppBar]:
+///   - `showAppBar: true` + `appBar != null`  → dùng custom appBar
+///   - `showAppBar: true` + `title != null`   → tự tạo AppTopBar
+///   - `showAppBar: true` + cả hai đều null   → assert trong debug, không render appBar
+///   - `showAppBar: false`                    → không render appBar, bỏ qua title
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
@@ -38,7 +51,11 @@ class AppScaffold extends StatelessWidget {
     this.resizeToAvoidBottomInset = true,
     this.leading,
     this.actions,
-  });
+  }) : assert(
+         !showAppBar || appBar != null || title != null,
+         'AppScaffold: showAppBar=true nhưng không có title lẫn appBar. '
+         'Truyền vào title, appBar, hoặc set showAppBar=false.',
+       );
 
   final String? title;
   final Widget body;
@@ -57,10 +74,13 @@ class AppScaffold extends StatelessWidget {
     PreferredSizeWidget? resolvedAppBar;
 
     if (showAppBar) {
-      resolvedAppBar = appBar ??
+      resolvedAppBar =
+          appBar ??
           (title != null
               ? AppTopBar(title: title!, leading: leading, actions: actions)
               : null);
+      // null ở đây chỉ xảy ra trong release build khi assert bị bỏ qua —
+      // behavior: scaffold render không có app bar, tương tự showAppBar=false.
     }
 
     return Scaffold(

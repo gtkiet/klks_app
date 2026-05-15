@@ -7,7 +7,7 @@ import 'package:klks_app/design/tokens/typography.dart';
 import 'package:klks_app/design/foundations/constants.dart';
 
 /// Button variants matching TDS specification.
-enum AppButtonVariant { primary, secondary, outline }
+enum AppButtonVariant { primary, secondary, outline, danger }
 
 /// PKK Resident - App Button
 ///
@@ -33,6 +33,13 @@ enum AppButtonVariant { primary, secondary, outline }
 ///   label: 'Xem chi tiết',
 ///   variant: AppButtonVariant.outline,
 ///   onPressed: _handleView,
+/// )
+///
+/// // Danger (e.g. confirm delete)
+/// AppButton(
+///   label: 'Xoá tài khoản',
+///   variant: AppButtonVariant.danger,
+///   onPressed: _handleDelete,
 /// )
 ///
 /// // Loading state
@@ -79,6 +86,7 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveOnPressed = isLoading ? null : onPressed;
     final isDisabled = onPressed == null && !isLoading;
 
     Widget child = _ButtonContent(
@@ -91,17 +99,22 @@ class AppButton extends StatelessWidget {
 
     Widget button = switch (variant) {
       AppButtonVariant.primary => _PrimaryButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: effectiveOnPressed,
         height: height,
         child: child,
       ),
       AppButtonVariant.secondary => _SecondaryButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: effectiveOnPressed,
         height: height,
         child: child,
       ),
       AppButtonVariant.outline => _OutlineButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: effectiveOnPressed,
+        height: height,
+        child: child,
+      ),
+      AppButtonVariant.danger => _DangerButton(
+        onPressed: effectiveOnPressed,
         height: height,
         child: child,
       ),
@@ -129,20 +142,19 @@ class _PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      style:
-          ElevatedButton.styleFrom(
-            minimumSize: Size(0, height),
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textOnPrimary,
-            disabledBackgroundColor: AppColors.secondaryLight,
-            disabledForegroundColor: AppColors.textDisabled,
-          ).copyWith(
-            overlayColor: WidgetStateProperty.resolveWith(
-              (states) => states.contains(WidgetState.pressed)
-                  ? AppColors.textOnPrimary.withAlpha(30)
-                  : null,
-            ),
-          ),
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(0, height),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        disabledBackgroundColor: AppColors.secondaryLight,
+        disabledForegroundColor: AppColors.textDisabled,
+      ).copyWith(
+        overlayColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.pressed)
+              ? AppColors.textOnPrimary.withAlpha(30)
+              : null,
+        ),
+      ),
       child: child,
     );
   }
@@ -194,10 +206,43 @@ class _OutlineButton extends StatelessWidget {
         minimumSize: Size(0, height),
         foregroundColor: AppColors.primary,
         disabledForegroundColor: AppColors.textDisabled,
-        side: BorderSide(
-          color: onPressed == null ? AppColors.border : AppColors.primary,
-          width: 1.5,
-        ),
+      ).copyWith(
+        // FIX: dùng WidgetStateProperty thay vì check onPressed == null trực tiếp
+        // để bắt đúng disabled state kể cả khi Flutter set state bất đồng bộ.
+        side: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return const BorderSide(color: AppColors.border, width: 1.5);
+          }
+          return const BorderSide(color: AppColors.primary, width: 1.5);
+        }),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _DangerButton extends StatelessWidget {
+  const _DangerButton({
+    required this.onPressed,
+    required this.height,
+    required this.child,
+  });
+  final VoidCallback? onPressed;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        minimumSize: Size(0, height),
+        backgroundColor: AppColors.error,
+        foregroundColor: AppColors.textOnPrimary,
+        disabledBackgroundColor: AppColors.secondaryLight,
+        disabledForegroundColor: AppColors.textDisabled,
+        elevation: 0,
+        shadowColor: Colors.transparent,
       ),
       child: child,
     );
@@ -220,7 +265,10 @@ class _ButtonContent extends StatelessWidget {
   final bool isDisabled;
 
   Color get _spinnerColor => switch (variant) {
-    AppButtonVariant.primary => AppColors.textOnPrimary,
+    // FIX: isLoading implicitly disables the button (onPressed = null),
+    // so spinner sẽ không bao giờ thấy disabled color — nhưng để safe:
+    AppButtonVariant.primary || AppButtonVariant.danger =>
+      AppColors.textOnPrimary,
     _ => AppColors.primary,
   };
 

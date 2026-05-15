@@ -1,6 +1,7 @@
 // lib/design/components/cards/app_card.dart
 
 import 'package:flutter/material.dart';
+
 import 'package:klks_app/design/tokens/colors.dart';
 import 'package:klks_app/design/tokens/radius.dart';
 import 'package:klks_app/design/tokens/elevation.dart';
@@ -25,14 +26,16 @@ import 'package:klks_app/design/tokens/typography.dart';
 ///   child: Row(children: [...]),
 /// )
 ///
-/// // Utility status card (colored header strip)
-/// AppCard.utility(
-///   title: 'Electricity',
-///   subtitle: '75% of monthly budget',
+/// // Colored card (e.g. utility/status card)
+/// AppCard(
 ///   color: AppColors.primary,
 ///   child: ...,
 /// )
 /// ```
+///
+/// FIX: Đã bỏ `AppCard.utility` constructor vì nó không có behavior riêng biệt
+/// so với constructor mặc định — chỉ khác default value của `color`.
+/// Dùng `AppCard(color: AppColors.primary, ...)` trực tiếp thay thế.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -40,16 +43,6 @@ class AppCard extends StatelessWidget {
     this.onTap,
     this.padding,
     this.color,
-    this.margin,
-  });
-
-  /// Colored utility card variant — matches the "Electricity" card in the PNG.
-  const AppCard.utility({
-    super.key,
-    required this.child,
-    this.onTap,
-    this.color = AppColors.primary,
-    this.padding,
     this.margin,
   });
 
@@ -61,10 +54,12 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = color ?? AppColors.surface;
+
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: color ?? AppColors.surface,
+        color: effectiveColor,
         borderRadius: AppRadius.card,
         boxShadow: AppElevation.level1,
       ),

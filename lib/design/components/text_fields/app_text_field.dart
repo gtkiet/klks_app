@@ -65,6 +65,7 @@ class AppTextField extends StatefulWidget {
        _isSearch = false;
 
   /// Password variant — auto adds eye toggle.
+  /// FIX: eye toggle luôn được ưu tiên, không bị error icon đè lên.
   const AppTextField.password({
     super.key,
     this.label,
@@ -155,6 +156,10 @@ class _AppTextFieldState extends State<AppTextField> {
     return widget.prefixIcon;
   }
 
+  /// FIX: Priority order:
+  ///   1. Password eye toggle — luôn hiển thị, kể cả khi có errorText
+  ///   2. Custom suffixIcon — được truyền từ ngoài vào
+  ///   3. Error icon — chỉ fallback khi không có suffixIcon nào khác
   Widget? get _suffix {
     if (widget._isPassword) {
       return GestureDetector(
@@ -168,10 +173,11 @@ class _AppTextFieldState extends State<AppTextField> {
         ),
       );
     }
+    if (widget.suffixIcon != null) return widget.suffixIcon;
     if (widget.errorText != null) {
       return const Icon(Icons.error_outline, color: AppColors.error, size: 20);
     }
-    return widget.suffixIcon;
+    return null;
   }
 
   @override

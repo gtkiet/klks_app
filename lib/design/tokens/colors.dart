@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 ///
 /// Usage:
 /// ```dart
-/// import 'package:pkk_resident/design/design.dart';
+/// import 'package:klks_app/design/design.dart';
 /// color: AppColors.primary,
 /// ```
 

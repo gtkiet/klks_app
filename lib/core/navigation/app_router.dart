@@ -21,7 +21,7 @@ import 'package:klks_app/features/dich_vu/khao_sat/screens/khao_sat_list_screen.
 import 'package:klks_app/features/thong_bao/screens/thong_bao_list_screen.dart';
 import 'package:klks_app/features/thong_bao/screens/thong_bao_detail_screen.dart';
 
-import 'package:klks_app/features/dich_vu/screens/tien_ich_screen.dart';
+import 'package:klks_app/features/dich_vu/screens/dich_vu_screen.dart';
 import 'package:klks_app/features/dich_vu/tien_ich/screens/dich_vu_list_screen.dart';
 import 'package:klks_app/features/dich_vu/sua_chua/screens/sua_chua_list_screen.dart';
 import 'package:klks_app/features/dich_vu/thi_cong/screens/thi_cong_list_screen.dart';
@@ -133,7 +133,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/dich-vu',
-                builder: (_, _) => const TienIchScreen(),
+                builder: (_, _) => const DichVuScreen(),
                 routes: [
                   GoRoute(
                     path: 'tien-ich',

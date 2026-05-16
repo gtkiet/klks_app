@@ -1,13 +1,13 @@
-// lib/features/tien_ich/dich_vu/screens/dich_vu_list_screen.dart
+// lib/features/dich_vu/tien_ich/screens/dich_vu_list_screen.dart
 
 import 'package:flutter/material.dart';
 
 import '../models/dich_vu_model.dart';
-
 import '../services/dich_vu_service.dart';
-import '../widgets/common_widgets.dart';
 import 'dich_vu_detail_screen.dart';
 import 'dang_ky_dich_vu_screen.dart';
+
+import 'package:klks_app/design/design.dart';
 
 class DichVuListScreen extends StatefulWidget {
   const DichVuListScreen({super.key});
@@ -21,22 +21,16 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
   final _searchCtrl = TextEditingController();
 
   List<DichVuItem> _items = [];
-  // List<SelectorItem> _loaiDichVuList = [];
-  // List<SelectorItem> _trangThaiList = [];
-
-  PagingInfo? _paging;
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
-
-  // int? _selectedLoaiDichVuId;
-  // int? _selectedTrangThaiId;
   int _page = 1;
+  bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
-    // _loadCatalogs();
-    _loadData();
+    _loadData(reset: true);
   }
 
   @override
@@ -45,226 +39,204 @@ class _DichVuListScreenState extends State<DichVuListScreen> {
     super.dispose();
   }
 
-  // Future<void> _loadCatalogs() async {
-  //   try {
-  //     final results = await Future.wait([
-  //       _service.getLoaiDichVu(),
-  //       _service.getTrangThaiDichVu(),
-  //     ]);
-  //     if (!mounted) return;
-  //     setState(() {
-  //       _loaiDichVuList = results[0];
-  //       _trangThaiList = results[1];
-  //     });
-  //   } catch (_) {
-  //     // Catalog lỗi không block UI chính
-  //   }
-  // }
-
   Future<void> _loadData({bool reset = false}) async {
     if (reset) {
       _page = 1;
-      _items = [];
+      _hasMore = true;
     }
 
     setState(() {
-      _isLoading = true;
+      if (reset) {
+        _isLoading = true;
+      } else {
+        _isLoadingMore = true;
+      }
       _error = null;
     });
 
     try {
       final result = await _service.getDichVuList(
-        // loaiDichVuId: _selectedLoaiDichVuId ?? 3,
-        // trangThaiDichVuId: _selectedTrangThaiId,
         keyword: _searchCtrl.text.trim(),
         pageNumber: _page,
       );
+      if (!mounted) return;
       setState(() {
-        _items = reset ? result.items : [..._items, ...result.items];
-        _paging = result.pagingInfo as PagingInfo?;
+        if (reset) {
+          _items = result.items;
+        } else {
+          _items.addAll(result.items);
+        }
+        _hasMore = result.pagingInfo.hasNextPage;
       });
-    } catch (e) {
+    } on Exception catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+        _isLoading = false;
+        _isLoadingMore = false;
+      });
+      }
     }
   }
 
-  void _onLoadMore() {
-    if (_paging != null && _paging!.hasNextPage && !_isLoading) {
+  void _loadMore() {
+    if (_hasMore && !_isLoading && !_isLoadingMore) {
       _page++;
       _loadData();
     }
   }
 
+  void _goDetail(DichVuItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DichVuDetailScreen(dichVuId: item.id),
+      ),
+    );
+  }
+
+  void _goDangKy(DichVuItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DangKyDichVuScreen(
+          dichVuId: item.id,
+          tenDichVu: item.tenDichVu,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Danh sách Dịch Vụ'),
+    return AppScaffold(
+      appBar: AppTopBar(
+        title: 'Dịch vụ tiện ích',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => _loadData(reset: true),
+            tooltip: 'Làm mới',
+            onPressed: _isLoading ? null : () => _loadData(reset: true),
           ),
         ],
       ),
       body: Column(
         children: [
-          _buildFilterBar(),
+          _SearchBar(
+            controller: _searchCtrl,
+            onSearch: () => _loadData(reset: true),
+            onClear: () {
+              _searchCtrl.clear();
+              _loadData(reset: true);
+            },
+          ),
           Expanded(child: _buildBody()),
         ],
       ),
     );
   }
 
-  Widget _buildFilterBar() {
-    return Container(
-      color: Colors.grey.shade100,
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: [
-          TextField(
-            controller: _searchCtrl,
-            decoration: InputDecoration(
-              hintText: 'Tìm theo mã hoặc tên dịch vụ...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchCtrl.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        _loadData(reset: true);
-                      },
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            onSubmitted: (_) => _loadData(reset: true),
-            textInputAction: TextInputAction.search,
-          ),
-          // const SizedBox(height: 8),
-          // Row(
-          //   children: [
-          //     Expanded(
-          //       child: _buildDropdown(
-          //         hint: 'Loại dịch vụ',
-          //         value: _selectedLoaiDichVuId,
-          //         items: _loaiDichVuList,
-          //         onChanged: (val) {
-          //           setState(() => _selectedLoaiDichVuId = val);
-          //           _loadData(reset: true);
-          //         },
-          //       ),
-          //     ),
-          //     const SizedBox(width: 8),
-          //     Expanded(
-          //       child: _buildDropdown(
-          //         hint: 'Trạng thái',
-          //         value: _selectedTrangThaiId,
-          //         items: _trangThaiList,
-          //         onChanged: (val) {
-          //           setState(() => _selectedTrangThaiId = val);
-          //           _loadData(reset: true);
-          //         },
-          //       ),
-          //     ),
-          //   ],
-          // ),
-        ],
-      ),
-    );
-  }
-
-  // Widget _buildDropdown({
-  //   required String hint,
-  //   required int? value,
-  //   required List<SelectorItem> items,
-  //   required void Function(int?) onChanged,
-  // }) {
-  //   return DropdownButtonFormField<int>(
-  //     initialValue: value,
-  //     isExpanded: true,
-  //     decoration: InputDecoration(
-  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-  //       filled: true,
-  //       fillColor: Colors.white,
-  //       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-  //     ),
-  //     hint: Text(hint, style: const TextStyle(fontSize: 13)),
-  //     items: [
-  //       DropdownMenuItem<int>(
-  //         value: null,
-  //         child: Text('Tất cả - $hint', style: const TextStyle(fontSize: 13)),
-  //       ),
-  //       ...items.map(
-  //         (e) => DropdownMenuItem<int>(
-  //           value: e.id,
-  //           child: Text(e.name, style: const TextStyle(fontSize: 13)),
-  //         ),
-  //       ),
-  //     ],
-  //     onChanged: onChanged,
-  //   );
-  // }
-
   Widget _buildBody() {
-    if (_isLoading && _items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
+
     if (_error != null && _items.isEmpty) {
-      return ErrorStateWidget(
-        message: _error!,
+      return ErrorDisplay(
+        error: _error,
         onRetry: () => _loadData(reset: true),
       );
     }
+
     if (_items.isEmpty) {
-      return const EmptyStateWidget(message: 'Không có dịch vụ nào.');
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.miscellaneous_services_outlined,
+                size: 56, color: AppColors.textDisabled),
+            const SizedBox(height: AppSpacing.sm),
+            Text('Không có dịch vụ nào',
+                style: AppTypography.body.secondary),
+          ],
+        ),
+      );
     }
 
     return NotificationListener<ScrollNotification>(
       onNotification: (n) {
         if (n is ScrollEndNotification &&
             n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
-          _onLoadMore();
+          _loadMore();
         }
         return false;
       },
-      child: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: _items.length + (_paging?.hasNextPage == true ? 1 : 0),
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          if (index == _items.length) return const LoadMoreIndicator();
-          return _DichVuCard(
-            item: _items[index],
-            onDetail: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DichVuDetailScreen(dichVuId: _items[index].id),
-              ),
-            ),
-            onDangKy: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DangKyDichVuScreen(
-                  dichVuId: _items[index].id,
-                  tenDichVu: _items[index].tenDichVu,
+      child: RefreshIndicator(
+        onRefresh: () => _loadData(reset: true),
+        color: AppColors.primary,
+        child: ListView.separated(
+          padding: AppSpacing.insetAll16,
+          itemCount: _items.length + (_isLoadingMore ? 1 : 0),
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+          itemBuilder: (_, i) {
+            if (i == _items.length) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: CircularProgressIndicator(color: AppColors.primary),
                 ),
-              ),
-            ),
-          );
-        },
+              );
+            }
+            return _DichVuCard(
+              item: _items[i],
+              onDetail: () => _goDetail(_items[i]),
+              onDangKy: () => _goDangKy(_items[i]),
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-// ── Card ──────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Search bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onSearch;
+  final VoidCallback onClear;
+
+  const _SearchBar({
+    required this.controller,
+    required this.onSearch,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.background,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm,
+      ),
+      child: AppTextField.search(
+        controller: controller,
+        hint: 'Tìm theo mã hoặc tên dịch vụ...',
+        onSubmitted: (_) => onSearch(),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Card
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _DichVuCard extends StatelessWidget {
   final DichVuItem item;
@@ -279,98 +251,72 @@ class _DichVuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: item.isHoatDong
-              ? Colors.green.shade100
-              : Colors.orange.shade100,
-          child: Icon(
-            Icons.miscellaneous_services,
-            color: item.isHoatDong ? Colors.green : Colors.orange,
+    return AppCard(
+      onTap: onDetail,
+      child: Row(
+        children: [
+          // Icon
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: item.isHoatDong
+                  ? AppColors.primaryLight
+                  : AppColors.secondaryLight,
+              borderRadius: AppRadius.buttonSmall,
+            ),
+            child: Icon(
+              Icons.miscellaneous_services_outlined,
+              color: item.isHoatDong
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
+              size: 22,
+            ),
           ),
-        ),
-        title: Text(
-          item.tenDichVu,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Mã: ${item.maDichVu} • ${item.loaiDichVuTen}'),
-            Row(
+          const SizedBox(width: AppSpacing.sm),
+
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Chip(
-                  label: Text(
-                    item.trangThaiDichVuTen,
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  backgroundColor: item.isHoatDong
-                      ? Colors.green.shade50
-                      : Colors.orange.shade50,
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
+                Text(item.tenDichVu, style: AppTypography.subhead),
+                const SizedBox(height: 2),
+                Text(
+                  'Mã: ${item.maDichVu}',
+                  style: AppTypography.captionSmall.secondary,
                 ),
-                if (item.isBatBuoc) ...[
-                  const SizedBox(width: 6),
-                  const Chip(
-                    label: Text('Bắt buộc', style: TextStyle(fontSize: 11)),
-                    backgroundColor: Color(0xFFE3F2FD),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    AppStatusBadge(
+                      label: item.trangThaiDichVuTen,
+                      variant: item.isHoatDong
+                          ? AppBadgeVariant.success
+                          : AppBadgeVariant.warning,
+                    ),
+                    if (item.isBatBuoc) ...[
+                      const SizedBox(width: 6),
+                      const AppStatusBadge(
+                        label: 'Bắt buộc',
+                        variant: AppBadgeVariant.info,
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              tooltip: 'Chi tiết',
-              onPressed: onDetail,
-            ),
-            IconButton(
-              icon: const Icon(Icons.app_registration),
-              tooltip: 'Đăng ký',
-              color: Colors.blue,
-              onPressed: onDangKy,
-            ),
-          ],
-        ),
+          ),
+
+          // Action: đăng ký
+          IconButton(
+            icon: const Icon(Icons.app_registration),
+            tooltip: 'Đăng ký',
+            color: AppColors.primary,
+            onPressed: onDangKy,
+          ),
+        ],
       ),
     );
   }
-}
-
-class PagingInfo {
-  final int pageSize;
-  final int pageNumber;
-  final int totalItems;
-
-  const PagingInfo({
-    required this.pageSize,
-    required this.pageNumber,
-    required this.totalItems,
-  });
-
-  factory PagingInfo.fromJson(Map<String, dynamic> json) => PagingInfo(
-    pageSize: json['pageSize'] as int? ?? 10,
-    pageNumber: json['pageNumber'] as int? ?? 1,
-    totalItems: json['totalItems'] as int? ?? 0,
-  );
-
-  bool get hasNextPage => pageNumber * pageSize < totalItems;
-}
-
-class PagedResult<T> {
-  final List<T> items;
-  final PagingInfo pagingInfo;
-
-  const PagedResult({required this.items, required this.pagingInfo});
 }

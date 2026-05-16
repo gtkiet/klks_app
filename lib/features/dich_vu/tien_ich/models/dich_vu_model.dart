@@ -1,7 +1,7 @@
-// lib/features/tien_ich/dich_vu/models/dich_vu_model.dart
+// lib/features/dich_vu/tien_ich/models/dich_vu_model.dart
 //
 // CÁCH DÙNG TRONG SERVICE:
-//   import 'package:klks_app/features/tien_ich/dich_vu/models/dich_vu_model.dart';
+//   import 'package:klks_app/features/dich_vu/tien_ich/models/dich_vu_model.dart';
 //   // SelectorItem, PagingInfo, QuanHeCuTruModel có sẵn qua re-export
 
 export 'package:klks_app/features/shared/models/paging_model.dart';

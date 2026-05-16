@@ -1,12 +1,85 @@
-// lib/features/tien_ich/dich_vu/services/dich_vu_service.dart
+// lib/features/dich_vu/tien_ich/services/dich_vu_service.dart
 
-import 'package:klks_app/features/shared/services/shared_services.dart';
-
-import '../../../../core/network/api_client.dart';
-
-import '../../../cu_tru/quan_he/services/cu_tru_service.dart';
+import 'package:klks_app/core/network/api_client.dart';
+import 'package:klks_app/features/cu_tru/quan_he/services/cu_tru_service.dart';
 
 import '../models/dich_vu_model.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hardcoded catalogs — bỏ API call, dùng trực tiếp
+// ─────────────────────────────────────────────────────────────────────────────
+
+abstract final class DichVuCatalog {
+  static const loaiDichVu = [
+    SelectorItem(id: 1, name: 'Vận hành'),
+    SelectorItem(id: 2, name: 'Yêu cầu'),
+    SelectorItem(id: 3, name: 'Tiện ích'),
+    SelectorItem(id: 4, name: 'Thuê nhà'),
+    SelectorItem(id: 5, name: 'Phạt trễ hạn'),
+    SelectorItem(id: 6, name: 'Khác'),
+    SelectorItem(id: 7, name: 'Yêu cầu sửa chữa'),
+    SelectorItem(id: 8, name: 'Yêu cầu thi công'),
+  ];
+
+  static const trangThaiDichVu = [
+    SelectorItem(id: 1, name: 'Hoạt động'),
+    SelectorItem(id: 2, name: 'Cảnh báo (Hợp đồng hết hạn)'),
+    SelectorItem(id: 3, name: 'Ngưng cung cấp'),
+    SelectorItem(id: 4, name: 'Tạo mới'),
+  ];
+
+  static const loaiDinhGia = [
+    SelectorItem(id: 1, name: 'Cố định'),
+    SelectorItem(id: 2, name: 'Lũy tiến'),
+    SelectorItem(id: 6, name: 'Theo diện tích'),
+    SelectorItem(id: 7, name: 'Theo khung giờ'),
+  ];
+
+  static const trangThaiDangKy = [
+    SelectorItem(id: 1, name: 'Chờ duyệt'),
+    SelectorItem(id: 2, name: 'Đang sử dụng'),
+    SelectorItem(id: 3, name: 'Tạm ngưng'),
+    SelectorItem(id: 4, name: 'Đã hủy'),
+  ];
+
+  static const ngayTrongTuan = [
+    SelectorItem(id: 0, name: 'Chủ Nhật'),
+    SelectorItem(id: 1, name: 'Thứ Hai'),
+    SelectorItem(id: 2, name: 'Thứ Ba'),
+    SelectorItem(id: 3, name: 'Thứ Tư'),
+    SelectorItem(id: 4, name: 'Thứ Năm'),
+    SelectorItem(id: 5, name: 'Thứ Sáu'),
+    SelectorItem(id: 6, name: 'Thứ Bảy'),
+  ];
+
+  /// Tìm tên theo id — trả về fallback nếu không tìm thấy.
+  static String loaiDichVuName(int id) =>
+      loaiDichVu.firstWhere((e) => e.id == id,
+          orElse: () => const SelectorItem(id: 0, name: 'Không xác định')).name;
+
+  static String trangThaiDangKyName(int id) =>
+      trangThaiDangKy.firstWhere((e) => e.id == id,
+          orElse: () => const SelectorItem(id: 0, name: 'Không xác định')).name;
+
+  static String loaiDinhGiaName(int id) =>
+      loaiDinhGia.firstWhere((e) => e.id == id,
+          orElse: () => const SelectorItem(id: 0, name: 'Không xác định')).name;
+
+  static String ngayTrongTuanName(int id) =>
+      ngayTrongTuan.firstWhere((e) => e.id == id,
+          orElse: () => const SelectorItem(id: 0, name: '?')).name;
+}
+
+// Lightweight selector item — không phụ thuộc shared model
+class SelectorItem {
+  final int id;
+  final String name;
+  const SelectorItem({required this.id, required this.name});
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Service
+// ─────────────────────────────────────────────────────────────────────────────
 
 class DichVuService {
   DichVuService._();
@@ -19,27 +92,10 @@ class DichVuService {
   Future<List<QuanHeCuTruModel>> getCanHoList() =>
       CuTruService.instance.getQuanHeCuTruList();
 
-  final _selector = SelectorService.instance;
-
-  // ── Catalog ───────────────────────────────────────────────────────────────
-  Future<List<SelectorItem>> getLoaiDichVu() => _selector.getLoaiDichVu();
-
-  Future<List<SelectorItem>> getTrangThaiDichVu() =>
-      _selector.getTrangThaiDichVu();
-
-  Future<List<SelectorItem>> getLoaiDinhGia() => _selector.getLoaiDinhGia();
-
-  Future<List<SelectorItem>> getTrangThaiDangKy() =>
-      _selector.getTrangThaiDangKy();
-
-  Future<List<SelectorItem>> getNgayTrongTuan() => _selector.getNgayTrongTuan();
-
   // ── Dịch vụ ───────────────────────────────────────────────────────────────
 
+  /// Lấy danh sách dịch vụ tiện ích (loaiDichVuId=3, trangThaiDichVuId=1).
   Future<PagedResult<DichVuItem>> getDichVuList({
-    int loaiDichVuId = 3,
-    int trangThaiDichVuId = 1,
-    bool isBatBuoc = false,
     String? keyword,
     int pageNumber = 1,
     int pageSize = 10,
@@ -47,9 +103,9 @@ class DichVuService {
     final res = await _client.post(
       '/api/dich-vu/get-list',
       body: {
-        'loaiDichVuId': loaiDichVuId,
-        'trangThaiDichVuId': trangThaiDichVuId,
-        'isBatBuoc': isBatBuoc,
+        'loaiDichVuId': 3,        // Tiện ích — cố định
+        'trangThaiDichVuId': 1,   // Hoạt động — cố định
+        'isBatBuoc': false,
         if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
         'pageNumber': pageNumber,
         'pageSize': pageSize,
@@ -61,28 +117,6 @@ class DichVuService {
   Future<DichVuDetail> getDichVuById(int id) async {
     final res = await _client.post('/api/dich-vu/get-by-id', body: {'id': id});
     return res.item(DichVuDetail.fromJson);
-  }
-
-  // ── Khung giờ ─────────────────────────────────────────────────────────────
-
-  Future<PagedResult<KhungGioItem>> getKhungGioList({
-    int? dichVuId,
-    String? keyword,
-    bool? isActive,
-    int pageNumber = 1,
-    int pageSize = 20,
-  }) async {
-    final res = await _client.post(
-      '/api/dich-vu/khung-gio/get-list',
-      body: {
-        'dichVuId': dichVuId,
-        if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
-        'isActive': isActive,
-        'pageNumber': pageNumber,
-        'pageSize': pageSize,
-      },
-    );
-    return res.pagedResult(KhungGioItem.fromJson);
   }
 
   // ── Đăng ký ───────────────────────────────────────────────────────────────
@@ -111,7 +145,7 @@ class DichVuService {
         'dichVuId': dichVuId,
         'ngaySuDung': ngaySuDung.toIso8601String(),
         'soLuong': soLuong,
-        'khungGioId': khungGioId,
+        'khungGioId': ?khungGioId,
       },
     );
     return res.raw<int>();

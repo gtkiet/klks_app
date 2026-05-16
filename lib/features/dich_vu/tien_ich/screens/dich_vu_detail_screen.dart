@@ -1,13 +1,13 @@
-// lib/features/tien_ich/dich_vu/screens/dich_vu_detail_screen.dart
+// lib/features/dich_vu/tien_ich/screens/dich_vu_detail_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/dich_vu_model.dart';
-
 import '../services/dich_vu_service.dart';
-import '../widgets/common_widgets.dart';
 import 'dang_ky_dich_vu_screen.dart';
+
+import 'package:klks_app/design/design.dart';
 
 class DichVuDetailScreen extends StatefulWidget {
   final int dichVuId;
@@ -39,34 +39,41 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
     });
     try {
       final detail = await _service.getDichVuById(widget.dichVuId);
+      if (!mounted) return;
       setState(() => _detail = detail);
-    } catch (e) {
+    } on Exception catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _goDangKy() {
+    if (_detail == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DangKyDichVuScreen(
+          dichVuId: _detail!.id,
+          tenDichVu: _detail!.tenDichVu,
+          khungGioList: _detail!.khungGioDichVu,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_detail?.tenDichVu ?? 'Chi tiết Dịch Vụ'),
+    return AppScaffold(
+      appBar: AppTopBar(
+        title: _detail?.tenDichVu ?? 'Chi tiết dịch vụ',
         actions: [
           if (_detail != null)
             IconButton(
               icon: const Icon(Icons.app_registration),
               tooltip: 'Đăng ký dịch vụ',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DangKyDichVuScreen(
-                    dichVuId: _detail!.id,
-                    tenDichVu: _detail!.tenDichVu,
-                    khungGioList: _detail!.khungGioDichVu,
-                  ),
-                ),
-              ),
+              onPressed: _goDangKy,
             ),
         ],
       ),
@@ -75,166 +82,196 @@ class _DichVuDetailScreenState extends State<DichVuDetailScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
+    }
     if (_error != null) {
-      return ErrorStateWidget(message: _error!, onRetry: _loadDetail);
+      return ErrorDisplay(error: _error, onRetry: _loadDetail);
     }
 
     final d = _detail!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.insetAll16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ──────────────────────────────────────────────────────
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          d.tenDichVu,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                      _StatusBadge(
-                        isHoatDong: d.isHoatDong,
-                        label: d.trangThaiDichVuTen,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoRow(label: 'Mã dịch vụ', value: d.maDichVu),
-                  _InfoRow(label: 'Loại', value: d.loaiDichVuTen),
-                  _InfoRow(label: 'Đơn vị tính', value: d.donViTinh),
-                  _InfoRow(
-                    label: 'Bắt buộc',
-                    value: d.isBatBuoc ? 'Có' : 'Không',
-                  ),
-                  if (d.soLuongToiDa != null)
-                    _InfoRow(
-                      label: 'Sức chứa tối đa',
-                      value: '${d.soLuongToiDa}',
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(d.tenDichVu, style: AppTypography.headline),
                     ),
-                  if (d.moTa != null && d.moTa!.isNotEmpty)
-                    _InfoRow(label: 'Mô tả', value: d.moTa!),
-                ],
-              ),
+                    const SizedBox(width: AppSpacing.sm),
+                    AppStatusBadge(
+                      label: d.trangThaiDichVuTen,
+                      variant: d.isHoatDong
+                          ? AppBadgeVariant.success
+                          : AppBadgeVariant.warning,
+                    ),
+                  ],
+                ),
+                const Divider(height: AppSpacing.lg),
+                _InfoRow('Mã dịch vụ', d.maDichVu),
+                _InfoRow('Loại', d.loaiDichVuTen),
+                _InfoRow('Đơn vị tính', d.donViTinh),
+                _InfoRow('Bắt buộc', d.isBatBuoc ? 'Có' : 'Không'),
+                if (d.soLuongToiDa != null)
+                  _InfoRow('Sức chứa tối đa', '${d.soLuongToiDa}'),
+                if (d.moTa != null && d.moTa!.isNotEmpty)
+                  _InfoRow('Mô tả', d.moTa!),
+              ],
             ),
           ),
 
           // ── Bảng giá ────────────────────────────────────────────────────
           if (d.bangGia != null) ...[
-            const SizedBox(height: 16),
-            _SectionHeader(title: 'Bảng Giá: ${d.bangGia!.tenBangGia}'),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            const SizedBox(height: AppSpacing.sm),
+            _SectionLabel('Bảng giá: ${d.bangGia!.tenBangGia}'),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _InfoRow(
+                    'Loại định giá',
+                    DichVuCatalog.loaiDinhGiaName(d.bangGia!.loaiDinhGiaId),
+                  ),
+                  if (d.bangGia!.donGia > 0)
                     _InfoRow(
-                      label: 'Loại định giá',
-                      value: d.bangGia!.loaiDinhGiaTen,
+                      'Đơn giá',
+                      _currencyFmt.format(d.bangGia!.donGia),
                     ),
-                    if (d.bangGia!.donGia > 0)
-                      _InfoRow(
-                        label: 'Đơn giá',
-                        value: _currencyFmt.format(d.bangGia!.donGia),
-                      ),
-                    if (d.bangGia!.ngayApDung != null)
-                      _InfoRow(
-                        label: 'Ngày áp dụng',
-                        value: DateFormat(
-                          'dd/MM/yyyy',
-                        ).format(d.bangGia!.ngayApDung!),
-                      ),
-                    if (d.bangGia!.ngayKetThuc != null)
-                      _InfoRow(
-                        label: 'Ngày kết thúc',
-                        value: DateFormat(
-                          'dd/MM/yyyy',
-                        ).format(d.bangGia!.ngayKetThuc!),
-                      ),
-                    if (d.bangGia!.giaLuyTiens.isNotEmpty) ...[
-                      const Divider(),
-                      const Text(
-                        'Giá lũy tiến:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      ...d.bangGia!.giaLuyTiens.map(
-                        (g) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Text(
-                            '• Từ ${g.tuMuc} → ${g.denMuc ?? '∞'}: ${_currencyFmt.format(g.donGia)}',
-                          ),
+                  if (d.bangGia!.ngayApDung != null)
+                    _InfoRow(
+                      'Ngày áp dụng',
+                      _fmtDate(d.bangGia!.ngayApDung!),
+                    ),
+                  if (d.bangGia!.ngayKetThuc != null)
+                    _InfoRow(
+                      'Ngày kết thúc',
+                      _fmtDate(d.bangGia!.ngayKetThuc!),
+                    ),
+                  if (d.bangGia!.giaLuyTiens.isNotEmpty) ...[
+                    const Divider(height: AppSpacing.lg),
+                    Text('Giá lũy tiến', style: AppTypography.subhead),
+                    const SizedBox(height: AppSpacing.xs),
+                    ...d.bangGia!.giaLuyTiens.map(
+                      (g) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(
+                          '• Từ ${g.tuMuc} → ${g.denMuc ?? '∞'}: '
+                          '${_currencyFmt.format(g.donGia)}',
+                          style: AppTypography.body,
                         ),
                       ),
-                    ],
-                    if (d.bangGia!.giaKhungGios.isNotEmpty) ...[
-                      const Divider(),
-                      const Text(
-                        'Giá theo khung giờ:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      ...d.bangGia!.giaKhungGios.map(
-                        (g) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Text(
-                            '• ${g.tenKhungGio}: ${_currencyFmt.format(g.donGia)}',
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
-                ),
+                  if (d.bangGia!.giaKhungGios.isNotEmpty) ...[
+                    const Divider(height: AppSpacing.lg),
+                    Text('Giá theo khung giờ', style: AppTypography.subhead),
+                    const SizedBox(height: AppSpacing.xs),
+                    ...d.bangGia!.giaKhungGios.map(
+                      (g) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(
+                          '• ${g.tenKhungGio}: ${_currencyFmt.format(g.donGia)}',
+                          style: AppTypography.body,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
 
           // ── Khung giờ ───────────────────────────────────────────────────
           if (d.khungGioDichVu.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const _SectionHeader(title: 'Khung Giờ'),
+            const SizedBox(height: AppSpacing.sm),
+            _SectionLabel('Khung giờ'),
             ...d.khungGioDichVu.map(
-              (k) => Card(
-                margin: const EdgeInsets.only(bottom: 6),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.access_time,
-                    color: k.isActive ? Colors.blue : Colors.grey,
-                  ),
-                  title: Text(k.tenKhungGio),
-                  subtitle: Text(k.thoiGian),
-                  trailing: k.isActive
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 20,
-                        )
-                      : const Icon(Icons.cancel, color: Colors.grey, size: 20),
+              (k) => AppCard(
+                margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_outlined,
+                      size: 18,
+                      color: k.isActive
+                          ? AppColors.primary
+                          : AppColors.textDisabled,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(k.tenKhungGio, style: AppTypography.subhead),
+                          Text(k.thoiGian,
+                              style: AppTypography.caption.secondary),
+                        ],
+                      ),
+                    ),
+                    AppStatusBadge(
+                      label: k.isActive ? 'Hoạt động' : 'Tắt',
+                      variant: k.isActive
+                          ? AppBadgeVariant.success
+                          : AppBadgeVariant.info,
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── CTA ─────────────────────────────────────────────────────────
+          AppButton(
+            label: 'Đăng ký dịch vụ',
+            leadingIcon: Icons.app_registration,
+            onPressed: _goDangKy,
+          ),
+
+          const SizedBox(height: AppSpacing.md),
         ],
       ),
     );
   }
+
+  String _fmtDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/'
+      '${d.month.toString().padLeft(2, '0')}/'
+      '${d.year}';
 }
 
-// ── Private widgets ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared sub-widgets
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+        child: Text(text,
+            style: AppTypography.subhead.copyWith(color: AppColors.primary)),
+      );
+}
 
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
-
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow(this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
@@ -244,65 +281,11 @@ class _InfoRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
-            ),
+            width: 130,
+            child: Text(label, style: AppTypography.caption.secondary),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
+          Expanded(child: Text(value, style: AppTypography.bodyMedium)),
         ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Colors.blue.shade700,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final bool isHoatDong;
-  final String label;
-
-  const _StatusBadge({required this.isHoatDong, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isHoatDong ? Colors.green.shade100 : Colors.orange.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          color: isHoatDong ? Colors.green.shade700 : Colors.orange.shade700,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
   }

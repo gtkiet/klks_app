@@ -8,23 +8,45 @@ import 'package:klks_app/features/thong_bao/widgets/thong_bao_nav_icon.dart';
 
 import 'app_navigation.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   final StatefulNavigationShell shell;
   const MainScreen({super.key, required this.shell});
 
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    AppNavigation.setShell(widget.shell);
+    AppNavigation.setRouter(GoRouter.of(context));
+  }
+
+  @override
+  void didUpdateWidget(MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Shell instance có thể thay đổi khi GoRouter rebuild.
+    if (oldWidget.shell != widget.shell) {
+      AppNavigation.setShell(widget.shell);
+    }
+  }
+
   void _onTap(int index) {
-    shell.goBranch(index, initialLocation: index == shell.currentIndex);
+    widget.shell.goBranch(
+      index,
+      initialLocation: index == widget.shell.currentIndex,
+    );
     if (index == 1) ThongBaoHubService.instance.resetUnreadCount();
   }
 
   @override
   Widget build(BuildContext context) {
-    AppNavigation.setShell(shell);
-    AppNavigation.setRouter(GoRouter.of(context));
     return Scaffold(
-      body: shell,
+      body: widget.shell,
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: shell.currentIndex,
+        currentIndex: widget.shell.currentIndex,
         onTap: _onTap,
         type: BottomNavigationBarType.fixed,
         items: const [

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../services/thong_bao_hub_service.dart';
 
+import 'package:klks_app/design/design.dart';
+
 class ThongBaoNavIcon extends StatefulWidget {
   final bool isActive;
   final double iconSize;
@@ -43,7 +45,11 @@ class _ThongBaoNavIconState extends State<ThongBaoNavIcon> {
           size: widget.iconSize,
         ),
         if (_count > 0)
-          Positioned(top: -5, right: -8, child: _NavBadge(count: _count)),
+          Positioned(
+            top: -5,
+            right: -8,
+            child: _NavBadge(count: _count),
+          ),
       ],
     );
   }
@@ -58,7 +64,8 @@ class _NavBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(
-        color: Colors.red,
+        // FIX: AppColors.error thay vì Colors.red hardcode.
+        color: AppColors.error,
         borderRadius: BorderRadius.circular(9),
         border: Border.all(
           color:
@@ -69,11 +76,11 @@ class _NavBadge extends StatelessWidget {
       ),
       child: Text(
         count > 99 ? '99+' : '$count',
-        style: const TextStyle(
-          color: Colors.white,
+        // FIX: AppTypography thay vì TextStyle raw.
+        style: AppTypography.captionSmall.copyWith(
+          color: AppColors.textOnPrimary,
+          fontWeight: FontWeight.w700,
           fontSize: 9,
-          fontWeight: FontWeight.w600,
-          height: 1.2,
         ),
       ),
     );

@@ -16,6 +16,10 @@ abstract final class AppSpacing {
   // ─── Base Scale ────────────────────────────────────────────────────────────
   static const double xs = 4.0;
   static const double sm = 8.0;
+  // FIX: Thêm sm2 = 12.0 để insetV12 không hardcode số thô.
+  // 12pt nằm ngoài 8pt grid nhưng phổ biến trong input/button padding —
+  // đặt tên rõ ràng hơn là để magic number rải rác trong code.
+  static const double sm2 = 12.0;
   static const double md = 16.0;
   static const double lg = 24.0;
   static const double xl = 32.0;
@@ -47,13 +51,15 @@ abstract final class AppSpacing {
   static const EdgeInsets insetH24 = EdgeInsets.symmetric(horizontal: lg);
 
   static const EdgeInsets insetV8 = EdgeInsets.symmetric(vertical: sm);
-  static const EdgeInsets insetV12 = EdgeInsets.symmetric(vertical: 12);
+  // FIX: Dùng token sm2 thay vì hardcode 12.
+  static const EdgeInsets insetV12 = EdgeInsets.symmetric(vertical: sm2);
   static const EdgeInsets insetV16 = EdgeInsets.symmetric(vertical: md);
 
   /// Standard card inner padding.
   static const EdgeInsets cardPadding = EdgeInsets.all(md);
 
   /// Button inner padding — tall hit area for accessibility.
+  /// vertical: 14pt là ngoại lệ có chủ đích (hit area ≥ 52pt total height).
   static const EdgeInsets buttonPadding = EdgeInsets.symmetric(
     horizontal: 20,
     vertical: 14,

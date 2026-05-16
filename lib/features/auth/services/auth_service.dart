@@ -67,9 +67,7 @@ class AuthService {
       },
     );
 
-    final user = res.item(UserModel.fromJson);
-
-    return user;
+    return res.item(UserModel.fromJson);
   }
 
   // ── LOGOUT ────────────────────────────────────────────────────────────────
@@ -131,28 +129,48 @@ class AuthService {
 
   // ── REFRESH TOKEN ─────────────────────────────────────────────────────────
 
+  /// Làm mới access token bằng refresh token.
+  /// Trả về access token mới nếu thành công, null nếu thất bại.
+  ///
+  /// FIX: Phiên bản cũ có 2 bug:
+  ///   1. `response.data(UserModel.fromJson)` — Dio's Response không có
+  ///      method `.data(fromJson)`, đây là method của ApiResponse.
+  ///   2. `return user` — trả về UserModel thay vì String? (compile error).
+  ///   → Auto-login luôn fail vì bug bị catch và return null.
+  ///
+  /// FIX: Parse đúng envelope {isOk, result} từ plainDio response,
+  /// sau đó lưu session và trả về accessToken string.
   Future<String?> refreshToken({String? refreshToken}) async {
     try {
       final token = refreshToken ?? _session.refreshToken;
       if (token == null || token.isEmpty) return null;
 
-      // plainDio — không qua interceptor để tránh vòng lặp 401
+      // plainDio — không qua ApiInterceptor để tránh vòng lặp 401.
       final response = await ApiClient.instance.plainDio.post(
         '/api/auth/refresh-token',
         data: {'refreshToken': token},
       );
 
-      final user = response.data(UserModel.fromJson);
+      // Parse envelope {isOk, result} — tương tự ApiClient._unwrap()
+      // nhưng không dùng ApiClient để tránh trigger interceptor.
+      final data = response.data;
+      if (data == null) return null;
 
-      if (user.accessToken.isEmpty || user.refreshToken.isEmpty) {
-        throw const AppException('Token không hợp lệ');
-      }
+      final map = data as Map<String, dynamic>;
+      final isOk = map['isOk'] as bool? ?? true;
+      if (!isOk) return null;
+
+      final result = map['result'];
+      if (result == null) return null;
+
+      final user = UserModel.fromJson(result as Map<String, dynamic>);
+
+      if (user.accessToken.isEmpty || user.refreshToken.isEmpty) return null;
 
       await _session.save(user);
-
       unawaited(ThongBaoHubService.instance.connect());
 
-      return user;
+      return user.accessToken;
     } catch (_) {
       return null;
     }

@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:signalr_netcore/signalr_client.dart';
@@ -59,8 +60,9 @@ class ThongBaoHubService {
       await Permission.notification.request();
     }
 
+    // FIX: initialize() nhận positional parameter, không phải named `settings`.
     await _localNotif.initialize(
-      settings: const InitializationSettings(
+      const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: true,
@@ -95,10 +97,10 @@ class ThongBaoHubService {
         DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF;
 
     await _localNotif.show(
-      id: notifId,
-      title: event.tieuDe,
-      body: event.noiDung,
-      notificationDetails: const NotificationDetails(
+      notifId,
+      event.tieuDe,
+      event.noiDung,
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'thong_bao_channel',
           'Thông báo',
@@ -119,7 +121,15 @@ class ThongBaoHubService {
   // ─────────────────────────────────────────────────────────────────
 
   Future<void> connect() async {
-    if (isConnected) return;
+    // FIX: Guard đủ các trạng thái đang active — không chỉ Connected.
+    // Nếu đang Connecting hoặc Reconnecting thì không tạo connection mới,
+    // tránh override _connection cũ và gây leak.
+    final state = _connection?.state;
+    if (state == HubConnectionState.Connected ||
+        state == HubConnectionState.Connecting ||
+        state == HubConnectionState.Reconnecting) {
+      return;
+    }
 
     final token = _session.accessToken;
     if (token == null || token.isEmpty) return;
@@ -180,7 +190,7 @@ class ThongBaoHubService {
         data = {};
       }
     } else if (raw is Map) {
-      // SignalR đôi khi đọc bytes dưới dạng latin1 — restore lại UTF-8
+      // SignalR đôi khi đọc bytes dưới dạng latin1 — restore lại UTF-8.
       data = raw.map((k, v) {
         if (v is String) {
           try {
@@ -201,7 +211,9 @@ class ThongBaoHubService {
           (data['TieuDe'] as String?) ??
           'Thông báo mới',
       noiDung:
-          (data['noiDung'] as String?) ?? (data['NoiDung'] as String?) ?? '',
+          (data['noiDung'] as String?) ??
+          (data['NoiDung'] as String?) ??
+          '',
       phanBoThongBaoId:
           (data['phanBoThongBaoId'] as int?) ??
           (data['PhanBoThongBaoId'] as int?),
@@ -209,7 +221,13 @@ class ThongBaoHubService {
 
     _eventController.add(event);
     _unreadCountController.add(++_unreadCount);
-    _showLocalNotif(event);
+
+    // FIX: Explicit unawaited để rõ ràng đây là fire-and-forget có chủ đích.
+    // Exception trong _showLocalNotif bị nuốt — acceptable vì notification
+    // là best-effort, không nên crash luồng chính.
+    unawaited(_showLocalNotif(event).catchError((e) {
+      debugPrint('[ThongBaoHub] _showLocalNotif error: $e');
+    }));
   }
 
   void resetUnreadCount() {
@@ -221,6 +239,7 @@ class ThongBaoHubService {
     await _connection?.stop();
     _connection = null;
     _unreadCount = 0;
+    _unreadCountController.add(0);
     _connectionStateController.add(HubConnectionState.Disconnected);
   }
 }

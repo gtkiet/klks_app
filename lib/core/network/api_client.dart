@@ -5,8 +5,6 @@ import 'api_interceptor.dart';
 
 import 'package:klks_app/features/shared/models/paging_model.dart';
 
-const String baseUrl = 'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net';
-
 // ─────────────────────────────────────────────────────────────────────────────
 // ERROR LAYER
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,7 +158,7 @@ class ApiResponse {
     return fromJson(_result as Map<String, dynamic>);
   }
 
-  // ── Lấy danh sách ────────────────────────────────────────────────────────
+  // ── Lấy danh sách ─────────────────────────────────────────────────────────
 
   /// Parse `result` (là một List) thành `List<T>`.
   List<T> list<T>(T Function(Map<String, dynamic>) fromJson) {
@@ -182,22 +180,28 @@ class ApiResponse {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class ApiClient {
-  // static const String baseUrl =
-  //     'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net';
+  // FIX: Chuyển baseUrl vào class thay vì để top-level const.
+  // Top-level const cũ bị comment out trong class — dọn về một chỗ duy nhất.
+  static const String baseUrl =
+      'https://chungcu-webapi-fwf7cva4c7c6ajae.eastasia-01.azurewebsites.net';
 
   ApiClient._internal();
   static final ApiClient instance = ApiClient._internal();
 
+  // FIX: Expose interceptor để caller có thể gọi setAuthCallbacks()
+  // sau khi AuthService init xong — phá circular dependency.
+  late final ApiInterceptor interceptor = ApiInterceptor(dio);
+
   late final Dio dio = _createDio();
 
-  /// Dio không có ApiInterceptor — dùng cho refresh token
+  /// Dio không có ApiInterceptor — dùng cho refresh token và logout
   /// để tránh vòng lặp vô hạn khi 401.
   late final Dio plainDio = _createPlainDio();
 
   Dio _createDio() {
-    final dio = Dio(_baseOptions());
-    dio.interceptors.add(ApiInterceptor(dio));
-    return dio;
+    final d = Dio(_baseOptions());
+    d.interceptors.add(interceptor);
+    return d;
   }
 
   Dio _createPlainDio() => Dio(_baseOptions());
@@ -209,6 +213,23 @@ class ApiClient {
     sendTimeout: const Duration(seconds: 30),
     headers: {'Content-Type': 'application/json'},
   );
+
+  /// Inject auth callbacks vào interceptor để phá circular dependency.
+  ///
+  /// Gọi một lần trong main() sau khi cả ApiClient và AuthService
+  /// đã được khởi tạo:
+  /// ```dart
+  /// ApiClient.instance.setAuthCallbacks(
+  ///   onRefresh: () => AuthService.instance.refreshToken(),
+  ///   onLogout:  () => AuthService.instance.logout(),
+  /// );
+  /// ```
+  void setAuthCallbacks({
+    required RefreshCallback onRefresh,
+    required LogoutCallback onLogout,
+  }) {
+    interceptor.setAuthCallbacks(onRefresh: onRefresh, onLogout: onLogout);
+  }
 
   // ── Request helpers ───────────────────────────────────────────────────────
 
@@ -270,7 +291,7 @@ class ApiClient {
   ApiResponse _unwrap(Response<dynamic> response) {
     final data = response.data;
 
-    // Một số endpoint (ví dụ upload) trả về list trực tiếp không có envelope
+    // Một số endpoint (ví dụ upload) trả về list trực tiếp không có envelope.
     if (data is List) {
       return ApiResponse(data, statusCode: response.statusCode);
     }

@@ -4,22 +4,47 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import 'package:klks_app/core/storage/user_session.dart';
-import 'package:klks_app/features/auth/services/auth_service.dart';
+
+/// FIX: Thay vì import AuthService trực tiếp — tạo ra circular dependency:
+///   ApiInterceptor → AuthService → ApiClient → ApiInterceptor
+///
+/// Interceptor nhận 2 callback được inject từ ngoài (bởi ApiClient
+/// sau khi AuthService đã init xong), phá vỡ cycle hoàn toàn.
+///
+/// Setup (gọi một lần trong main() sau khi cả hai singleton đã ready):
+/// ```dart
+/// ApiClient.instance.interceptor.setAuthCallbacks(
+///   onRefresh: () => AuthService.instance.refreshToken(),
+///   onLogout:  () => AuthService.instance.logout(),
+/// );
+/// ```
+typedef RefreshCallback = Future<String?> Function();
+typedef LogoutCallback = Future<void> Function();
 
 class ApiInterceptor extends Interceptor {
   final Dio dio;
   final UserSession _session = UserSession.instance;
 
+  RefreshCallback? _onRefresh;
+  LogoutCallback? _onLogout;
+
   ApiInterceptor(this.dio);
+
+  /// Inject auth callbacks sau khi AuthService đã sẵn sàng.
+  /// Gọi một lần duy nhất trong main() hoặc app bootstrap.
+  void setAuthCallbacks({
+    required RefreshCallback onRefresh,
+    required LogoutCallback onLogout,
+  }) {
+    _onRefresh = onRefresh;
+    _onLogout = onLogout;
+  }
 
   bool _isRefreshing = false;
   final List<_PendingRequest> _queue = [];
 
   @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (options.extra['skipAuth'] == true) return handler.next(options);
     final token = _session.accessToken;
     if (token != null && token.isNotEmpty) {
@@ -39,11 +64,14 @@ class ApiInterceptor extends Interceptor {
 
     if (err.response?.statusCode != 401) return handler.next(err);
 
+    // skipAuth: endpoint public → không xử lý 401.
+    // isRetry: đã retry rồi vẫn 401 → token thực sự hết hạn → logout.
     if (request.extra['skipAuth'] == true || request.extra['isRetry'] == true) {
       await _logout();
       return handler.next(err);
     }
 
+    // Đang refresh: xếp vào queue, đợi kết quả từ request đang refresh.
     if (_isRefreshing) {
       final completer = Completer<Response>();
       _queue.add(_PendingRequest(request, completer));
@@ -57,15 +85,18 @@ class ApiInterceptor extends Interceptor {
     _isRefreshing = true;
 
     try {
-      // Gọi AuthService thay vì RefreshTokenClient
-      final newAccess = await AuthService.instance.refreshToken();
+      final newAccess = await _onRefresh?.call();
+
       if (newAccess == null) {
         await _failQueue();
         await _logout();
         return handler.next(err);
       }
 
-      final response = await _retry(request);
+      // Retry request gốc với token mới.
+      final retried = await _retry(request);
+
+      // Resolve tất cả request đang chờ trong queue.
       for (final p in _queue) {
         try {
           p.completer.complete(await _retry(p.request));
@@ -74,7 +105,7 @@ class ApiInterceptor extends Interceptor {
         }
       }
       _queue.clear();
-      return handler.resolve(response);
+      return handler.resolve(retried);
     } catch (_) {
       await _failQueue();
       await _logout();
@@ -84,7 +115,7 @@ class ApiInterceptor extends Interceptor {
     }
   }
 
-  Future<Response> _retry(RequestOptions request) async {
+  Future<Response> _retry(RequestOptions request) {
     final token = _session.accessToken;
     return dio.request(
       request.path,
@@ -109,7 +140,14 @@ class ApiInterceptor extends Interceptor {
     _queue.clear();
   }
 
-  Future<void> _logout() async => AuthService.instance.logout();
+  Future<void> _logout() async {
+    if (_onLogout != null) {
+      await _onLogout!();
+    } else {
+      // Fallback an toàn khi callback chưa được inject.
+      await _session.clear();
+    }
+  }
 }
 
 class _PendingRequest {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:klks_app/core/guards/auth_guard.dart';
+import 'package:klks_app/design/design.dart';
 import 'main_screen.dart';
 
 import 'package:klks_app/features/splash/screens/splash_screen.dart';
@@ -44,7 +45,6 @@ class AppRouter {
     /// ================= REDIRECT =================
     redirect: (context, state) {
       final status = AuthGuard.instance.status;
-
       final location = state.uri.path;
 
       final isAuthRoute = location.startsWith('/auth');
@@ -56,7 +56,6 @@ class AppRouter {
 
       if (status == AuthStatus.unauthenticated) {
         if (isAuthRoute) return null;
-
         return '/auth/login';
       }
 
@@ -72,14 +71,13 @@ class AppRouter {
       /// SPLASH
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
 
+      /// AUTH
+      /// FIX: Bỏ builder SizedBox.shrink() thừa — redirect xử lý hết rồi.
+      /// Dùng redirect thẳng xuống /auth/login thay vì render widget rỗng.
       GoRoute(
         path: '/auth',
-        builder: (_, _) => const SizedBox.shrink(),
         redirect: (_, state) {
-          if (state.uri.path == '/auth') {
-            return '/auth/login';
-          }
-
+          if (state.uri.path == '/auth') return '/auth/login';
           return null;
         },
         routes: [
@@ -107,10 +105,7 @@ class AppRouter {
           /// ── 0: HOME ──
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/home',
-                builder: (_, _) => const HomeScreen(),
-              ),
+              GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
             ],
           ),
 
@@ -125,7 +120,6 @@ class AppRouter {
                     path: 'detail',
                     builder: (_, state) {
                       final extra = state.extra as ThongBaoDetailArgs;
-
                       return ThongBaoDetailScreen(item: extra.item);
                     },
                   ),
@@ -181,7 +175,6 @@ class AppRouter {
                     path: 'detail',
                     builder: (_, state) {
                       final extra = state.extra as CuTruDetailArgs;
-
                       return CuTruDetailScreen(
                         item: extra.item,
                         initialMode: extra.initialMode,
@@ -221,9 +214,15 @@ class AppRouter {
     ],
 
     /// ================= ERROR =================
-    errorBuilder: (context, state) => Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: true, title: Text('Lỗi')),
-      body: Center(child: Text('Không tìm thấy: ${state.uri}')),
+    // FIX: Dùng AppScaffold thay vì Scaffold trần để nhất quán với design system.
+    errorBuilder: (context, state) => AppScaffold(
+      title: 'Không tìm thấy trang',
+      body: Center(
+        child: Text(
+          'Không tìm thấy: ${state.uri}',
+          style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+        ),
+      ),
     ),
   );
 }

@@ -6,16 +6,14 @@ import 'package:flutter/material.dart';
 import '../services/thong_bao_hub_service.dart';
 
 import 'package:klks_app/core/navigation/app_navigation.dart';
+import 'package:klks_app/design/design.dart';
 
 class ThongBaoBellIcon extends StatefulWidget {
-  /// Callback khi user nhấn. Nếu null, widget tự disable.
-  // final VoidCallback? onPressed;
   final Color? iconColor;
   final double iconSize;
 
   const ThongBaoBellIcon({
     super.key,
-    // this.onPressed,
     this.iconColor,
     this.iconSize = 26,
   });
@@ -48,12 +46,10 @@ class _ThongBaoBellIconState extends State<ThongBaoBellIcon>
       TweenSequenceItem(tween: Tween(begin: 0.06, end: 0.0), weight: 1),
     ]).animate(CurvedAnimation(parent: _ringController, curve: Curves.easeOut));
 
-    _countSub = ThongBaoHubService.instance.onUnreadCountChanged.listen((
-      count,
-    ) {
+    _countSub = ThongBaoHubService.instance.onUnreadCountChanged.listen((count) {
       if (!mounted) return;
       setState(() => _unreadCount = count);
-      // Chỉ rung khi count tăng (có thông báo mới), không rung khi reset về 0
+      // Chỉ rung khi count tăng (có thông báo mới), không rung khi reset về 0.
       if (count > 0) {
         _ringController
           ..reset()
@@ -69,16 +65,10 @@ class _ThongBaoBellIconState extends State<ThongBaoBellIcon>
     super.dispose();
   }
 
-  // void _handlePressed() {
-  //   ThongBaoHubService.instance.resetUnreadCount();
-  //   widget.onPressed?.call();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: 'Thông báo',
-      // onPressed: widget.onPressed != null ? _handlePressed : null,
       onPressed: AppNavigation.goNotification,
       icon: Stack(
         clipBehavior: Clip.none,
@@ -97,7 +87,11 @@ class _ThongBaoBellIconState extends State<ThongBaoBellIcon>
             ),
           ),
           if (_unreadCount > 0)
-            Positioned(top: -4, right: -6, child: _Badge(count: _unreadCount)),
+            Positioned(
+              top: -4,
+              right: -6,
+              child: _Badge(count: _unreadCount),
+            ),
         ],
       ),
     );
@@ -113,7 +107,8 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
-        color: Colors.red,
+        // FIX: AppColors.error thay vì Colors.red hardcode.
+        color: AppColors.error,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: Theme.of(context).scaffoldBackgroundColor,
@@ -122,11 +117,10 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         count > 99 ? '99+' : '$count',
-        style: const TextStyle(
-          color: Colors.white,
+        style: AppTypography.captionSmall.copyWith(
+          color: AppColors.textOnPrimary,
+          fontWeight: FontWeight.w700,
           fontSize: 10,
-          fontWeight: FontWeight.w600,
-          height: 1.2,
         ),
       ),
     );

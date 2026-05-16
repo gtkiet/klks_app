@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../models/thong_bao_model.dart';
 import '../services/thong_bao_service.dart';
 import '../services/thong_bao_hub_service.dart';
-// import 'thong_bao_detail_screen.dart';
+import 'thong_bao_detail_screen.dart';
+
+import 'package:klks_app/design/design.dart';
 
 class ThongBaoListScreen extends StatefulWidget {
   const ThongBaoListScreen({super.key});
@@ -36,10 +38,10 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
     _loadData(reset: true);
     _scrollController.addListener(_onScroll);
 
-    // Reset badge khi user mở màn hình này
+    // Reset badge khi user mở màn hình này.
     ThongBaoHubService.instance.resetUnreadCount();
 
-    // Lắng nghe real-time event — reload trang đầu khi có thông báo mới
+    // Lắng nghe real-time event — reload trang đầu khi có thông báo mới.
     _hubSub = ThongBaoHubService.instance.onThongBaoMoi.listen((event) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,9 +127,9 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
         _pageNumber++;
       });
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.errorMessage!)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage!)),
+      );
     }
   }
 
@@ -144,9 +146,9 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
         _items[index] = item.copyWith(isRead: true, readAt: DateTime.now());
       });
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.errorMessage!)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage!)),
+      );
     }
   }
 
@@ -154,23 +156,18 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Thông báo'),
-            if (_unreadCount > 0) ...[
-              const SizedBox(width: 8),
-              _UnreadBadge(count: _unreadCount),
-            ],
-          ],
-        ),
+    return AppScaffold(
+      appBar: AppTopBar(
+        title: 'Thông báo',
         actions: [
           // Filter toggle
           Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
-              label: const Text('Chưa đọc'),
+              label: Text(
+                'Chưa đọc',
+                style: AppTypography.captionSmall,
+              ),
               selected: _onlyUnread,
               onSelected: (val) {
                 setState(() => _onlyUnread = val);
@@ -182,23 +179,31 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
           StreamBuilder(
             stream: ThongBaoHubService.instance.onConnectionStateChanged,
             builder: (context, _) {
+              final connected = ThongBaoHubService.instance.isConnected;
               return Padding(
                 padding: const EdgeInsets.only(right: 12, left: 4),
                 child: Tooltip(
-                  message: ThongBaoHubService.instance.isConnected
+                  message: connected
                       ? 'Real-time: Đang kết nối'
                       : 'Real-time: Mất kết nối',
                   child: Icon(
                     Icons.circle,
                     size: 10,
-                    color: ThongBaoHubService.instance.isConnected
-                        ? Colors.green
-                        : Colors.grey,
+                    color: connected ? AppColors.success : AppColors.textDisabled,
                   ),
                 ),
               );
             },
           ),
+          // Unread badge bên cạnh title — hiển thị ở actions thay vì trong title
+          // để tránh Row layout phức tạp bên trong AppBar.
+          if (_unreadCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Center(
+                child: _UnreadBadge(count: _unreadCount),
+              ),
+            ),
         ],
       ),
       body: _buildBody(),
@@ -207,28 +212,15 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
 
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 12),
-              Text(_error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => _loadData(reset: true),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Thử lại'),
-              ),
-            ],
-          ),
-        ),
+      return ErrorDisplay(
+        error: _error,
+        onRetry: () => _loadData(reset: true),
       );
     }
 
@@ -237,13 +229,19 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_none, size: 64, color: Colors.grey[400]),
+            Icon(
+              Icons.notifications_none,
+              size: 64,
+              color: AppColors.textDisabled,
+            ),
             const SizedBox(height: 8),
             Text(
               _onlyUnread
                   ? 'Không có thông báo chưa đọc'
                   : 'Không có thông báo nào',
-              style: TextStyle(color: Colors.grey[600]),
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
@@ -252,6 +250,7 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _loadData(reset: true),
+      color: AppColors.primary,
       child: ListView.separated(
         controller: _scrollController,
         itemCount: _items.length + (_isLoadingMore ? 1 : 0),
@@ -260,23 +259,27 @@ class _ThongBaoListScreenState extends State<ThongBaoListScreen> {
           if (index == _items.length) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
             );
           }
           final item = _items[index];
           return _ThongBaoTile(
             item: item,
             onTap: () async {
+              // FIX: Capture item trước async gap để tránh race condition.
+              // Nếu _items bị reload trong lúc _markAsRead đang chạy
+              // (do real-time event), index có thể trỏ đến item khác.
+              final captured = item;
               await _markAsRead(index);
-              // if (!mounted) return;
               if (!context.mounted) return;
-              context.push('detail', extra: _items[index]);
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //     builder: (_) => ThongBaoDetailScreen(item: _items[index]),
-              //   ),
-              // );
+              // FIX: Push đúng type ThongBaoDetailArgs thay vì ThongBaoItem.
+              // Router cast `state.extra as ThongBaoDetailArgs` → crash nếu sai type.
+              context.push(
+                'detail',
+                extra: ThongBaoDetailArgs(item: captured),
+              );
             },
           );
         },
@@ -294,12 +297,14 @@ class _UnreadBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.red,
+        color: AppColors.error,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         count > 99 ? '99+' : '$count',
-        style: const TextStyle(color: Colors.white, fontSize: 11),
+        style: AppTypography.captionSmall.copyWith(
+          color: AppColors.textOnPrimary,
+        ),
       ),
     );
   }
@@ -318,7 +323,7 @@ class _ThongBaoTile extends StatelessWidget {
       child: ColoredBox(
         color: item.isRead
             ? Colors.transparent
-            : Colors.blue.withValues(alpha: 0.05),
+            : AppColors.primaryLight.withAlpha(80),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -332,7 +337,9 @@ class _ThongBaoTile extends StatelessWidget {
                   height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: item.isRead ? Colors.transparent : Colors.blue,
+                    color: item.isRead
+                        ? Colors.transparent
+                        : AppColors.primary,
                   ),
                 ),
               ),
@@ -346,12 +353,9 @@ class _ThongBaoTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.tieuDe,
-                            style: TextStyle(
-                              fontWeight: item.isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                              fontSize: 15,
-                            ),
+                            style: item.isRead
+                                ? AppTypography.bodyMedium
+                                : AppTypography.subhead,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -359,9 +363,8 @@ class _ThongBaoTile extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           item.thoiGianHienThi,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
+                          style: AppTypography.captionSmall.copyWith(
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -371,18 +374,15 @@ class _ThongBaoTile extends StatelessWidget {
                       item.noiDung,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     if (item.tenLoaiThongBao.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Chip(
-                        label: Text(
-                          item.tenLoaiThongBao,
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      AppStatusBadge(
+                        label: item.tenLoaiThongBao,
+                        variant: AppBadgeVariant.info,
                       ),
                     ],
                   ],

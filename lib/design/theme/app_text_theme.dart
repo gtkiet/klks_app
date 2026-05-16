@@ -23,7 +23,12 @@ abstract final class AppTextTheme {
         headlineSmall: AppTypography.subhead,
 
         // ── Title ──────────────────────────────────────────────────────────
-        titleLarge: AppTypography.headline,
+        // FIX: titleLarge đổi từ headline → subhead.
+        // Flutter dùng titleLarge cho ListTile.title, NavigationDrawer header,
+        // v.v. — 18px Bold quá nặng cho các context đó.
+        // AppBar title được override riêng trong AppBarTheme.titleTextStyle
+        // nên không bị ảnh hưởng bởi thay đổi này.
+        titleLarge: AppTypography.subhead,
         titleMedium: AppTypography.subhead,
         titleSmall: AppTypography.subhead,
 

@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import '../models/thong_bao_model.dart';
 import '../services/thong_bao_service.dart';
 
+import 'package:klks_app/design/design.dart';
+
 class ThongBaoDetailArgs {
   final ThongBaoItem item;
-
-  ThongBaoDetailArgs({required this.item});
+  const ThongBaoDetailArgs({required this.item});
 }
 
 class ThongBaoDetailScreen extends StatefulWidget {
@@ -45,27 +46,27 @@ class _ThongBaoDetailScreenState extends State<ThongBaoDetailScreen> {
         _item = _item.copyWith(isRead: true, readAt: DateTime.now());
       });
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.errorMessage!)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage!)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chi tiết thông báo'),
+    return AppScaffold(
+      appBar: AppTopBar(
+        title: 'Chi tiết thông báo',
         actions: [
           if (_isMarkingRead)
             const Padding(
               padding: EdgeInsets.all(14),
               child: SizedBox(
-                width: 20,
-                height: 20,
+                width: AppConstants.spinnerSize,
+                height: AppConstants.spinnerSize,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
+                  strokeWidth: AppConstants.spinnerStrokeWidth,
+                  color: AppColors.primary,
                 ),
               ),
             )
@@ -74,57 +75,60 @@ class _ThongBaoDetailScreenState extends State<ThongBaoDetailScreen> {
               padding: const EdgeInsets.only(right: 12),
               child: Icon(
                 _item.isRead ? Icons.done_all : Icons.circle_outlined,
-                color: _item.isRead ? Colors.green : Colors.grey,
+                color: _item.isRead ? AppColors.success : AppColors.textDisabled,
               ),
             ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: AppSpacing.insetAll16,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Badge loại thông báo
             if (_item.tenLoaiThongBao.isNotEmpty) ...[
-              Chip(
-                avatar: const Icon(Icons.label_outline, size: 16),
-                label: Text(_item.tenLoaiThongBao),
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              AppStatusBadge(
+                label: _item.tenLoaiThongBao,
+                variant: AppBadgeVariant.info,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
             ],
 
             // Tiêu đề
             Text(
               _item.tieuDe,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                height: 1.4,
-              ),
+              style: AppTypography.headline,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
 
-            // Thời gian tạo & đọc
+            // Thời gian tạo & trạng thái đọc
             Row(
               children: [
                 const Icon(
                   Icons.access_time_outlined,
                   size: 14,
-                  color: Colors.grey,
+                  color: AppColors.textSecondary,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   _item.thoiGianHienThi,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  style: AppTypography.captionSmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 if (_item.isRead) ...[
-                  const SizedBox(width: 16),
-                  const Icon(Icons.done_all, size: 14, color: Colors.green),
+                  const SizedBox(width: AppSpacing.md),
+                  const Icon(
+                    Icons.done_all,
+                    size: 14,
+                    color: AppColors.success,
+                  ),
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     'Đã đọc',
-                    style: TextStyle(color: Colors.green, fontSize: 13),
+                    style: AppTypography.captionSmall.copyWith(
+                      color: AppColors.success,
+                    ),
                   ),
                 ],
               ],
@@ -135,11 +139,11 @@ class _ThongBaoDetailScreenState extends State<ThongBaoDetailScreen> {
             // Nội dung
             Text(
               _item.noiDung,
-              style: const TextStyle(fontSize: 15, height: 1.7),
+              style: AppTypography.body.copyWith(height: 1.7),
             ),
 
-            // _TODO: parse metadata JSON để điều hướng đến màn hình liên quan
-            // Ví dụ: nếu loaiThongBaoId == 1 → navigate đến màn hình hóa đơn
+            // TODO: parse metadata JSON để điều hướng đến màn hình liên quan.
+            // Ví dụ: nếu loaiThongBaoId == 1 → navigate đến màn hình hóa đơn:
             // context.push('/hoa-don/${_item.referenceId}')
           ],
         ),

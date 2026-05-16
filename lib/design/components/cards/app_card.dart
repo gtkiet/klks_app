@@ -1,7 +1,6 @@
 // lib/design/components/cards/app_card.dart
 
 import 'package:flutter/material.dart';
-
 import 'package:klks_app/design/tokens/colors.dart';
 import 'package:klks_app/design/tokens/radius.dart';
 import 'package:klks_app/design/tokens/elevation.dart';

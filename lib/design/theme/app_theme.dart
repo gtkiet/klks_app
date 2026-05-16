@@ -43,7 +43,7 @@ abstract final class AppTheme {
       titleTextStyle: AppTypography.headline.copyWith(
         color: AppColors.textPrimary,
       ),
-      systemOverlayStyle: SystemUiOverlayStyle(
+      systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
@@ -141,6 +141,9 @@ abstract final class AppTheme {
       color: AppColors.surface,
       elevation: AppElevation.cardElevation,
       shadowColor: const Color(0x0D000000),
+      // FIX: surfaceTint transparent để card không bị nhuộm màu primary
+      // khi Material3 tự apply elevation tint.
+      surfaceTintColor: Colors.transparent,
       shape: AppRadius.cardShape,
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -150,6 +153,8 @@ abstract final class AppTheme {
     dialogTheme: DialogThemeData(
       backgroundColor: AppColors.surface,
       elevation: AppElevation.dialogElevation,
+      // FIX: surfaceTint transparent — tương tự card.
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.card),
       titleTextStyle: AppTypography.headline.copyWith(
         color: AppColors.textPrimary,
@@ -163,6 +168,8 @@ abstract final class AppTheme {
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.inputFill,
       selectedColor: AppColors.primaryLight,
+      // FIX: Thêm disabledColor để chip disabled có màu nhất quán.
+      disabledColor: AppColors.secondaryLight,
       labelStyle: AppTypography.caption,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       shape: const StadiumBorder(),
@@ -184,6 +191,8 @@ abstract final class AppTheme {
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.textPrimary,
       contentTextStyle: AppTypography.body.copyWith(color: AppColors.surface),
+      // FIX: Thêm actionTextColor để SnackBar action button có màu đúng.
+      actionTextColor: AppColors.primaryLight,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonSmall),
       behavior: SnackBarBehavior.floating,
     ),

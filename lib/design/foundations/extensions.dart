@@ -2,8 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../tokens/colors.dart';
-// import '../tokens/spacing.dart';
-// import '../tokens/typography.dart';
 
 /// PKK Resident - Extension helpers
 ///
@@ -11,8 +9,8 @@ import '../tokens/colors.dart';
 ///
 /// Usage:
 /// ```dart
-/// context.colors.primary
-/// context.textTheme.headline
+/// context.colorScheme.primary
+/// context.textTheme.bodyMedium
 /// 16.0.verticalSpace
 /// ```
 

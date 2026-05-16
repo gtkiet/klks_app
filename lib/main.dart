@@ -3,8 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// import 'core/storage/user_session.dart';
+import 'core/storage/user_session.dart';
 import 'core/navigation/app_router.dart';
+import 'core/network/api_client.dart';
+
+import 'features/auth/services/auth_service.dart';
 
 import 'design/design.dart';
 
@@ -13,7 +16,12 @@ Future<void> main() async {
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // await UserSession.instance.load();
+  await UserSession.instance.load();
+
+  ApiClient.instance.setAuthCallbacks(
+    onRefresh: () => AuthService.instance.refreshToken(),
+    onLogout: () => AuthService.instance.logout(),
+  );
 
   runApp(const App());
 }

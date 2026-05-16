@@ -6,6 +6,7 @@ import 'package:klks_app/design/tokens/colors.dart';
 import 'package:klks_app/design/tokens/typography.dart';
 import 'package:klks_app/design/tokens/radius.dart';
 import 'package:klks_app/design/foundations/constants.dart';
+import 'package:klks_app/design/components/buttons/app_button.dart';
 
 /// Badge display variants.
 enum AppBadgeVariant { success, warning, error, info }
@@ -77,6 +78,14 @@ class AppStatusBadge extends StatelessWidget {
 ///   cancelLabel: 'Cancel',
 /// );
 /// if (confirmed == true) { ... }
+///
+/// // Destructive action
+/// final confirmed = await AppConfirmDialog.show(
+///   context,
+///   title: 'Xoá tài khoản?',
+///   message: 'Hành động này không thể hoàn tác.',
+///   isDangerous: true,
+/// );
 /// ```
 class AppConfirmDialog extends StatelessWidget {
   const AppConfirmDialog({
@@ -93,7 +102,7 @@ class AppConfirmDialog extends StatelessWidget {
   final String confirmLabel;
   final String cancelLabel;
 
-  /// If true, the confirm button is rendered in error/danger color.
+  /// If true, confirm button renders as [AppButtonVariant.danger] (red).
   final bool isDangerous;
 
   static Future<bool?> show(
@@ -121,22 +130,24 @@ class AppConfirmDialog extends StatelessWidget {
     return AlertDialog(
       title: Text(title),
       content: Text(message),
+      // FIX: Dùng AppButton thay vì ElevatedButton trực tiếp để đồng nhất
+      // với design system. isDangerous map sang AppButtonVariant.danger.
       actions: [
-        TextButton(
+        AppButton(
+          label: cancelLabel,
+          variant: AppButtonVariant.outline,
+          expanded: false,
+          height: 40,
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(
-            cancelLabel,
-            style: AppTypography.buttonLabel.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
         ),
-        ElevatedButton(
+        AppButton(
+          label: confirmLabel,
+          variant: isDangerous
+              ? AppButtonVariant.danger
+              : AppButtonVariant.primary,
+          expanded: false,
+          height: 40,
           onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isDangerous ? AppColors.error : AppColors.primary,
-          ),
-          child: Text(confirmLabel, style: AppTypography.buttonLabel),
         ),
       ],
     );
@@ -168,13 +179,18 @@ class AppLoadingIndicator extends StatelessWidget {
     return Stack(
       children: [
         child,
+        // FIX: Dùng Positioned.fill để overlay fill toàn bộ Stack.
+        // ColoredBox không tự stretch — nếu không có Positioned.fill thì
+        // overlay chỉ wrap theo size của Center widget bên trong.
         if (isLoading)
-          const ColoredBox(
-            color: Color(0x66FFFFFF),
-            child: Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-                strokeWidth: AppConstants.spinnerStrokeWidth,
+          Positioned.fill(
+            child: ColoredBox(
+              color: const Color(0x66FFFFFF),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: AppConstants.spinnerStrokeWidth,
+                ),
               ),
             ),
           ),

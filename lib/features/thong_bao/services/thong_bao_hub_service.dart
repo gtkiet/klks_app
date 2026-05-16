@@ -60,9 +60,8 @@ class ThongBaoHubService {
       await Permission.notification.request();
     }
 
-    // FIX: initialize() nhận positional parameter, không phải named `settings`.
     await _localNotif.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: true,
@@ -97,10 +96,10 @@ class ThongBaoHubService {
         DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF;
 
     await _localNotif.show(
-      notifId,
-      event.tieuDe,
-      event.noiDung,
-      const NotificationDetails(
+      id: notifId,
+      title: event.tieuDe,
+      body: event.noiDung,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'thong_bao_channel',
           'Thông báo',
@@ -211,9 +210,7 @@ class ThongBaoHubService {
           (data['TieuDe'] as String?) ??
           'Thông báo mới',
       noiDung:
-          (data['noiDung'] as String?) ??
-          (data['NoiDung'] as String?) ??
-          '',
+          (data['noiDung'] as String?) ?? (data['NoiDung'] as String?) ?? '',
       phanBoThongBaoId:
           (data['phanBoThongBaoId'] as int?) ??
           (data['PhanBoThongBaoId'] as int?),
@@ -225,9 +222,11 @@ class ThongBaoHubService {
     // FIX: Explicit unawaited để rõ ràng đây là fire-and-forget có chủ đích.
     // Exception trong _showLocalNotif bị nuốt — acceptable vì notification
     // là best-effort, không nên crash luồng chính.
-    unawaited(_showLocalNotif(event).catchError((e) {
-      debugPrint('[ThongBaoHub] _showLocalNotif error: $e');
-    }));
+    unawaited(
+      _showLocalNotif(event).catchError((e) {
+        debugPrint('[ThongBaoHub] _showLocalNotif error: $e');
+      }),
+    );
   }
 
   void resetUnreadCount() {

@@ -18,8 +18,8 @@ import '../../thanh_vien/screens/tabs/tv_lich_su_yeu_cau_tab.dart';
 import '../../thanh_vien/screens/yeu_cau_cu_tru_form_screen.dart';
 
 // ── Phương tiện ───────────────────────────────────────────────────────────
-import '../../phuong_tien/widgets/phuong_tien_list_tab.dart';
-import '../../phuong_tien/widgets/pt_lich_su_yeu_cau_tab.dart';
+import '../../phuong_tien/screens/tabs/phuong_tien_list_tab.dart';
+import '../../phuong_tien/screens/tabs/pt_lich_su_yeu_cau_tab.dart';
 import '../../phuong_tien/screens/tao_yeu_cau_phuong_tien_screen.dart';
 
 class CuTruDetailArgs {
